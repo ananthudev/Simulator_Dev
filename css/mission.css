@@ -38,13 +38,15 @@
         font-weight: 600;
     }
 
-    /* Mission Page Layout */
+    
     .mission-page {
         display: flex;
         height: 100vh;
+        position: relative;
         background: url("../assets/img/missionbg.png") no-repeat center center/cover;
     }
-
+    
+    /* Add an overlay for transparency */
     .sidebar {
         width: 250px;
         background: rgba(26, 26, 26, 0.8); /* Dark but slightly transparent */
@@ -78,14 +80,24 @@
     Content Area */
     .mission-content {
         flex-grow: 1;
-        padding: 20px;
+        padding: 100px 20px 20px; /* Add space from the navbar */
         background: #cfd1d2;
+        display: flex; 
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+        text-align: center; /* Center text inside */
+        flex-direction: column; /* Stack elements vertically */
+        min-height: calc(100vh - 80px); /* Adjust height to consider the navbar */
     }
-
+    
     .mission-content h2 {
+        font-size: 2.5rem;  /* Increase text size */
+        font-weight: bold; /* Make text bold */
+        text-transform: uppercase; /* Make text ALL CAPS */
         color: #ffffff;
+        margin-top: 20px; /* Add space from the navbar */
+        margin-left: 400px;
     }
-
     /* Colors */
     :root {
         --navbartrans: rgba(7, 10, 14, 1);
