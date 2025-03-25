@@ -44,6 +44,7 @@
         height: 100vh;
         position: relative;
         background: url("../assets/img/missionbg.png") no-repeat center center/cover;
+
     }
     
     /* Add an overlay for transparency */
@@ -107,30 +108,19 @@
     margin: 20px 0; /* Add space from the top */
 }
 
-
-/* Form Container */
-.form-container {
-    background: rgba(255, 255, 255, 0.1); /* Semi-transparent */
-    backdrop-filter: blur(10px); /* Blur effect */
-    border-radius: 12px; /* Rounded edges */
-    padding: 30px;
-    width: 600px; /* Adjust width */
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Form Fields */
 /* Form Container */
 .form-container {
     display: flex;
-    flex-direction: column;
+    margin-bottom: 10px;
+    margin-top: -80px;
+    flex-direction: column ;
     gap: 20px;
-    padding: 40px;
-    width: 500px;
+    padding: 20px;
+    width: 450px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     backdrop-filter: blur(10px);
+    bottom: 30px;
 }
 
 .form-fields {
