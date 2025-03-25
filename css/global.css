@@ -8,11 +8,13 @@
 }
 
 html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
-    height: 100%;
     font-family: "Poppins", sans-serif;
 }
+
+
 
 /* Generic Focus Style */
 button:focus-visible, a:focus-visible {
