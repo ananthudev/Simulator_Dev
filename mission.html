@@ -32,17 +32,61 @@
         <aside class="sidebar">
             <h1>MISSION</h1>
             <ul class="menu-tree">
-                <li><a href="#details">└── Details</a></li>
+                <li><a href="#" id="details-btn">└── Details</a></li>
+
                 <li><a href="#environment">└── Environment</a></li>
                 <li><a href="#vehicle-configuration">└── Vehicle Configuration</a></li>
             </ul>
         </aside>
 
         <section class="mission-content">
-            <h2>Welcome to Mission Creation</h2>
+            <h2 id="welcome-message">Welcome to Mission Creation</h2>
+
+            <!-- form starts here -->
+            <form id="mission-form">
+                <div class="form-container">
+                    <!-- Form Fields -->
+                    <div class="form-fields">
+                        <label for="mission-name" class="label">Mission:</label>
+                        <input type="text" id="mission-name" class="input-field" placeholder="Enter mission name">
+
+                        <label for="modes" class="label">Modes:</label>
+                        <select id="modes" class="input-field">
+                            <option value="Mode">Please select a Mode</option>
+                            <option value="simulation">Simulation</option>
+                            <option value="optimization">Optimization</option>
+                        </select>
+
+                        <label for="tracking" class="label">Tracking:</label>
+                        <div class="toggle-container">
+                            <input type="checkbox" id="tracking" class="toggle-input">
+                            <label for="tracking" class="toggle-slider"></label>
+                        </div>
+
+                        <label for="mission-date" class="label">Date:</label>
+                        <input type="date" id="mission-date" class="input-field">
+
+                        <label for="mission-time" class="label">Time (HH:MM:SS):</label>
+                        <input type="time" id="mission-time" class="input-field">
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div class="upload-section">
+                        <button type="button" class="upload-btn">Upload JSON</button>
+                    </div>
+                </div>
+
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button type="reset" class="clear-btn">Clear</button>
+                    <button type="submit" class="next-btn">Next Phase</button>
+                </div>
+            </form>
+            <!-- form ends here -->
         </section>
     </main>
 
+    <script src="js/mission.js"></script>
 </body>
 
 </html>
