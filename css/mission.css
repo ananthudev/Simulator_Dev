@@ -246,6 +246,11 @@
     color: #ffffff;
 }
 
+/* stage 1 form hidden */
+.hidden {
+    display: none;
+}
+
 
     /* Colors */
     :root {
