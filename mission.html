@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +17,7 @@
         </div>
         <nav class="main-nav">
             <ul>
-                <li><a href="#create-mission">CREATE MISSION</a></li>
+                <li><a href="#" id="">CREATE MISSION</a></li>
                 <li><a href="#home">HOME</a></li>
                 <li><a href="#account">ACCOUNT</a></li>
             </ul>
@@ -32,10 +29,20 @@
         <aside class="sidebar">
             <h1>MISSION</h1>
             <ul class="menu-tree">
+                <!-- done -->
                 <li><a href="#" id="details-btn">└── Details</a></li>
+                <!-- done -->
 
-                <li><a href="#environment">└── Environment</a></li>
-                <li><a href="#vehicle-configuration">└── Vehicle Configuration</a></li>
+                <!-- <li><a href="#environment" >└── Environment</a></li> -->
+                <li><a href="#" id="enviro-btn">└── Environment</a></li>
+                <li>
+                    <a href="#" id="vehicle-btn">└── Vehicle Configuration</a>
+                    <!-- add stages -->
+                    <ul id="vehicle-stages" class="submenu">
+                        <!-- New stages will be added here -->
+                    </ul>
+                </li>
+
             </ul>
         </aside>
 
@@ -84,6 +91,99 @@
                 </div>
             </form>
             <!-- form ends here -->
+
+            <!-- enviro-form starts here -->
+            <form id="enviro-form">
+                <div class="form-container">
+                    <!-- Form Fields -->
+                    <div class="form-fields">
+                        <label for="planets" class="label">Planets:</label>
+                        <select id="planets" class="input-field">
+                            <option value="Environment">Choose a Planet</option>
+                            <option value="earth">Earth</option>
+                            <option value="mars">Mars</option>
+                            <option value="mars">Moon</option>
+                        </select>
+
+                        <label for="gravity" class="label">Atmospheric Models:</label>
+                        <select id="planets" class="input-field">
+                            <option value="Environment">Choose a Model</option>
+                            <option value="earth">Earth</option>
+                            <option value="mars">Mars</option>
+                            <option value="mars">Moon</option>
+                        </select>
+
+
+                        <label for="atmosphere" class="label">Gravity Parameter:</label>
+                        <input type="text" id="order" class="input-field" placeholder="Order">
+
+                        <!-- <label for="temperature" class="label">Temperature:</label> -->
+                        <input type="number" id="degree" class="input-field" placeholder="Degree">
+
+                        <label for="core" class="label">Core:</label>
+                        <select id="core" class="input-field">
+                            <option value="choose_core">Please select a model</option>
+                            <option value="earth">Earth</option>
+                            <option value="mars">Mars</option>
+                            <option value="mars">Moon</option>
+                        </select>
+                        <!-- <input type="number" id="core" class="input-field" placeholder="Please select a Model"> -->
+                    </div>
+                </div>
+
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button type="reset" class="clear-btn">Clear</button>
+                    <button type="submit" class="next-btn">Next Phase</button>
+                </div>
+            </form>
+            <!-- enviro-form ends here -->
+
+            <!-- vehicle-form starts here -->
+            <form id="vehicle-form">
+                <div class="form-container">
+                    <!-- Form Fields -->
+                    <div class="form-fields">
+
+                        <label for="vehicle-name" class="label">Vehicle Name:</label>
+                        <input type="text" id="vehicle-name" class="input-field" placeholder="Enter vehicle name">
+
+                        <label for="vehicle-type" class="label">Vehicle Type:</label>
+                        <select id="vehicle-type" class="input-field">
+                            <option value="Vehicle Type">Please select a Vehicle Type</option>
+                            <option value="ascend">Ascend</option>
+                            <option value="descend">Descend</option>
+                        </select>
+
+                        <label for="integration-method" class="label">Integration-Method:</label>
+                        <select id="integration-method" class="input-field">
+                            <option value="Integration Method">Please select an Integration Method</option>
+                            <option value="euler">Euler</option>
+                            <option value="runge-kutta">Runge-Kutta</option>
+
+
+                            <label for="time-step" class="label">Time Step:</label>
+                            <input type="number" id="vehicle-weight" class="input-field"
+                                placeholder="Enter Time Step in Seconds">
+
+                            <label for="effective-alt" class="label">Effective Altitude:</label>
+                            <input type="number" id="effective-alt" class="input-field"
+                                placeholder="Enter Effective Altitude">
+                            <label for="add_stage" class="label">Add Stage:</label>
+                            <button type="button" id="add-stage-btn" class="add-stg">Add Stage</button>
+
+
+                    </div>
+                </div>
+
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button type="reset" class="clear-btn">Clear</button>
+                    <button type="submit" class="next-btn">Next Phase</button>
+                </div>
+            </form>
+            <!-- vehicle-form ends here -->
+
         </section>
     </main>
 
