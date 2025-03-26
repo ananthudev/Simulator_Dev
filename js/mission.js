@@ -171,3 +171,59 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+
+//  Vehicle Dynamic Field Display
+document.addEventListener("DOMContentLoaded", function () {
+    const vehicleType = document.getElementById("vehicle-type");
+    const dataOptions = document.getElementById("data-options");
+    const stateFields = document.getElementById("state-fields");
+    const launchFieldsAscend = document.getElementById("launch-fields-ascend");
+    const launchFieldsProjectile = document.getElementById("launch-fields-projectile");
+    const stateRadio = document.getElementById("state-data");
+    const launchRadio = document.getElementById("launch-point");
+
+    // Function to reset radio buttons and hide all fields
+    function resetFields() {
+        stateFields.classList.add("hidden");
+        launchFieldsAscend.classList.add("hidden");
+        launchFieldsProjectile.classList.add("hidden");
+        stateRadio.checked = false;
+        launchRadio.checked = false;
+    }
+
+    // Show or Hide Options for ASCEND & PROJECTILE
+    vehicleType.addEventListener("change", function () {
+        resetFields(); // Reset fields when dropdown changes
+
+        if (vehicleType.value === "ascend" || vehicleType.value === "projectile") {
+            dataOptions.classList.remove("hidden");
+        } else {
+            dataOptions.classList.add("hidden");
+        }
+    });
+
+    // Show State or Launch Fields Based on Selection
+    stateRadio.addEventListener("change", function () {
+        if (stateRadio.checked) {
+            stateFields.classList.remove("hidden");
+            launchFieldsAscend.classList.add("hidden");
+            launchFieldsProjectile.classList.add("hidden");
+        }
+    });
+
+    launchRadio.addEventListener("change", function () {
+        if (launchRadio.checked) {
+            stateFields.classList.add("hidden");
+
+            if (vehicleType.value === "ascend") {
+                launchFieldsAscend.classList.remove("hidden");
+                launchFieldsProjectile.classList.add("hidden");
+            } else if (vehicleType.value === "projectile") {
+                launchFieldsProjectile.classList.remove("hidden");
+                launchFieldsAscend.classList.add("hidden");
+            }
+        }
+    });
+});
+    

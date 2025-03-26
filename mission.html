@@ -172,7 +172,6 @@
             <!-- vehicle-form starts here -->
             <form id="vehicle-form">
                 <div class="form-container">
-                    <!-- Form Fields -->
                     <div class="form-fields">
 
                         <label for="vehicle-name" class="label">Vehicle Name:</label>
@@ -180,29 +179,96 @@
 
                         <label for="vehicle-type" class="label">Vehicle Type:</label>
                         <select id="vehicle-type" class="input-field">
-                            <option value="Vehicle Type">Please select a Vehicle Type</option>
-                            <option value="ascend">Ascend</option>
-                            <option value="descend">Descend</option>
+                            <option value="">Please select a Vehicle Type</option>
+                            <option value="ascend">ASCEND</option>
+                            <option value="orbital">ORBITAL</option>
+                            <option value="projectile">PROJECTILE</option>
                         </select>
 
-                        <label for="integration-method" class="label">Integration-Method:</label>
+                        <!-- State or Launch Point Selection (ASCEND & PROJECTILE) -->
+                        <div id="data-options" class="hidden">
+                            <label class="label">Choose Data Input Method:</label>
+                            <div class="radio-group">
+                                <input type="radio" id="state-data" name="data-method" value="states">
+                                <label for="state-data">States</label>
+
+                                <input type="radio" id="launch-point" name="data-method" value="launch">
+                                <label for="launch-point">Launch Point Data</label>
+                            </div>
+
+                            <!-- State Data Fields (Shared) -->
+                            <div id="state-fields" class="hidden">
+                                <label class="label">State Data:</label>
+                                <div class="grid-container">
+                                    <input type="number" id="X" class="input-field" placeholder="X">
+                                    <input type="number" id="Y" class="input-field" placeholder="Y">
+                                    <input type="number" id="Z" class="input-field" placeholder="Z">
+                                    <input type="number" id="U" class="input-field" placeholder="U">
+                                    <input type="number" id="V" class="input-field" placeholder="V">
+                                    <input type="number" id="W" class="input-field" placeholder="W">
+                                </div>
+
+                                <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                                <div class="grid-container">
+                                    <input type="number" id="q0" class="input-field" placeholder="q0">
+                                    <input type="number" id="q1" class="input-field" placeholder="q1">
+                                    <input type="number" id="q2" class="input-field" placeholder="q2">
+                                    <input type="number" id="q3" class="input-field" placeholder="q3">
+                                </div>
+                            </div>
+
+                            <!-- Launch Point Data Fields (ASCEND & PROJECTILE) -->
+                            <div id="launch-fields-ascend" class="hidden">
+                                <label class="label">Launch Point Data (ASCEND):</label>
+                                <div class="grid-container">
+                                    <input type="number" id="lat" class="input-field" placeholder="Latitude">
+                                    <input type="number" id="long" class="input-field" placeholder="Longitude">
+                                    <input type="number" id="azimuth" class="input-field" placeholder="Azimuth">
+                                    <input type="number" id="msl" class="input-field" placeholder="MSL">
+                                    <input type="number" id="lp-height" class="input-field" placeholder="LP Height">
+                                    <input type="number" id="launch-angle" class="input-field"
+                                        placeholder="Launch Set Angle">
+                                    <input type="number" id="roll" class="input-field" placeholder="Initial Roll">
+                                    <input type="number" id="pitch" class="input-field" placeholder="Initial Pitch">
+                                    <input type="number" id="yaw" class="input-field" placeholder="Initial Yaw">
+                                </div>
+                            </div>
+
+                            <div id="launch-fields-projectile" class="hidden">
+                                <label class="label">Launch Point Data (PROJECTILE):</label>
+                                <div class="grid-container">
+                                    <input type="number" id="lat-proj" class="input-field" placeholder="Latitude">
+                                    <input type="number" id="long-proj" class="input-field" placeholder="Longitude">
+                                    <input type="number" id="msl-proj" class="input-field" placeholder="MSL">
+                                    <input type="number" id="azimuth-proj" class="input-field" placeholder="Azimuth">
+
+                                    <input type="number" id="elevation" class="input-field" placeholder="Elevation">
+                                    <input type="number" id="launch-angle-proj" class="input-field"
+                                        placeholder="Launch Set Angle">
+                                    <input type="number" id="initial-velocity" class="input-field"
+                                        placeholder="Initial Velocity">
+                                </div>
+                            </div>
+                        </div>
+
+                        <label for="integration-method" class="label">Integration Method:</label>
                         <select id="integration-method" class="input-field">
-                            <option value="Integration Method">Please select an Integration Method</option>
-                            <option value="euler">Euler</option>
-                            <option value="runge-kutta">Runge-Kutta</option>
+                            <option value="">Please select an Integration Method</option>
+                            <option value="euler">EULER</option>
+                            <option value="rk4">RK4</option>
+                            <option value="rkdp">RKDP</option>
+                        </select>
 
+                        <label for="time-step" class="label">Time Step:</label>
+                        <input type="number" id="time-step" class="input-field"
+                            placeholder="Enter Time Step in Seconds">
 
-                            <label for="time-step" class="label">Time Step:</label>
-                            <input type="number" id="vehicle-weight" class="input-field"
-                                placeholder="Enter Time Step in Seconds">
+                        <label for="effective-alt" class="label">Effective Altitude:</label>
+                        <input type="number" id="effective-alt" class="input-field"
+                            placeholder="Enter Effective Altitude">
 
-                            <label for="effective-alt" class="label">Effective Altitude:</label>
-                            <input type="number" id="effective-alt" class="input-field"
-                                placeholder="Enter Effective Altitude">
-                            <label for="add_stage" class="label">Add Stage:</label>
-                            <button type="button" id="add-stage-btn" class="add-stg">Add Stage</button>
-
-
+                        <label for="add_stage" class="label">Add Stage:</label>
+                        <button type="button" id="add-stage-btn" class="add-stg">Add Stage</button>
                     </div>
                 </div>
 
@@ -212,6 +278,8 @@
                     <button type="submit" class="next-btn">Next Phase</button>
                 </div>
             </form>
+
+
             <!-- vehicle-form ends here -->
 
         </section>
