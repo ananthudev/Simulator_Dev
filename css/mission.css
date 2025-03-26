@@ -109,19 +109,23 @@
 }
 
 /* Form Container */
+/* Center the form container */
 .form-container {
     display: flex;
-    margin-bottom: 10px;
-    margin-top: -80px;
-    flex-direction: column ;
+    flex-direction: column;
     gap: 20px;
-    padding: 20px;
-    width: 450px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    padding: 30px;
+    width: 500px; /* Adjust width for better spacing */
+    max-width: 80%;
+    background: rgba(26, 26, 26, 0.7); /* Transparent dark */
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    bottom: 30px;
+    align-items: center;
+    justify-content: center;
+    margin: auto; /* Center the form horizontally */
 }
+
 
 .form-fields {
     display: flex;
@@ -150,12 +154,11 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
-/* Toggle */
-.toggle-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.input-field option {
+    background: #1a1a1a; /* Dark background */
+    color: white; /* Ensure text is visible */
 }
+
 
 /* Upload JSON */
 .upload-section {
@@ -164,7 +167,7 @@
     top: 50%;
 }
 
-.upload-btn {
+/* .upload-btn {
     padding: 12px 20px;
     border: none;
     border-radius: 6px;
@@ -181,7 +184,7 @@
 
 .upload-btn:hover {
     background: #86a6c7;
-}
+} */
 
 /* Buttons */
 .button-group {
@@ -205,6 +208,110 @@
 .clear-btn:hover, .next-btn:hover {
     background: rgba(255, 255, 255, 0.5);
 }
+
+/* upload csv for enviro form */
+/* Atmospheric Model and Upload Container */
+.atmosphere-container {
+    gap: 50px;
+    justify-content: flex-start; /* Align items neatly */
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+/* OR Text */
+.or-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* CSV File Upload Button use it globally */
+/* Upload Data Container */
+/* Upload Data Container */
+/* Upload Button */
+.upload-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.upload-label {
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* File Upload Button */
+.upload {
+    border: none;
+    white-space: nowrap;
+    padding: 10.4px;
+    background-color: #488aec;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    text-transform: uppercase;
+    align-items: center;
+    border-radius: 0.5rem;
+    user-select: none;
+    display: flex;
+    gap: 8px;
+    box-shadow: 0 4px 6px -1px #488aec31, 0 2px 4px -1px #488aec17;
+    transition: all 0.6s ease;
+}
+
+.upload:hover {
+    box-shadow: 0 10px 15px -3px #488aec4f, 0 4px 6px -2px #488aec17;
+}
+
+.upload:active {
+    opacity: 0.85;
+    box-shadow: none;
+    background-color: rgb(79, 149, 214);
+    transform: scale(0.989);
+}
+
+.upload svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    position: relative;
+}
+
+.upload span {
+    position: relative;
+    left: -5px;
+}
+
+.upload h3 {
+    text-decoration: none;
+    font-weight: 200;
+    font-size: 12px;
+    text-transform: lowercase;
+    position: absolute;
+    top: 45px;
+    left: -5px;
+}
+
+/* File Name Input */
+/* File Name Input */
+.filename {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 180px;
+    text-align: center;
+    margin-top: 5px;
+}
+
+
+
+
+
 
 /* add stage button css */
 .add-stg {
@@ -261,6 +368,9 @@
     margin-bottom: 15px;
     text-transform: uppercase;
 }
+
+
+
 
     /* Colors */
     :root {

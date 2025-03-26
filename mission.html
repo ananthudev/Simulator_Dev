@@ -8,7 +8,10 @@
     <link rel="stylesheet" href="css/mission.css">
     <!-- demo css remove later -->
     <link rel="stylesheet" href="css/demo.css">
+    <!-- demo remove -->
     <link rel="stylesheet" href="css/launchbutton.css">
+    <link rel="stylesheet" href="css/toggle.css">
+
 
 </head>
 
@@ -77,11 +80,12 @@
                             <label for="tracking" class="toggle-slider"></label>
                         </div>
 
+
                         <label for="mission-date" class="label">Date:</label>
                         <input type="date" id="mission-date" class="input-field">
 
                         <label for="mission-time" class="label">Time (HH:MM:SS):</label>
-                        <input type="time" id="mission-time" class="input-field">
+                        <input type="time" id="mission-time" class="input-field" step="1">
                     </div>
 
 
@@ -102,39 +106,57 @@
             <!-- enviro-form starts here -->
             <form id="enviro-form">
                 <div class="form-container">
-                    <!-- Form Fields -->
                     <div class="form-fields">
                         <label for="planets" class="label">Planets:</label>
                         <select id="planets" class="input-field">
                             <option value="Environment">Choose a Planet</option>
                             <option value="earth">Earth</option>
                             <option value="mars">Mars</option>
-                            <option value="mars">Moon</option>
+                            <option value="moon">Moon</option>
                         </select>
 
-                        <label for="gravity" class="label">Atmospheric Models:</label>
-                        <select id="planets" class="input-field">
-                            <option value="Environment">Choose a Model</option>
-                            <option value="earth">Earth</option>
-                            <option value="mars">Mars</option>
-                            <option value="mars">Moon</option>
-                        </select>
+                        <label for="atmos-model" class="label">Atmospheric Models:</label>
+                        <div class="atmosphere-container">
+                            <select id="atmos-model" class="input-field">
+                                <option value="Environment">Choose a Model</option>
+                                <option value="atmos_76">atmos_76</option>
+                                <option value="NRLMSISE-00">NRLMSISE-00</option>
+                                <option value="JB2008">JB2008</option>
+                                <option value="ISA">ISA</option>
+                            </select>
+                            <span class="or-text">OR</span>
+
+                            <div class="upload-data">
+                                <label for="csv-upload" class="upload-label">Upload Model CSV:</label>
+                                <input type="file" id="csv-upload" accept=".csv" style="display: none" />
+                                <button class="upload" id="csv-upload-btn">
+                                    <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-width="2" stroke="#ffffff"
+                                            d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                                            stroke-linejoin="round" stroke-linecap="round"></path>
+                                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                                            stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                                    </svg>
+                                    <span>ADD FILE</span>
+                                </button>
+                                <input type="text" id="csv-filename" class="filename" readonly
+                                    placeholder="No file chosen" />
+                            </div>
+                        </div>
 
 
-                        <label for="atmosphere" class="label">Gravity Parameter:</label>
+                        <label for="gravity" class="label">Gravity Parameter:</label>
                         <input type="text" id="order" class="input-field" placeholder="Order">
-
-                        <!-- <label for="temperature" class="label">Temperature:</label> -->
                         <input type="number" id="degree" class="input-field" placeholder="Degree">
 
-                        <label for="core" class="label">Core:</label>
+                        <label for="core" class="label">COE Info:</label>
                         <select id="core" class="input-field">
                             <option value="choose_core">Please select a model</option>
-                            <option value="earth">Earth</option>
-                            <option value="mars">Mars</option>
-                            <option value="mars">Moon</option>
+                            <option value="PERIGEE_GC_LATITUDE">PERIGEE_GC_LATITUDE</option>
+                            <option value="RE">RE</option>
+                            <option value="MSL">MSL</option>
                         </select>
-                        <!-- <input type="number" id="core" class="input-field" placeholder="Please select a Model"> -->
                     </div>
                 </div>
 
@@ -144,6 +166,7 @@
                     <button type="submit" class="next-btn">Next Phase</button>
                 </div>
             </form>
+
             <!-- enviro-form ends here -->
 
             <!-- vehicle-form starts here -->
