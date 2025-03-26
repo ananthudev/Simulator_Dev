@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
         missionForm.style.display = "none";
         enviroForm.style.display = "none";
         vehicleForm.style.display = "none";
-        document.querySelectorAll(".stage-form, .motor-form").forEach(form => {
+        document.querySelectorAll(".stage-form, .motor-form, .nozzle-form").forEach(form => {
             form.style.display = "none";
         });
     }
@@ -112,22 +112,24 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("click", function (event) {
         if (event.target.classList.contains("add-motor-btn")) {
             const stageId = event.target.getAttribute("data-stage");
-            addMotor(stageId);
+            addMotorAndNozzle(stageId);
         }
     });
 
-    // Add Motor Function
-    function addMotor(stageId) {
+    // Add Motor & Nozzle Function
+    function addMotorAndNozzle(stageId) {
         const stageMotorsList = document.getElementById(`${stageId}-motors`);
         let motorCount = stageMotorsList.childElementCount + 1;
 
         // Create new Motor entry in the sidebar
         const newMotor = document.createElement("li");
         newMotor.innerHTML = `<a href="#" class="motor-btn" id="${stageId}-motor${motorCount}-btn">└── Motor ${motorCount}</a>
-                              <ul id="${stageId}-motor${motorCount}-nozzles" class="submenu"></ul>`;
+                              <ul id="${stageId}-motor${motorCount}-nozzles" class="submenu">
+                                  <li><a href="#" class="nozzle-btn" id="${stageId}-motor${motorCount}-nozzle1-btn">└── Nozzle 1</a></li>
+                              </ul>`;
         stageMotorsList.appendChild(newMotor);
 
-        // Create corresponding Motor form
+        // Create Motor form
         const motorForm = document.createElement("form");
         motorForm.id = `${stageId}-motor${motorCount}-form`;
         motorForm.classList.add("hidden", "motor-form");
@@ -137,26 +139,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="form-fields">
                     <label class="label">Motor Name:</label>
                     <input type="text" class="input-field" placeholder="Enter Motor Name">
-
-                    <label class="label">Power:</label>
-                    <input type="number" class="input-field" placeholder="Enter Power">
-
-                    <label class="label">Fuel Type:</label>
-                    <input type="text" class="input-field" placeholder="Enter Fuel Type">
-                </div>
-                <div class="button-group">
-                    <button type="reset" class="clear-btn">Clear</button>
-                    <button type="submit" class="next-btn">Next Phase</button>
                 </div>
             </div>
         `;
-
         document.querySelector(".mission-content").appendChild(motorForm);
 
-        // Make Motor clickable to show its form
+        // Create Nozzle form
+        const nozzleForm = document.createElement("form");
+        nozzleForm.id = `${stageId}-motor${motorCount}-nozzle1-form`;
+        nozzleForm.classList.add("hidden", "nozzle-form");
+        nozzleForm.innerHTML = `
+            <div class="form-container">
+                <h2 class="stage-heading">Nozzle 1 - Motor ${motorCount}</h2>
+                <div class="form-fields">
+                    <label class="label">Nozzle Size:</label>
+                    <input type="number" class="input-field" placeholder="Enter Nozzle Size">
+                </div>
+            </div>
+        `;
+        document.querySelector(".mission-content").appendChild(nozzleForm);
+
+        // Show forms on click
         newMotor.querySelector(".motor-btn").addEventListener("click", function (event) {
             event.preventDefault();
             showForm(motorForm);
+        });
+
+        document.getElementById(`${stageId}-motor${motorCount}-nozzle1-btn`).addEventListener("click", function (event) {
+            event.preventDefault();
+            showForm(nozzleForm);
         });
     }
 });
