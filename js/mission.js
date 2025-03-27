@@ -1,82 +1,84 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const welcomeMessage = document.getElementById("welcome-message");
+  const welcomeMessage = document.getElementById("welcome-message");
 
-    // Forms
-    const missionForm = document.getElementById("mission-form");
-    const enviroForm = document.getElementById("enviro-form");
-    const vehicleForm = document.getElementById("vehicle-form");
+  // Forms
+  const missionForm = document.getElementById("mission-form");
+  const enviroForm = document.getElementById("enviro-form");
+  const vehicleForm = document.getElementById("vehicle-form");
 
-    // Buttons
-    const detailsButton = document.getElementById("details-btn");
-    const enviroButton = document.getElementById("enviro-btn");
-    const vehicleButton = document.getElementById("vehicle-btn");
-    const addStageBtn = document.getElementById("add-stage-btn");
-    const vehicleStagesList = document.getElementById("vehicle-stages");
+  // Buttons
+  const detailsButton = document.getElementById("details-btn");
+  const enviroButton = document.getElementById("enviro-btn");
+  const vehicleButton = document.getElementById("vehicle-btn");
+  const addStageBtn = document.getElementById("add-stage-btn");
+  const vehicleStagesList = document.getElementById("vehicle-stages");
 
-    let stageCounter = 1; // Track stage numbers
-    const maxStages = 4; // Maximum allowed stages
+  let stageCounter = 1; // Track stage numbers
+  const maxStages = 4; // Maximum allowed stages
 
-    // Initially hide all forms except welcome message
-    function hideAllForms() {
-        missionForm.style.display = "none";
-        enviroForm.style.display = "none";
-        vehicleForm.style.display = "none";
-        document.querySelectorAll(".stage-form, .motor-form, .nozzle-form").forEach(form => {
-            form.style.display = "none";
-        });
+  // Initially hide all forms except welcome message
+  function hideAllForms() {
+    missionForm.style.display = "none";
+    enviroForm.style.display = "none";
+    vehicleForm.style.display = "none";
+    document
+      .querySelectorAll(".stage-form, .motor-form, .nozzle-form")
+      .forEach((form) => {
+        form.style.display = "none";
+      });
+  }
+  hideAllForms(); // Apply initially
+
+  // Function to show only one form at a time
+  function showForm(formToShow) {
+    hideAllForms();
+    formToShow.style.display = "block";
+    welcomeMessage.style.display = "none";
+  }
+
+  // Navigation buttons event listeners
+  detailsButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    showForm(missionForm);
+  });
+
+  enviroButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    showForm(enviroForm);
+  });
+
+  vehicleButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    showForm(vehicleForm);
+  });
+
+  // Hide "vehicle-stages" initially
+  vehicleStagesList.style.display = "none";
+
+  // Add stages dynamically when "Add Stage" button is clicked
+  addStageBtn.addEventListener("click", function () {
+    if (stageCounter > maxStages) {
+      alert("No further stages allowed. Maximum stages creation reached.");
+      return;
     }
-    hideAllForms(); // Apply initially
 
-    // Function to show only one form at a time
-    function showForm(formToShow) {
-        hideAllForms();
-        formToShow.style.display = "block";
-        welcomeMessage.style.display = "none";
+    // Show the "vehicle-stages" menu if it's the first stage
+    if (stageCounter === 1) {
+      vehicleStagesList.style.display = "block";
     }
 
-    // Navigation buttons event listeners
-    detailsButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        showForm(missionForm);
-    });
-
-    enviroButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        showForm(enviroForm);
-    });
-
-    vehicleButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        showForm(vehicleForm);
-    });
-
-    // Hide "vehicle-stages" initially
-    vehicleStagesList.style.display = "none";
-
-    // Add stages dynamically when "Add Stage" button is clicked
-    addStageBtn.addEventListener("click", function () {
-        if (stageCounter > maxStages) {
-            alert("No further stages allowed. Maximum stages creation reached.");
-            return;
-        }
-
-        // Show the "vehicle-stages" menu if it's the first stage
-        if (stageCounter === 1) {
-            vehicleStagesList.style.display = "block";
-        }
-
-        // Create new Stage entry in the sidebar
-        const newStage = document.createElement("li");
-        const stageId = `stage${stageCounter}`;
-        newStage.innerHTML = `<a href="#" class="stage-btn" id="${stageId}-btn">└── Stage ${stageCounter}</a>
+    // Create new Stage entry in the sidebar
+    const newStage = document.createElement("li");
+    const stageId = `stage${stageCounter}`;
+    newStage.innerHTML = `<a href="#" class="stage-btn" id="${stageId}-btn">└── Stage ${stageCounter}</a>
                               <ul id="${stageId}-motors" class="submenu"></ul>`;
-        vehicleStagesList.appendChild(newStage);
+    vehicleStagesList.appendChild(newStage);
 
-        // Create corresponding Stage form with heading & "Add Motor" button
-        const stageForm = document.createElement("form");
-        stageForm.id = `${stageId}-form`;
-        stageForm.classList.add("hidden", "stage-form");
-        stageForm.innerHTML = `
+    // Create corresponding Stage form with heading & "Add Motor" button
+    const stageForm = document.createElement("form");
+    stageForm.id = `${stageId}-form`;
+    stageForm.classList.add("hidden", "stage-form");
+    stageForm.innerHTML = `
             <div class="form-container">
                 <h2 class="stage-heading">Stage ${stageCounter}</h2>
                 <div class="form-fields">
@@ -97,43 +99,45 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
         `;
 
-        document.querySelector(".mission-content").appendChild(stageForm);
+    document.querySelector(".mission-content").appendChild(stageForm);
 
-        // Make Stage clickable to show its form
-        newStage.querySelector(".stage-btn").addEventListener("click", function (event) {
-            event.preventDefault();
-            showForm(stageForm);
-        });
+    // Make Stage clickable to show its form
+    newStage
+      .querySelector(".stage-btn")
+      .addEventListener("click", function (event) {
+        event.preventDefault();
+        showForm(stageForm);
+      });
 
-        stageCounter++; // Increment stage count
-    });
+    stageCounter++; // Increment stage count
+  });
 
-    // Event delegation for dynamically added "Add Motor" buttons
-    document.addEventListener("click", function (event) {
-        if (event.target.classList.contains("add-motor-btn")) {
-            const stageId = event.target.getAttribute("data-stage");
-            addMotorAndNozzle(stageId);
-        }
-    });
+  // Event delegation for dynamically added "Add Motor" buttons
+  document.addEventListener("click", function (event) {
+    if (event.target.classList.contains("add-motor-btn")) {
+      const stageId = event.target.getAttribute("data-stage");
+      addMotorAndNozzle(stageId);
+    }
+  });
 
-    // Add Motor & Nozzle Function
-    function addMotorAndNozzle(stageId) {
-        const stageMotorsList = document.getElementById(`${stageId}-motors`);
-        let motorCount = stageMotorsList.childElementCount + 1;
+  // Add Motor & Nozzle Function
+  function addMotorAndNozzle(stageId) {
+    const stageMotorsList = document.getElementById(`${stageId}-motors`);
+    let motorCount = stageMotorsList.childElementCount + 1;
 
-        // Create new Motor entry in the sidebar
-        const newMotor = document.createElement("li");
-        newMotor.innerHTML = `<a href="#" class="motor-btn" id="${stageId}-motor${motorCount}-btn">└── Motor ${motorCount}</a>
+    // Create new Motor entry in the sidebar
+    const newMotor = document.createElement("li");
+    newMotor.innerHTML = `<a href="#" class="motor-btn" id="${stageId}-motor${motorCount}-btn">└── Motor ${motorCount}</a>
                               <ul id="${stageId}-motor${motorCount}-nozzles" class="submenu">
                                   <li><a href="#" class="nozzle-btn" id="${stageId}-motor${motorCount}-nozzle1-btn">└── Nozzle 1</a></li>
                               </ul>`;
-        stageMotorsList.appendChild(newMotor);
+    stageMotorsList.appendChild(newMotor);
 
-        // Create Motor form
-        const motorForm = document.createElement("form");
-        motorForm.id = `${stageId}-motor${motorCount}-form`;
-        motorForm.classList.add("hidden", "motor-form");
-        motorForm.innerHTML = `
+    // Create Motor form
+    const motorForm = document.createElement("form");
+    motorForm.id = `${stageId}-motor${motorCount}-form`;
+    motorForm.classList.add("hidden", "motor-form");
+    motorForm.innerHTML = `
             <div class="form-container">
                 <h2 class="stage-heading">Motor ${motorCount} - ${stageId}</h2>
                 <div class="form-fields">
@@ -142,13 +146,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
         `;
-        document.querySelector(".mission-content").appendChild(motorForm);
+    document.querySelector(".mission-content").appendChild(motorForm);
 
-        // Create Nozzle form
-        const nozzleForm = document.createElement("form");
-        nozzleForm.id = `${stageId}-motor${motorCount}-nozzle1-form`;
-        nozzleForm.classList.add("hidden", "nozzle-form");
-        nozzleForm.innerHTML = `
+    // Create Nozzle form
+    const nozzleForm = document.createElement("form");
+    nozzleForm.id = `${stageId}-motor${motorCount}-nozzle1-form`;
+    nozzleForm.classList.add("hidden", "nozzle-form");
+    nozzleForm.innerHTML = `
             <div class="form-container">
                 <h2 class="stage-heading">Nozzle 1 - Motor ${motorCount}</h2>
                 <div class="form-fields">
@@ -157,73 +161,106 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
         `;
-        document.querySelector(".mission-content").appendChild(nozzleForm);
+    document.querySelector(".mission-content").appendChild(nozzleForm);
 
-        // Show forms on click
-        newMotor.querySelector(".motor-btn").addEventListener("click", function (event) {
-            event.preventDefault();
-            showForm(motorForm);
-        });
+    // Show forms on click
+    newMotor
+      .querySelector(".motor-btn")
+      .addEventListener("click", function (event) {
+        event.preventDefault();
+        showForm(motorForm);
+      });
 
-        document.getElementById(`${stageId}-motor${motorCount}-nozzle1-btn`).addEventListener("click", function (event) {
-            event.preventDefault();
-            showForm(nozzleForm);
-        });
-    }
+    document
+      .getElementById(`${stageId}-motor${motorCount}-nozzle1-btn`)
+      .addEventListener("click", function (event) {
+        event.preventDefault();
+        showForm(nozzleForm);
+      });
+  }
 });
-
 
 //  Vehicle Dynamic Field Display
 document.addEventListener("DOMContentLoaded", function () {
-    const vehicleType = document.getElementById("vehicle-type");
-    const dataOptions = document.getElementById("data-options");
-    const stateFields = document.getElementById("state-fields");
-    const launchFieldsAscend = document.getElementById("launch-fields-ascend");
-    const launchFieldsProjectile = document.getElementById("launch-fields-projectile");
-    const stateRadio = document.getElementById("state-data");
-    const launchRadio = document.getElementById("launch-point");
+  const vehicleType = document.getElementById("vehicle-type");
+  const dataOptions = document.getElementById("data-options");
+  const orbitalOptions = document.getElementById("orbital-options");
+  const stateFields = document.getElementById("state-fields");
+  const launchFieldsAscend = document.getElementById("launch-fields-ascend");
+  const launchFieldsProjectile = document.getElementById(
+    "launch-fields-projectile"
+  );
+  const stateRadio = document.getElementById("state-data");
+  const launchRadio = document.getElementById("launch-point");
+  const stateOrbital = document.getElementById("state-orbital");
+  const tleOrbital = document.getElementById("tle-orbital");
+  const elementsOrbital = document.getElementById("elements-orbital");
 
-    // Function to reset radio buttons and hide all fields
-    function resetFields() {
-        stateFields.classList.add("hidden");
-        launchFieldsAscend.classList.add("hidden");
-        launchFieldsProjectile.classList.add("hidden");
-        stateRadio.checked = false;
-        launchRadio.checked = false;
+  // Function to reset radio buttons and hide all fields
+  function resetFields() {
+    stateFields.classList.add("hidden");
+    launchFieldsAscend.classList.add("hidden");
+    launchFieldsProjectile.classList.add("hidden");
+    dataOptions.classList.add("hidden");
+    orbitalOptions.classList.add("hidden");
+
+    stateRadio.checked = false;
+    launchRadio.checked = false;
+    stateOrbital.checked = false;
+    tleOrbital.checked = false;
+    elementsOrbital.checked = false;
+  }
+
+  // Show or Hide Options for ASCEND, PROJECTILE, ORBITAL
+  vehicleType.addEventListener("change", function () {
+    resetFields(); // Reset fields when dropdown changes
+
+    if (vehicleType.value === "ascend" || vehicleType.value === "projectile") {
+      dataOptions.classList.remove("hidden");
+    } else if (vehicleType.value === "orbital") {
+      orbitalOptions.classList.remove("hidden");
     }
+  });
 
-    // Show or Hide Options for ASCEND & PROJECTILE
-    vehicleType.addEventListener("change", function () {
-        resetFields(); // Reset fields when dropdown changes
+  // Show State or Launch Fields Based on Selection
+  stateRadio.addEventListener("change", function () {
+    if (stateRadio.checked) {
+      stateFields.classList.remove("hidden");
+      launchFieldsAscend.classList.add("hidden");
+      launchFieldsProjectile.classList.add("hidden");
+    }
+  });
 
-        if (vehicleType.value === "ascend" || vehicleType.value === "projectile") {
-            dataOptions.classList.remove("hidden");
-        } else {
-            dataOptions.classList.add("hidden");
-        }
-    });
+  launchRadio.addEventListener("change", function () {
+    if (launchRadio.checked) {
+      stateFields.classList.add("hidden");
 
-    // Show State or Launch Fields Based on Selection
-    stateRadio.addEventListener("change", function () {
-        if (stateRadio.checked) {
-            stateFields.classList.remove("hidden");
-            launchFieldsAscend.classList.add("hidden");
-            launchFieldsProjectile.classList.add("hidden");
-        }
-    });
+      if (vehicleType.value === "ascend") {
+        launchFieldsAscend.classList.remove("hidden");
+        launchFieldsProjectile.classList.add("hidden");
+      } else if (vehicleType.value === "projectile") {
+        launchFieldsProjectile.classList.remove("hidden");
+        launchFieldsAscend.classList.add("hidden");
+      }
+    }
+  });
 
-    launchRadio.addEventListener("change", function () {
-        if (launchRadio.checked) {
-            stateFields.classList.add("hidden");
+  // Orbital Radio Button Selection Logic (If needed for extra logic later)
+  stateOrbital.addEventListener("change", function () {
+    if (stateOrbital.checked) {
+      console.log("State Orbital selected");
+    }
+  });
 
-            if (vehicleType.value === "ascend") {
-                launchFieldsAscend.classList.remove("hidden");
-                launchFieldsProjectile.classList.add("hidden");
-            } else if (vehicleType.value === "projectile") {
-                launchFieldsProjectile.classList.remove("hidden");
-                launchFieldsAscend.classList.add("hidden");
-            }
-        }
-    });
+  tleOrbital.addEventListener("change", function () {
+    if (tleOrbital.checked) {
+      console.log("TLE Orbital selected");
+    }
+  });
+
+  elementsOrbital.addEventListener("change", function () {
+    if (elementsOrbital.checked) {
+      console.log("Orbital Elements selected");
+    }
+  });
 });
-    

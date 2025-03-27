@@ -251,6 +251,22 @@
                             </div>
                         </div>
 
+                        <!-- Orbital Data Selection -->
+                        <div id="orbital-options" class="hidden">
+                            <label class="label">Choose Orbital Data Type:</label>
+                            <div class="radio-group">
+                                <input type="radio" id="state-orbital" name="orbital-method" value="state">
+                                <label for="state-orbital">State</label>
+
+                                <input type="radio" id="tle-orbital" name="orbital-method" value="tle">
+                                <label for="tle-orbital">TLE</label>
+
+                                <input type="radio" id="elements-orbital" name="orbital-method" value="elements">
+                                <label for="elements-orbital">Orbital Elements</label>
+                            </div>
+                        </div>
+
+
                         <label for="integration-method" class="label">Integration Method:</label>
                         <select id="integration-method" class="input-field">
                             <option value="">Please select an Integration Method</option>
