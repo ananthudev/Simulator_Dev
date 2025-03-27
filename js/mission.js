@@ -182,85 +182,103 @@ document.addEventListener("DOMContentLoaded", function () {
 
 //  Vehicle Dynamic Field Display
 document.addEventListener("DOMContentLoaded", function () {
-  const vehicleType = document.getElementById("vehicle-type");
-  const dataOptions = document.getElementById("data-options");
-  const orbitalOptions = document.getElementById("orbital-options");
-  const stateFields = document.getElementById("state-fields");
-  const launchFieldsAscend = document.getElementById("launch-fields-ascend");
-  const launchFieldsProjectile = document.getElementById(
-    "launch-fields-projectile"
-  );
-  const stateRadio = document.getElementById("state-data");
-  const launchRadio = document.getElementById("launch-point");
-  const stateOrbital = document.getElementById("state-orbital");
-  const tleOrbital = document.getElementById("tle-orbital");
-  const elementsOrbital = document.getElementById("elements-orbital");
+    const vehicleType = document.getElementById("vehicle-type");
+    const dataOptions = document.getElementById("data-options");
+    const orbitalOptions = document.getElementById("orbital-options");
 
-  // Function to reset radio buttons and hide all fields
-  function resetFields() {
-    stateFields.classList.add("hidden");
-    launchFieldsAscend.classList.add("hidden");
-    launchFieldsProjectile.classList.add("hidden");
-    dataOptions.classList.add("hidden");
-    orbitalOptions.classList.add("hidden");
+    // Fields for ASCEND and PROJECTILE
+    const stateFields = document.getElementById("state-fields");
+    const launchFieldsAscend = document.getElementById("launch-fields-ascend");
+    const launchFieldsProjectile = document.getElementById("launch-fields-projectile");
 
-    stateRadio.checked = false;
-    launchRadio.checked = false;
-    stateOrbital.checked = false;
-    tleOrbital.checked = false;
-    elementsOrbital.checked = false;
-  }
+    // Radio buttons for ASCEND and PROJECTILE
+    const stateRadio = document.getElementById("state-data");
+    const launchRadio = document.getElementById("launch-point");
 
-  // Show or Hide Options for ASCEND, PROJECTILE, ORBITAL
-  vehicleType.addEventListener("change", function () {
-    resetFields(); // Reset fields when dropdown changes
+    // Orbital Data Sections
+    const stateFieldsOrbital = document.getElementById("state-fields-orbital");
+    const tleFields = document.getElementById("tle-fields");
+    const elementsFields = document.getElementById("elements-fields");
 
-    if (vehicleType.value === "ascend" || vehicleType.value === "projectile") {
-      dataOptions.classList.remove("hidden");
-    } else if (vehicleType.value === "orbital") {
-      orbitalOptions.classList.remove("hidden");
-    }
-  });
+    // Orbital Radio Buttons
+    const stateOrbital = document.getElementById("state-orbital");
+    const tleOrbital = document.getElementById("tle-orbital");
+    const elementsOrbital = document.getElementById("elements-orbital");
 
-  // Show State or Launch Fields Based on Selection
-  stateRadio.addEventListener("change", function () {
-    if (stateRadio.checked) {
-      stateFields.classList.remove("hidden");
-      launchFieldsAscend.classList.add("hidden");
-      launchFieldsProjectile.classList.add("hidden");
-    }
-  });
-
-  launchRadio.addEventListener("change", function () {
-    if (launchRadio.checked) {
-      stateFields.classList.add("hidden");
-
-      if (vehicleType.value === "ascend") {
-        launchFieldsAscend.classList.remove("hidden");
-        launchFieldsProjectile.classList.add("hidden");
-      } else if (vehicleType.value === "projectile") {
-        launchFieldsProjectile.classList.remove("hidden");
+    // Function to reset all fields
+    function resetFields() {
+        // Hide all ASCEND and PROJECTILE fields
+        stateFields.classList.add("hidden");
         launchFieldsAscend.classList.add("hidden");
-      }
-    }
-  });
+        launchFieldsProjectile.classList.add("hidden");
+        dataOptions.classList.add("hidden");
 
-  // Orbital Radio Button Selection Logic (If needed for extra logic later)
-  stateOrbital.addEventListener("change", function () {
-    if (stateOrbital.checked) {
-      console.log("State Orbital selected");
-    }
-  });
+        // Hide all ORBITAL fields
+        orbitalOptions.classList.add("hidden");
+        resetOrbitalFields();
 
-  tleOrbital.addEventListener("change", function () {
-    if (tleOrbital.checked) {
-      console.log("TLE Orbital selected");
+        // Reset all radio buttons
+        stateRadio.checked = false;
+        launchRadio.checked = false;
+        stateOrbital.checked = false;
+        tleOrbital.checked = false;
+        elementsOrbital.checked = false;
     }
-  });
 
-  elementsOrbital.addEventListener("change", function () {
-    if (elementsOrbital.checked) {
-      console.log("Orbital Elements selected");
+    // Function to reset orbital fields
+    function resetOrbitalFields() {
+        stateFieldsOrbital.classList.add("hidden");
+        tleFields.classList.add("hidden");
+        elementsFields.classList.add("hidden");
     }
-  });
+
+    // Show or Hide Options for ASCEND, PROJECTILE, ORBITAL
+    vehicleType.addEventListener("change", function () {
+        resetFields(); // Reset fields when dropdown changes
+
+        if (vehicleType.value === "ascend" || vehicleType.value === "projectile") {
+            dataOptions.classList.remove("hidden");
+        } else if (vehicleType.value === "orbital") {
+            orbitalOptions.classList.remove("hidden");
+        }
+    });
+
+    // Show State or Launch Fields Based on Selection (ASCEND & PROJECTILE)
+    stateRadio.addEventListener("change", function () {
+        if (stateRadio.checked) {
+            stateFields.classList.remove("hidden");
+            launchFieldsAscend.classList.add("hidden");
+            launchFieldsProjectile.classList.add("hidden");
+        }
+    });
+
+    launchRadio.addEventListener("change", function () {
+        if (launchRadio.checked) {
+            stateFields.classList.add("hidden");
+
+            if (vehicleType.value === "ascend") {
+                launchFieldsAscend.classList.remove("hidden");
+                launchFieldsProjectile.classList.add("hidden");
+            } else if (vehicleType.value === "projectile") {
+                launchFieldsProjectile.classList.remove("hidden");
+                launchFieldsAscend.classList.add("hidden");
+            }
+        }
+    });
+
+    // Show relevant fields based on selected orbital method
+    stateOrbital.addEventListener("change", function () {
+        resetOrbitalFields();
+        if (stateOrbital.checked) stateFieldsOrbital.classList.remove("hidden");
+    });
+
+    tleOrbital.addEventListener("change", function () {
+        resetOrbitalFields();
+        if (tleOrbital.checked) tleFields.classList.remove("hidden");
+    });
+
+    elementsOrbital.addEventListener("change", function () {
+        resetOrbitalFields();
+        if (elementsOrbital.checked) elementsFields.classList.remove("hidden");
+    });
 });

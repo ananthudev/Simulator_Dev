@@ -266,6 +266,54 @@
                             </div>
                         </div>
 
+                        <!-- State Fields -->
+                        <div id="state-fields-orbital" class="hidden">
+                            <label class="label">State Data:</label>
+                            <div class="grid-container">
+                                <input type="number" id="X" class="input-field" placeholder="X">
+                                <input type="number" id="Y" class="input-field" placeholder="Y">
+                                <input type="number" id="Z" class="input-field" placeholder="Z">
+                                <input type="number" id="U" class="input-field" placeholder="U">
+                                <input type="number" id="V" class="input-field" placeholder="V">
+                                <input type="number" id="W" class="input-field" placeholder="W">
+                            </div>
+
+                            <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                            <div class="grid-container">
+                                <input type="number" id="q0" class="input-field" placeholder="q0">
+                                <input type="number" id="q1" class="input-field" placeholder="q1">
+                                <input type="number" id="q2" class="input-field" placeholder="q2">
+                                <input type="number" id="q3" class="input-field" placeholder="q3">
+                            </div>
+                        </div>
+
+                        <!-- TLE Fields -->
+                        <div id="tle-fields" class="hidden">
+                            <label class="label">TLE Data:</label>
+                            <div class="grid-container">
+                                <input type="text" id="line1" class="input-field" placeholder="Line 1">
+                                <input type="text" id="line2" class="input-field" placeholder="Line 2">
+                                <input type="number" id="start-time" class="input-field" placeholder="Start Time">
+                                <input type="number" id="stop-time" class="input-field" placeholder="Stop Time">
+                                <input type="number" id="step-time" class="input-field" placeholder="Step Time">
+                            </div>
+                        </div>
+
+                        <!-- Orbital Elements Fields -->
+                        <div id="elements-fields" class="hidden">
+                            <label class="label">Orbital Elements:</label>
+                            <div class="grid-container">
+                                <input type="number" id="semi-major-axis" class="input-field"
+                                    placeholder="Semi Major Axis">
+                                <input type="number" id="eccentricity" class="input-field" placeholder="Eccentricity">
+                                <input type="number" id="inclination" class="input-field" placeholder="Inclination">
+                                <input type="number" id="argument-perigee" class="input-field"
+                                    placeholder="Argument of Perigee">
+                                <input type="number" id="raan" class="input-field" placeholder="RAAN">
+                                <input type="number" id="true-anomaly" class="input-field" placeholder="True Anomaly">
+                            </div>
+                        </div>
+
 
                         <label for="integration-method" class="label">Integration Method:</label>
                         <select id="integration-method" class="input-field">
