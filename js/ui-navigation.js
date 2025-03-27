@@ -282,3 +282,45 @@ document.addEventListener("DOMContentLoaded", function () {
         if (elementsOrbital.checked) elementsFields.classList.remove("hidden");
     });
 });
+
+// details stopping condition radio button logic starts
+
+document.addEventListener("DOMContentLoaded", function () {
+  const radioButtons = document.querySelectorAll('input[name="stopping-condition"]');
+  const flagFields = document.getElementById("flag-fields");
+  const timeFields = document.getElementById("time-fields");
+  const altitudeFields = document.getElementById("altitude-fields");
+
+  function resetFields() {
+      flagFields.classList.add("hidden");
+      timeFields.classList.add("hidden");
+      altitudeFields.classList.add("hidden");
+
+      // Reset input values
+      document.getElementById("flag-name").value = "";
+      document.getElementById("flag-value").value = "";
+      document.getElementById("flag-condition").selectedIndex = 0;
+
+      document.getElementById("time-value").value = "";
+      document.getElementById("time-condition").selectedIndex = 0;
+
+      document.getElementById("altitude-value").value = "";
+      document.getElementById("altitude-condition").selectedIndex = 0;
+  }
+
+  radioButtons.forEach((radio) => {
+      radio.addEventListener("change", function () {
+          resetFields(); // Hide all fields and reset values
+
+          if (this.value === "flag") {
+              flagFields.classList.remove("hidden");
+          } else if (this.value === "time") {
+              timeFields.classList.remove("hidden");
+          } else if (this.value === "altitude") {
+              altitudeFields.classList.remove("hidden");
+          }
+      });
+  });
+});
+
+// details stopping condition radio button logic ends

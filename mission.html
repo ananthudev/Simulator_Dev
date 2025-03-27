@@ -86,14 +86,76 @@
 
                         <label for="mission-time" class="label">Time (HH:MM:SS):</label>
                         <input type="time" id="mission-time" class="input-field" step="1">
+
+                        <!-- Stopping Condition Section -->
+                        <label class="label">Stopping Condition:</label>
+                        <div class="radio-group">
+                            <input type="radio" id="stop-flag" name="stopping-condition" value="flag">
+                            <label for="stop-flag">Flag</label>
+
+                            <input type="radio" id="stop-time" name="stopping-condition" value="time">
+                            <label for="stop-time">Time</label>
+
+                            <input type="radio" id="stop-altitude" name="stopping-condition" value="altitude">
+                            <label for="stop-altitude">Altitude</label>
+                        </div>
+
+                        <!-- Flag Condition Fields -->
+                        <div id="flag-fields" class="hidden">
+                            <label for="flag-name" class="label">Flag Name:</label>
+                            <input type="text" id="flag-name" class="input-field" placeholder="Enter Flag Name">
+
+                            <label for="flag-value" class="label">Value:</label>
+                            <input type="number" id="flag-value" class="input-field" placeholder="Enter Value">
+
+                            <label for="flag-condition" class="label">Condition:</label>
+                            <select id="flag-condition" class="input-field">
+                                <option value="eq">EQ</option>
+                                <option value="lt">LT</option>
+                                <option value="gt">GT</option>
+                            </select>
+                        </div>
+
+                        <!-- Time Condition Fields -->
+                        <div id="time-fields" class="hidden">
+                            <label for="time-value" class="label">Value:</label>
+                            <input type="number" id="time-value" class="input-field" placeholder="Time in Seconds">
+
+                            <label for="time-condition" class="label">Condition:</label>
+                            <select id="time-condition" class="input-field">
+                                <option value="eq">EQ</option>
+                                <option value="lt">LT</option>
+                                <option value="gt">GT</option>
+                            </select>
+                        </div>
+
+                        <!-- Altitude Condition Fields -->
+                        <div id="altitude-fields" class="hidden">
+                            <label for="altitude-value" class="label">Value:</label>
+                            <input type="number" id="altitude-value" class="input-field"
+                                placeholder="Altitude in Meters">
+
+                            <label for="altitude-condition" class="label">Condition:</label>
+                            <select id="altitude-condition" class="input-field">
+                                <option value="eq">EQ</option>
+                                <option value="lt">LT</option>
+                                <option value="gt">GT</option>
+                            </select>
+                        </div>
                     </div>
+                </div>
+
+
+                </div>
 
 
 
-                    <!-- <div class="upload-section">
+
+
+                <!-- <div class="upload-section">
                         <button type="button" class="upload-btn">Upload JSON</button>
                     </div> -->
-                </div>
+
 
                 <!-- Button Group -->
                 <div class="button-group">
