@@ -185,6 +185,7 @@
                             <option value="projectile">PROJECTILE</option>
                         </select>
 
+
                         <!-- State or Launch Point Selection (ASCEND & PROJECTILE) -->
                         <div id="data-options" class="hidden">
                             <label class="label">Choose Data Input Method:</label>
@@ -313,6 +314,34 @@
                                 <input type="number" id="true-anomaly" class="input-field" placeholder="True Anomaly">
                             </div>
                         </div>
+                        <!-- Payload Details -->
+                        <div id="payload-section">
+                            <h3 class="section-title">Payload Details</h3>
+
+                            <label for="payload-name" class="label">Payload Name:</label>
+                            <input type="text" id="payload-name" class="input-field" value="James Webb">
+
+                            <label for="payload-mass" class="label">Payload Mass (kg):</label>
+                            <input type="number" id="payload-mass" class="input-field" placeholder="Enter payload mass">
+
+                            <label for="plf-name" class="label">PLF Name:</label>
+                            <input type="text" id="plf-name" class="input-field" value="Heat Shield" readonly>
+
+                            <label for="plf-mass" class="label">PLF Mass (kg):</label>
+                            <input type="number" id="plf-mass" class="input-field" placeholder="Enter PLF mass">
+
+                            <label class="label">PLF Separation Condition:</label>
+                            <div class="radio-group">
+                                <input type="radio" id="plf-time" name="plf-separation" value="time" checked>
+                                <label for="plf-time">Time</label>
+
+                                <input type="radio" id="plf-altitude" name="plf-separation" value="altitude">
+                                <label for="plf-altitude">Altitude</label>
+                            </div>
+
+                            <input type="number" id="plf-sep-value" class="input-field"
+                                placeholder="Enter Time (s) or Altitude (m)">
+                        </div>
 
 
                         <label for="integration-method" class="label">Integration Method:</label>
@@ -321,6 +350,10 @@
                             <option value="euler">EULER</option>
                             <option value="rk4">RK4</option>
                             <option value="rkdp">RKDP</option>
+                            <option value="rkdp">SGP4</option>
+                            <option value="rkdp">rkGill</option>
+                            <option value="rkdp">rkf78</option>
+
                         </select>
 
                         <label for="time-step" class="label">Time Step:</label>
@@ -336,6 +369,8 @@
                     </div>
                 </div>
 
+
+
                 <!-- Button Group -->
                 <div class="button-group">
                     <button type="reset" class="clear-btn">Clear</button>
@@ -344,7 +379,10 @@
             </form>
 
 
+
+
             <!-- vehicle-form ends here -->
+
 
         </section>
     </main>
