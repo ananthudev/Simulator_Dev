@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const newStage = document.createElement("li");
     const stageId = `stage${stageCounter}`;
     newStage.innerHTML = `<a href="#" class="stage-btn" id="${stageId}-btn">└── Stage ${stageCounter}</a>
-                              <ul id="${stageId}-motors" class="submenu"></ul>`;
+                          <ul id="${stageId}-motors" class="submenu"></ul>`;
     vehicleStagesList.appendChild(newStage);
 
     // Create corresponding Stage form with heading & "Add Motor" button
@@ -82,57 +82,81 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="form-container">
             <h2 class="stage-heading">Stage ${stageCounter}</h2>
             <div class="form-fields">
-                <label class="label">Structural Mass:</label>
-                <input type="number" class="input-field" placeholder="Enter Structural Mass">
-    
-                <label class="label">Reference Area:</label>
-                <input type="number" class="input-field" placeholder="Enter Reference Area">
-    
-                <label class="label">Burn Time:</label>
-                <input type="number" class="input-field" placeholder="Enter Burn Time">
-    
-                <label class="label">Burn Time Identifier:</label>
-                <input type="text" class="input-field" value="ST_1_INI" readonly>
-    
-                <label class="label">Separation Flag:</label>
-                <input type="text" class="input-field" value="ST_1_SEP" readonly>
-    
-                <div class="toggle-group">
-                    <label class="label">DCISS:</label>
-                    <div class="toggle-container">
-                        <input type="checkbox" id="dciss-toggle-${stageId}" class="toggle-input">
-                        <label for="dciss-toggle-${stageId}" class="toggle-slider"></label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="label">Structural Mass:</label>
+                        <input type="number" class="input-field" placeholder="Enter Structural Mass">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label">Reference Area:</label>
+                        <input type="number" class="input-field" placeholder="Enter Reference Area">
                     </div>
                 </div>
-    
-                <div class="toggle-group">
-                    <label class="label">Coasting:</label>
-                    <div class="toggle-container">
-                        <input type="checkbox" id="coasting-toggle-${stageId}" class="toggle-input">
-                        <label for="coasting-toggle-${stageId}" class="toggle-slider"></label>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="label">Burn Time:</label>
+                        <input type="number" class="input-field" placeholder="Enter Burn Time">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label">Burn Time Identifier:</label>
+                        <input type="text" class="input-field" value="ST_1_INI" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="label">Separation Flag:</label>
+                        <input type="text" class="input-field" value="ST_1_SEP" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="label">DCISS:</label>
+                        <div class="toggle-container">
+                            <input type="checkbox" id="dciss-toggle-${stageId}" class="toggle-input">
+                            <label for="dciss-toggle-${stageId}" class="toggle-slider"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label">Coasting:</label>
+                        <div class="toggle-container">
+                            <input type="checkbox" id="coasting-toggle-${stageId}" class="toggle-input">
+                            <label for="coasting-toggle-${stageId}" class="toggle-slider"></label>
+                        </div>
                     </div>
                 </div>
             </div>
-    
-            <button type="button" class="add-motor-btn add-stg" data-stage="${stageId}">Add Motor</button>
-    
-            <div class="upload-data">
-                <label for="aero-upload-${stageId}" class="upload-label">Aero Data:</label>
-                <input type="file" id="aero-upload-${stageId}" accept=".csv" style="display: none" />
-                <button class="upload" id="aero-upload-btn-${stageId}">
-                    <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-width="2" stroke="#ffffff"
-                            d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
-                            stroke-linejoin="round" stroke-linecap="round"></path>
-                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
-                            stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
-                    </svg>
-                    <span>ADD FILE</span>
-                </button>
-                <input type="text" id="aero-filename-${stageId}" class="filename" readonly placeholder="No file chosen" />
+            
+            <div class="button-group">
+                <button type="button" class="add-motor-btn add-stg" data-stage="${stageId}">Add Motor</button>
             </div>
-    
+            
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <div class="upload-data">
+                        <label for="aero-upload-${stageId}" class="upload-label">Aero Data:</label>
+                        <input type="file" id="aero-upload-${stageId}" accept=".csv" style="display: none" />
+                        <button class="upload" id="aero-upload-btn-${stageId}">
+                            <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-width="2" stroke="#ffffff"
+                                    d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                                    stroke-linejoin="round" stroke-linecap="round"></path>
+                                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                                    stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                            </svg>
+                            <span>ADD FILE</span>
+                        </button>
+                        <input type="text" id="aero-filename-${stageId}" class="filename" readonly placeholder="No file chosen" />
+                    </div>
+                </div>
+            </div>
+            
             <div class="button-group">
                 <button type="reset" class="clear-btn">Clear</button>
                 <button type="submit" class="next-btn">Next Phase</button>
@@ -169,9 +193,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Create new Motor entry in the sidebar
     const newMotor = document.createElement("li");
     newMotor.innerHTML = `<a href="#" class="motor-btn" id="${stageId}-motor${motorCount}-btn">└── Motor ${motorCount}</a>
-                              <ul id="${stageId}-motor${motorCount}-nozzles" class="submenu">
-                                  <li><a href="#" class="nozzle-btn" id="${stageId}-motor${motorCount}-nozzle1-btn">└── Nozzle 1</a></li>
-                              </ul>`;
+                          <ul id="${stageId}-motor${motorCount}-nozzles" class="submenu">
+                              <li><a href="#" class="nozzle-btn" id="${stageId}-motor${motorCount}-nozzle1-btn">└── Nozzle 1</a></li>
+                          </ul>`;
     stageMotorsList.appendChild(newMotor);
 
     // Create Motor form
@@ -182,56 +206,94 @@ document.addEventListener("DOMContentLoaded", function () {
     <div class="form-container">
         <h2 class="stage-heading">Motor ${motorCount} - ${stageId}</h2>
         <div class="form-fields">
-            <label class="label">Structural Mass:</label>
-            <input type="number" class="input-field" placeholder="Enter Structural Mass">
-
-            <label class="label">Types of Propulsion:</label>
-            <select class="input-field">
-                <option value="" disabled selected>Select Propulsion Type</option>
-                <option value="solid">Solid</option>
-                <option value="liquid">Liquid</option>
-            </select>
-
-            <label class="label">Propulsion Mass:</label>
-            <input type="number" class="input-field" placeholder="Enter Propulsion Mass">
-
-            <label class="label">Burn Out Flag:</label>
-            <input type="text" class="input-field" value="M1_Burnout">
-
-            <label class="label">Cut Off Flag:</label>
-            <input type="number" class="input-field" placeholder="Enter COF Value">
-
-            <label class="label">Separation Flag:</label>
-            <input type="text" class="input-field" value="ST_1_SEP" readonly>
-
-            <label class="label">Ignition Flag:</label>
-            <input type="text" class="input-field" value="M1_IGN" readonly>
-
-            <label class="label">Nozzle Diameter:</label>
-            <input type="number" class="input-field" placeholder="Enter Nozzle Diameter">
-
-            <label class="label">Burn Time:</label>
-            <input type="number" class="input-field" placeholder="Enter Burn Time">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Structural Mass:</label>
+                    <input type="number" class="input-field" placeholder="Enter Structural Mass">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Types of Propulsion:</label>
+                    <select class="input-field">
+                        <option value="" disabled selected>Select Propulsion Type</option>
+                        <option value="solid">Solid</option>
+                        <option value="liquid">Liquid</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Propulsion Mass:</label>
+                    <input type="number" class="input-field" placeholder="Enter Propulsion Mass">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Burn Out Flag:</label>
+                    <input type="text" class="input-field" value="M1_Burnout">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Cut Off Flag:</label>
+                    <input type="text" class="input-field" placeholder="Enter COF Value">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Separation Flag:</label>
+                    <input type="text" class="input-field" value="ST_1_SEP" readonly>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Ignition Flag:</label>
+                    <input type="text" class="input-field" value="M1_IGN" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Nozzle Diameter:</label>
+                    <input type="number" class="input-field" placeholder="Enter Nozzle Diameter">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Burn Time:</label>
+                    <input type="number" class="input-field" placeholder="Enter Burn Time">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <div class="upload-data">
+                        <label for="thrust-upload-${stageId}-${motorCount}" class="upload-label">Thrust Time:</label>
+                        <input type="file" id="thrust-upload-${stageId}-${motorCount}" accept=".csv" style="display: none" />
+                        <button class="upload" id="thrust-upload-btn-${stageId}-${motorCount}">
+                            <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-width="2" stroke="#ffffff"
+                                    d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                                    stroke-linejoin="round" stroke-linecap="round"></path>
+                                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                                    stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                            </svg>
+                            <span>ADD FILE</span>
+                        </button>
+                        <input type="text" id="thrust-filename-${stageId}-${motorCount}" class="filename" readonly placeholder="No file chosen" />
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="upload-data">
-            <label for="thrust-upload-${stageId}-${motorCount}" class="upload-label">Thrust Time:</label>
-            <input type="file" id="thrust-upload-${stageId}-${motorCount}" accept=".csv" style="display: none" />
-            <button class="upload" id="thrust-upload-btn-${stageId}-${motorCount}">
-                <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                    fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-width="2" stroke="#ffffff"
-                        d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
-                        stroke-linejoin="round" stroke-linecap="round"></path>
-                    <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
-                        stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
-                </svg>
-                <span>ADD FILE</span>
-            </button>
-            <input type="text" id="thrust-filename-${stageId}-${motorCount}" class="filename" readonly placeholder="No file chosen" />
+        
+        <div class="button-group">
+            <button type="reset" class="clear-btn">Clear</button>
+            <button type="submit" class="next-btn">Next Phase</button>
         </div>
     </div>
 `;
+
     document.querySelector(".mission-content").appendChild(motorForm);
 
     // Create Nozzle form
@@ -244,63 +306,106 @@ document.addEventListener("DOMContentLoaded", function () {
         
         <!-- Nozzle Parameters -->
         <div class="form-fields">
-            <label class="label">Nozzle Diameter:</label>
-            <input type="number" class="input-field" placeholder="Enter nozzle diameter">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Nozzle Diameter:</label>
+                    <input type="number" class="input-field" placeholder="Enter nozzle diameter">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">ETA Thrust:</label>
+                    <input type="number" class="input-field" placeholder="Enter ETA thrust">
+                </div>
+            </div>
             
-            <label class="label">ETA Thrust:</label>
-            <input type="number" class="input-field" placeholder="Enter ETA thrust">
-            
-            <label class="label">Zeta Thrust:</label>
-            <input type="number" class="input-field" placeholder="Enter Zeta thrust">
-        </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Zeta Thrust:</label>
+                    <input type="number" class="input-field" placeholder="Enter Zeta thrust">
+                </div>
+            </div>
 
-        <!-- Location Section -->
-        <h3 class="form-section-heading">Location</h3>
-        <div class="form-fields">
-            <label class="label">Radial Distance:</label>
-            <input type="number" class="input-field" placeholder="Enter radial distance">
-            
-            <label class="label">Phi:</label>
-            <input type="number" class="input-field" placeholder="Enter Phi value">
-        </div>
+            <!-- Location Section -->
+            <h3 class="section-title">Location</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Radial Distance:</label>
+                    <input type="number" class="input-field" placeholder="Enter radial distance">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Phi:</label>
+                    <input type="number" class="input-field" placeholder="Enter Phi value">
+                </div>
+            </div>
 
-        <!-- Miss Alignment Section -->
-        <h3 class="form-section-heading">Miss Alignment</h3>
-        <div class="form-fields">
-            <label class="label">Sigma Thrust:</label>
-            <input type="number" class="input-field" placeholder="Enter sigma thrust">
+            <!-- Miss Alignment Section -->
+            <h3 class="section-title">Miss Alignment</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Sigma Thrust:</label>
+                    <input type="number" class="input-field" placeholder="Enter sigma thrust">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Thau Thrust:</label>
+                    <input type="number" class="input-field" placeholder="Enter thau thrust">
+                </div>
+            </div>
             
-            <label class="label">Thau Thrust:</label>
-            <input type="number" class="input-field" placeholder="Enter thau thrust">
-            
-            <label class="label">Epsilon Thrust:</label>
-            <input type="number" class="input-field" placeholder="Enter epsilon thrust">
-        </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Epsilon Thrust:</label>
+                    <input type="number" class="input-field" placeholder="Enter epsilon thrust">
+                </div>
+            </div>
 
-        <!-- Orientation Section -->
-        <h3 class="form-section-heading">Orientation</h3>
-        <div class="form-fields">
-            <label class="label">MU:</label>
-            <input type="number" class="input-field" placeholder="Enter MU value">
+            <!-- Orientation Section -->
+            <h3 class="section-title">Orientation</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">MU:</label>
+                    <input type="number" class="input-field" placeholder="Enter MU value">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">LAMDA:</label>
+                    <input type="number" class="input-field" placeholder="Enter LAMDA value">
+                </div>
+            </div>
             
-            <label class="label">LAMDA:</label>
-            <input type="number" class="input-field" placeholder="Enter LAMDA value">
-            
-            <label class="label">KAPPA:</label>
-            <input type="number" class="input-field" placeholder="Enter KAPPA value">
-        </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">KAPPA:</label>
+                    <input type="number" class="input-field" placeholder="Enter KAPPA value">
+                </div>
+            </div>
 
-        <!-- Throat Location Section -->
-        <h3 class="form-section-heading">Throat Location</h3>
-        <div class="form-fields">
-            <label class="label">X:</label>
-            <input type="number" class="input-field" placeholder="Enter X value">
+            <!-- Throat Location Section -->
+            <h3 class="section-title">Throat Location</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">X:</label>
+                    <input type="number" class="input-field" placeholder="Enter X value">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Y:</label>
+                    <input type="number" class="input-field" placeholder="Enter Y value">
+                </div>
+            </div>
             
-            <label class="label">Y:</label>
-            <input type="number" class="input-field" placeholder="Enter Y value">
-            
-            <label class="label">Z:</label>
-            <input type="number" class="input-field" placeholder="Enter Z value">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Z:</label>
+                    <input type="number" class="input-field" placeholder="Enter Z value">
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button type="reset" class="clear-btn">Clear</button>
+            <button type="submit" class="next-btn">Next Phase</button>
         </div>
     </div>
 `;
@@ -324,7 +429,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-//  Vehicle Dynamic Field Display
+// Vehicle Dynamic Field Display
 document.addEventListener("DOMContentLoaded", function () {
     const vehicleType = document.getElementById("vehicle-type");
     const dataOptions = document.getElementById("data-options");

@@ -1,0 +1,464 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRA - Mission Creation</title>
+
+    <!-- Stylesheets -->
+    <!-- <link rel="stylesheet" href="css/global.css"> -->
+    <!-- <link rel="stylesheet" href="css/mission.css"> -->
+
+    <!-- test css's -->
+    <link rel="stylesheet" href="css/test.css">
+    <link rel="stylesheet" href="css/test1.css">
+
+
+    <!-- demo css remove later -->
+    <link rel="stylesheet" href="css/demo.css">
+    <!-- demo remove -->
+    <link rel="stylesheet" href="css/launchbutton.css">
+    <link rel="stylesheet" href="css/toggle.css">
+
+
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <header class="nav-bar">
+        <div class="logo">
+            <img src="assets/img/logo.png" alt="ASTRA Logo" class="logo-img">
+        </div>
+        <!-- Centered Launch Mission Button -->
+        <div class="launch-container">
+            <button id="launch-btn" class="launch-mission-btn">Launch Mission</button>
+        </div>
+
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#" id="">CREATE MISSION</a></li>
+                <li><a href="#home">HOME</a></li>
+                <li><a href="#account">ACCOUNT</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Sidebar & Mission Page Content -->
+    <main class="mission-page">
+        <aside class="sidebar">
+            <h1>MISSION</h1>
+            <ul class="menu-tree">
+                <!-- done -->
+                <li><a href="#" id="details-btn">└── Details</a></li>
+                <!-- done -->
+
+                <!-- <li><a href="#environment" >└── Environment</a></li> -->
+                <li><a href="#" id="enviro-btn">└── Environment</a></li>
+                <li>
+                    <a href="#" id="vehicle-btn">└── Vehicle Configuration</a>
+                    <!-- add stages in innerhtml in js -->
+                    <ul id="vehicle-stages" class="submenu"></ul>
+                </li>
+
+            </ul>
+        </aside>
+
+        <section class="mission-content">
+            <h2 id="welcome-message">Welcome to Mission Creation</h2>
+
+            <!-- form starts here -->
+            <form id="mission-form">
+                <div class="form-container">
+                    <!-- Form Fields -->
+                    <div class="form-fields">
+                        <label for="mission-name" class="label">Mission:</label>
+                        <input type="text" id="mission-name" class="input-field" placeholder="Enter mission name">
+
+                        <label for="modes" class="label">Modes:</label>
+                        <select id="modes" class="input-field">
+                            <option value="Mode">Please select a Mode</option>
+                            <option value="simulation">Simulation</option>
+                            <option value="optimization">Optimization</option>
+                        </select>
+
+                        <label for="tracking" class="label">Tracking:</label>
+                        <div class="toggle-container">
+                            <input type="checkbox" id="tracking" class="toggle-input">
+                            <label for="tracking" class="toggle-slider"></label>
+                        </div>
+
+
+                        <label for="mission-date" class="label">Date:</label>
+                        <input type="date" id="mission-date" class="input-field">
+
+                        <label for="mission-time" class="label">Time (HH:MM:SS):</label>
+                        <input type="time" id="mission-time" class="input-field" step="1">
+
+                        <!-- Stopping Condition Section -->
+                        <label class="label">Stopping Condition:</label>
+                        <div class="radio-group">
+                            <input type="radio" id="stop-flag" name="stopping-condition" value="flag">
+                            <label for="stop-flag">Flag</label>
+
+                            <input type="radio" id="stop-time" name="stopping-condition" value="time">
+                            <label for="stop-time">Time</label>
+
+                            <input type="radio" id="stop-altitude" name="stopping-condition" value="altitude">
+                            <label for="stop-altitude">Altitude</label>
+                        </div>
+
+                        <!-- Flag Condition Fields -->
+                        <div id="flag-fields" class="hidden">
+                            <label for="flag-name" class="label">Flag Name:</label>
+                            <input type="text" id="flag-name" class="input-field" placeholder="Enter Flag Name">
+
+                            <label for="flag-value" class="label">Value:</label>
+                            <input type="number" id="flag-value" class="input-field" placeholder="Enter Value">
+
+                            <label for="flag-condition" class="label">Condition:</label>
+                            <select id="flag-condition" class="input-field">
+                                <option value="eq">EQ</option>
+                                <option value="lt">LT</option>
+                                <option value="gt">GT</option>
+                            </select>
+                        </div>
+
+                        <!-- Time Condition Fields -->
+                        <div id="time-fields" class="hidden">
+                            <label for="time-value" class="label">Value:</label>
+                            <input type="number" id="time-value" class="input-field" placeholder="Time in Seconds">
+
+                            <label for="time-condition" class="label">Condition:</label>
+                            <select id="time-condition" class="input-field">
+                                <option value="eq">EQ</option>
+                                <option value="lt">LT</option>
+                                <option value="gt">GT</option>
+                            </select>
+                        </div>
+
+                        <!-- Altitude Condition Fields -->
+                        <div id="altitude-fields" class="hidden">
+                            <label for="altitude-value" class="label">Value:</label>
+                            <input type="number" id="altitude-value" class="input-field"
+                                placeholder="Altitude in Meters">
+
+                            <label for="altitude-condition" class="label">Condition:</label>
+                            <select id="altitude-condition" class="input-field">
+                                <option value="eq">EQ</option>
+                                <option value="lt">LT</option>
+                                <option value="gt">GT</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+
+                </div>
+
+
+
+
+
+                <!-- <div class="upload-section">
+                        <button type="button" class="upload-btn">Upload JSON</button>
+                    </div> -->
+
+
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button type="reset" class="clear-btn">Clear</button>
+                    <button type="submit" class="next-btn">Next Phase</button>
+                </div>
+            </form>
+            <!-- form ends here -->
+
+            <!-- enviro-form starts here -->
+            <form id="enviro-form">
+                <div class="form-container">
+                    <div class="form-fields">
+                        <label for="planets" class="label">Planets:</label>
+                        <select id="planets" class="input-field">
+                            <option value="Environment">Choose a Planet</option>
+                            <option value="earth">Earth</option>
+                            <option value="mars">Mars</option>
+                            <option value="moon">Moon</option>
+                        </select>
+
+                        <label for="atmos-model" class="label">Atmospheric Models:</label>
+                        <div class="atmosphere-container">
+                            <select id="atmos-model" class="input-field">
+                                <option value="Environment">Choose a Model</option>
+                                <option value="atmos_76">atmos_76</option>
+                                <option value="NRLMSISE-00">NRLMSISE-00</option>
+                                <option value="JB2008">JB2008</option>
+                                <option value="ISA">ISA</option>
+                            </select>
+                            <span class="or-text">OR</span>
+
+                            <div class="upload-data">
+                                <label for="csv-upload" class="upload-label">Upload Model CSV:</label>
+                                <input type="file" id="csv-upload" accept=".csv" style="display: none" />
+                                <button class="upload" id="csv-upload-btn">
+                                    <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-width="2" stroke="#ffffff"
+                                            d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                                            stroke-linejoin="round" stroke-linecap="round"></path>
+                                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                                            stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                                    </svg>
+                                    <span>ADD FILE</span>
+                                </button>
+                                <input type="text" id="csv-filename" class="filename" readonly
+                                    placeholder="No file chosen" />
+                            </div>
+                        </div>
+
+
+                        <label for="gravity" class="label">Gravity Parameter:</label>
+                        <input type="number" id="order" class="input-field" placeholder="Order">
+                        <input type="number" id="degree" class="input-field" placeholder="Degree">
+
+                        <label for="core" class="label">COE Info:</label>
+                        <select id="core" class="input-field">
+                            <option value="choose_core">Please select a model</option>
+                            <option value="PERIGEE_GC_LATITUDE">PERIGEE_GC_LATITUDE</option>
+                            <option value="RE">RE</option>
+                            <option value="MSL">MSL</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button type="reset" class="clear-btn">Clear</button>
+                    <button type="submit" class="next-btn">Next Phase</button>
+                </div>
+            </form>
+
+            <!-- enviro-form ends here -->
+
+            <!-- vehicle-form starts here -->
+            <form id="vehicle-form">
+                <div class="form-container">
+                    <div class="form-fields">
+
+                        <label for="vehicle-name" class="label">Vehicle Name:</label>
+                        <input type="text" id="vehicle-name" class="input-field" placeholder="Enter vehicle name">
+
+                        <label for="vehicle-type" class="label">Vehicle Type:</label>
+                        <select id="vehicle-type" class="input-field">
+                            <option value="">Please select a Vehicle Type</option>
+                            <option value="ascend">ASCEND</option>
+                            <option value="orbital">ORBITAL</option>
+                            <option value="projectile">PROJECTILE</option>
+                        </select>
+
+
+                        <!-- State or Launch Point Selection (ASCEND & PROJECTILE) -->
+                        <div id="data-options" class="hidden">
+                            <label class="label">Choose Data Input Method:</label>
+                            <div class="radio-group">
+                                <input type="radio" id="state-data" name="data-method" value="states">
+                                <label for="state-data">States</label>
+
+                                <input type="radio" id="launch-point" name="data-method" value="launch">
+                                <label for="launch-point">Launch Point Data</label>
+                            </div>
+
+                            <!-- State Data Fields (Shared) -->
+                            <div id="state-fields" class="hidden">
+                                <label class="label">State Data:</label>
+                                <div class="grid-container">
+                                    <input type="number" id="X" class="input-field" placeholder="X">
+                                    <input type="number" id="Y" class="input-field" placeholder="Y">
+                                    <input type="number" id="Z" class="input-field" placeholder="Z">
+                                    <input type="number" id="U" class="input-field" placeholder="U">
+                                    <input type="number" id="V" class="input-field" placeholder="V">
+                                    <input type="number" id="W" class="input-field" placeholder="W">
+                                </div>
+
+                                <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                                <div class="grid-container">
+                                    <input type="number" id="q0" class="input-field" placeholder="q0">
+                                    <input type="number" id="q1" class="input-field" placeholder="q1">
+                                    <input type="number" id="q2" class="input-field" placeholder="q2">
+                                    <input type="number" id="q3" class="input-field" placeholder="q3">
+                                </div>
+                            </div>
+
+                            <!-- Launch Point Data Fields (ASCEND & PROJECTILE) -->
+                            <div id="launch-fields-ascend" class="hidden">
+                                <label class="label">Launch Point Data (ASCEND):</label>
+                                <div class="grid-container">
+                                    <input type="number" id="lat" class="input-field" placeholder="Latitude">
+                                    <input type="number" id="long" class="input-field" placeholder="Longitude">
+                                    <input type="number" id="azimuth" class="input-field" placeholder="Azimuth">
+                                    <input type="number" id="msl" class="input-field" placeholder="MSL">
+                                    <input type="number" id="lp-height" class="input-field" placeholder="LP Height">
+                                    <input type="number" id="launch-angle" class="input-field"
+                                        placeholder="Launch Set Angle">
+                                    <input type="number" id="roll" class="input-field" placeholder="Initial Roll">
+                                    <input type="number" id="pitch" class="input-field" placeholder="Initial Pitch">
+                                    <input type="number" id="yaw" class="input-field" placeholder="Initial Yaw">
+                                </div>
+                            </div>
+
+                            <div id="launch-fields-projectile" class="hidden">
+                                <label class="label">Launch Point Data (PROJECTILE):</label>
+                                <div class="grid-container">
+                                    <input type="number" id="lat-proj" class="input-field" placeholder="Latitude">
+                                    <input type="number" id="long-proj" class="input-field" placeholder="Longitude">
+                                    <input type="number" id="msl-proj" class="input-field" placeholder="MSL">
+                                    <input type="number" id="azimuth-proj" class="input-field" placeholder="Azimuth">
+
+                                    <input type="number" id="elevation" class="input-field" placeholder="Elevation">
+                                    <input type="number" id="launch-angle-proj" class="input-field"
+                                        placeholder="Launch Set Angle">
+                                    <input type="number" id="initial-velocity" class="input-field"
+                                        placeholder="Initial Velocity">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Orbital Data Selection -->
+                        <div id="orbital-options" class="hidden">
+                            <label class="label">Choose Orbital Data Type:</label>
+                            <div class="radio-group">
+                                <input type="radio" id="state-orbital" name="orbital-method" value="state">
+                                <label for="state-orbital">State</label>
+
+                                <input type="radio" id="tle-orbital" name="orbital-method" value="tle">
+                                <label for="tle-orbital">TLE</label>
+
+                                <input type="radio" id="elements-orbital" name="orbital-method" value="elements">
+                                <label for="elements-orbital">Orbital Elements</label>
+                            </div>
+                        </div>
+
+                        <!-- State Fields -->
+                        <div id="state-fields-orbital" class="hidden">
+                            <label class="label">State Data:</label>
+                            <div class="grid-container">
+                                <input type="number" id="X" class="input-field" placeholder="X">
+                                <input type="number" id="Y" class="input-field" placeholder="Y">
+                                <input type="number" id="Z" class="input-field" placeholder="Z">
+                                <input type="number" id="U" class="input-field" placeholder="U">
+                                <input type="number" id="V" class="input-field" placeholder="V">
+                                <input type="number" id="W" class="input-field" placeholder="W">
+                            </div>
+
+                            <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                            <div class="grid-container">
+                                <input type="number" id="q0" class="input-field" placeholder="q0">
+                                <input type="number" id="q1" class="input-field" placeholder="q1">
+                                <input type="number" id="q2" class="input-field" placeholder="q2">
+                                <input type="number" id="q3" class="input-field" placeholder="q3">
+                            </div>
+                        </div>
+
+                        <!-- TLE Fields -->
+                        <div id="tle-fields" class="hidden">
+                            <label class="label">TLE Data:</label>
+                            <div class="grid-container">
+                                <input type="text" id="line1" class="input-field" placeholder="Line 1">
+                                <input type="text" id="line2" class="input-field" placeholder="Line 2">
+                                <input type="number" id="start-time" class="input-field" placeholder="Start Time">
+                                <input type="number" id="stop-time" class="input-field" placeholder="Stop Time">
+                                <input type="number" id="step-time" class="input-field" placeholder="Step Time">
+                            </div>
+                        </div>
+
+                        <!-- Orbital Elements Fields -->
+                        <div id="elements-fields" class="hidden">
+                            <label class="label">Orbital Elements:</label>
+                            <div class="grid-container">
+                                <input type="number" id="semi-major-axis" class="input-field"
+                                    placeholder="Semi Major Axis">
+                                <input type="number" id="eccentricity" class="input-field" placeholder="Eccentricity">
+                                <input type="number" id="inclination" class="input-field" placeholder="Inclination">
+                                <input type="number" id="argument-perigee" class="input-field"
+                                    placeholder="Argument of Perigee">
+                                <input type="number" id="raan" class="input-field" placeholder="RAAN">
+                                <input type="number" id="true-anomaly" class="input-field" placeholder="True Anomaly">
+                            </div>
+                        </div>
+                        <!-- Payload Details -->
+                        <div id="payload-section">
+                            <h3 class="section-title">Payload Details</h3>
+
+                            <label for="payload-name" class="label">Payload Name:</label>
+                            <input type="text" id="payload-name" class="input-field" value="James Webb">
+
+                            <label for="payload-mass" class="label">Payload Mass (kg):</label>
+                            <input type="number" id="payload-mass" class="input-field" placeholder="Enter payload mass">
+
+                            <label for="plf-name" class="label">PLF Name:</label>
+                            <input type="text" id="plf-name" class="input-field" value="Heat Shield" readonly>
+
+                            <label for="plf-mass" class="label">PLF Mass (kg):</label>
+                            <input type="number" id="plf-mass" class="input-field" placeholder="Enter PLF mass">
+
+                            <label class="label">PLF Separation Condition:</label>
+                            <div class="radio-group">
+                                <input type="radio" id="plf-time" name="plf-separation" value="time" checked>
+                                <label for="plf-time">Time</label>
+
+                                <input type="radio" id="plf-altitude" name="plf-separation" value="altitude">
+                                <label for="plf-altitude">Altitude</label>
+                            </div>
+
+                            <input type="number" id="plf-sep-value" class="input-field"
+                                placeholder="Enter Time (s) or Altitude (m)">
+                        </div>
+
+
+                        <label for="integration-method" class="label">Integration Method:</label>
+                        <select id="integration-method" class="input-field">
+                            <option value="">Please select an Integration Method</option>
+                            <option value="euler">EULER</option>
+                            <option value="rk4">RK4</option>
+                            <option value="rkdp">RKDP</option>
+                            <option value="rkdp">SGP4</option>
+                            <option value="rkdp">rkGill</option>
+                            <option value="rkdp">rkf78</option>
+
+                        </select>
+
+                        <label for="time-step" class="label">Time Step:</label>
+                        <input type="number" id="time-step" class="input-field"
+                            placeholder="Enter Time Step in Seconds">
+
+                        <label for="effective-alt" class="label">Effective Altitude:</label>
+                        <input type="number" id="effective-alt" class="input-field"
+                            placeholder="Enter Effective Altitude">
+
+                        <label for="add_stage" class="label">Add Stage:</label>
+                        <button type="button" id="add-stage-btn" class="add-stg">Add Stage</button>
+                    </div>
+                </div>
+
+
+
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button type="reset" class="clear-btn">Clear</button>
+                    <button type="submit" class="next-btn">Next Phase</button>
+                </div>
+            </form>
+
+
+
+
+            <!-- vehicle-form ends here -->
+
+
+        </section>
+    </main>
+
+    <script src="js/ui-navigation.js"></script>
+    <script src="js/alert.js"></script>
+    <!-- remove it later and make it offline -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+
+</html>
