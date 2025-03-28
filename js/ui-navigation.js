@@ -239,14 +239,72 @@ document.addEventListener("DOMContentLoaded", function () {
     nozzleForm.id = `${stageId}-motor${motorCount}-nozzle1-form`;
     nozzleForm.classList.add("hidden", "nozzle-form");
     nozzleForm.innerHTML = `
-            <div class="form-container">
-                <h2 class="stage-heading">Nozzle 1 - Motor ${motorCount}</h2>
-                <div class="form-fields">
-                    <label class="label">Nozzle Size:</label>
-                    <input type="number" class="input-field" placeholder="Enter Nozzle Size">
-                </div>
-            </div>
-        `;
+    <div class="form-container">
+        <h2 class="stage-heading">Nozzle 1 - Motor ${motorCount}</h2>
+        
+        <!-- Nozzle Parameters -->
+        <div class="form-fields">
+            <label class="label">Nozzle Diameter:</label>
+            <input type="number" class="input-field" placeholder="Enter nozzle diameter">
+            
+            <label class="label">ETA Thrust:</label>
+            <input type="number" class="input-field" placeholder="Enter ETA thrust">
+            
+            <label class="label">Zeta Thrust:</label>
+            <input type="number" class="input-field" placeholder="Enter Zeta thrust">
+        </div>
+
+        <!-- Location Section -->
+        <h3 class="form-section-heading">Location</h3>
+        <div class="form-fields">
+            <label class="label">Radial Distance:</label>
+            <input type="number" class="input-field" placeholder="Enter radial distance">
+            
+            <label class="label">Phi:</label>
+            <input type="number" class="input-field" placeholder="Enter Phi value">
+        </div>
+
+        <!-- Miss Alignment Section -->
+        <h3 class="form-section-heading">Miss Alignment</h3>
+        <div class="form-fields">
+            <label class="label">Sigma Thrust:</label>
+            <input type="number" class="input-field" placeholder="Enter sigma thrust">
+            
+            <label class="label">Thau Thrust:</label>
+            <input type="number" class="input-field" placeholder="Enter thau thrust">
+            
+            <label class="label">Epsilon Thrust:</label>
+            <input type="number" class="input-field" placeholder="Enter epsilon thrust">
+        </div>
+
+        <!-- Orientation Section -->
+        <h3 class="form-section-heading">Orientation</h3>
+        <div class="form-fields">
+            <label class="label">MU:</label>
+            <input type="number" class="input-field" placeholder="Enter MU value">
+            
+            <label class="label">LAMDA:</label>
+            <input type="number" class="input-field" placeholder="Enter LAMDA value">
+            
+            <label class="label">KAPPA:</label>
+            <input type="number" class="input-field" placeholder="Enter KAPPA value">
+        </div>
+
+        <!-- Throat Location Section -->
+        <h3 class="form-section-heading">Throat Location</h3>
+        <div class="form-fields">
+            <label class="label">X:</label>
+            <input type="number" class="input-field" placeholder="Enter X value">
+            
+            <label class="label">Y:</label>
+            <input type="number" class="input-field" placeholder="Enter Y value">
+            
+            <label class="label">Z:</label>
+            <input type="number" class="input-field" placeholder="Enter Z value">
+        </div>
+    </div>
+`;
+
     document.querySelector(".mission-content").appendChild(nozzleForm);
 
     // Show forms on click
