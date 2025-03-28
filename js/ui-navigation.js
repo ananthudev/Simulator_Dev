@@ -179,14 +179,59 @@ document.addEventListener("DOMContentLoaded", function () {
     motorForm.id = `${stageId}-motor${motorCount}-form`;
     motorForm.classList.add("hidden", "motor-form");
     motorForm.innerHTML = `
-            <div class="form-container">
-                <h2 class="stage-heading">Motor ${motorCount} - ${stageId}</h2>
-                <div class="form-fields">
-                    <label class="label">Motor Name:</label>
-                    <input type="text" class="input-field" placeholder="Enter Motor Name">
-                </div>
-            </div>
-        `;
+    <div class="form-container">
+        <h2 class="stage-heading">Motor ${motorCount} - ${stageId}</h2>
+        <div class="form-fields">
+            <label class="label">Structural Mass:</label>
+            <input type="number" class="input-field" placeholder="Enter Structural Mass">
+
+            <label class="label">Types of Propulsion:</label>
+            <select class="input-field">
+                <option value="" disabled selected>Select Propulsion Type</option>
+                <option value="solid">Solid</option>
+                <option value="liquid">Liquid</option>
+            </select>
+
+            <label class="label">Propulsion Mass:</label>
+            <input type="number" class="input-field" placeholder="Enter Propulsion Mass">
+
+            <label class="label">Burn Out Flag:</label>
+            <input type="text" class="input-field" value="M1_Burnout">
+
+            <label class="label">Cut Off Flag:</label>
+            <input type="number" class="input-field" placeholder="Enter COF Value">
+
+            <label class="label">Separation Flag:</label>
+            <input type="text" class="input-field" value="ST_1_SEP" readonly>
+
+            <label class="label">Ignition Flag:</label>
+            <input type="text" class="input-field" value="M1_IGN" readonly>
+
+            <label class="label">Nozzle Diameter:</label>
+            <input type="number" class="input-field" placeholder="Enter Nozzle Diameter">
+
+            <label class="label">Burn Time:</label>
+            <input type="number" class="input-field" placeholder="Enter Burn Time">
+        </div>
+
+        <div class="upload-data">
+            <label for="thrust-upload-${stageId}-${motorCount}" class="upload-label">Thrust Time:</label>
+            <input type="file" id="thrust-upload-${stageId}-${motorCount}" accept=".csv" style="display: none" />
+            <button class="upload" id="thrust-upload-btn-${stageId}-${motorCount}">
+                <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-width="2" stroke="#ffffff"
+                        d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                        stroke-linejoin="round" stroke-linecap="round"></path>
+                    <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                        stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                </svg>
+                <span>ADD FILE</span>
+            </button>
+            <input type="text" id="thrust-filename-${stageId}-${motorCount}" class="filename" readonly placeholder="No file chosen" />
+        </div>
+    </div>
+`;
     document.querySelector(".mission-content").appendChild(motorForm);
 
     // Create Nozzle form
