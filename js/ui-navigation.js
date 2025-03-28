@@ -79,25 +79,66 @@ document.addEventListener("DOMContentLoaded", function () {
     stageForm.id = `${stageId}-form`;
     stageForm.classList.add("hidden", "stage-form");
     stageForm.innerHTML = `
-            <div class="form-container">
-                <h2 class="stage-heading">Stage ${stageCounter}</h2>
-                <div class="form-fields">
-                    <label class="label">Stage Name:</label>
-                    <input type="text" class="input-field" placeholder="Enter Stage Name">
-
-                    <label class="label">Weight:</label>
-                    <input type="number" class="input-field" placeholder="Enter Weight">
-
-                    <label class="label">Thrust:</label>
-                    <input type="number" class="input-field" placeholder="Enter Thrust">
+        <div class="form-container">
+            <h2 class="stage-heading">Stage ${stageCounter}</h2>
+            <div class="form-fields">
+                <label class="label">Structural Mass:</label>
+                <input type="number" class="input-field" placeholder="Enter Structural Mass">
+    
+                <label class="label">Reference Area:</label>
+                <input type="number" class="input-field" placeholder="Enter Reference Area">
+    
+                <label class="label">Burn Time:</label>
+                <input type="number" class="input-field" placeholder="Enter Burn Time">
+    
+                <label class="label">Burn Time Identifier:</label>
+                <input type="text" class="input-field" value="ST_1_INI" readonly>
+    
+                <label class="label">Separation Flag:</label>
+                <input type="text" class="input-field" value="ST_1_SEP" readonly>
+    
+                <div class="toggle-group">
+                    <label class="label">DCISS:</label>
+                    <div class="toggle-container">
+                        <input type="checkbox" id="dciss-toggle-${stageId}" class="toggle-input">
+                        <label for="dciss-toggle-${stageId}" class="toggle-slider"></label>
+                    </div>
                 </div>
-                <button type="button" class="add-motor-btn add-stg" data-stage="${stageId}">Add Motor</button>
-                <div class="button-group">
-                    <button type="reset" class="clear-btn">Clear</button>
-                    <button type="submit" class="next-btn">Next Phase</button>
+    
+                <div class="toggle-group">
+                    <label class="label">Coasting:</label>
+                    <div class="toggle-container">
+                        <input type="checkbox" id="coasting-toggle-${stageId}" class="toggle-input">
+                        <label for="coasting-toggle-${stageId}" class="toggle-slider"></label>
+                    </div>
                 </div>
             </div>
-        `;
+    
+            <button type="button" class="add-motor-btn add-stg" data-stage="${stageId}">Add Motor</button>
+    
+            <div class="upload-data">
+                <label for="aero-upload-${stageId}" class="upload-label">Aero Data:</label>
+                <input type="file" id="aero-upload-${stageId}" accept=".csv" style="display: none" />
+                <button class="upload" id="aero-upload-btn-${stageId}">
+                    <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-width="2" stroke="#ffffff"
+                            d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                            stroke-linejoin="round" stroke-linecap="round"></path>
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                            stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                    </svg>
+                    <span>ADD FILE</span>
+                </button>
+                <input type="text" id="aero-filename-${stageId}" class="filename" readonly placeholder="No file chosen" />
+            </div>
+    
+            <div class="button-group">
+                <button type="reset" class="clear-btn">Clear</button>
+                <button type="submit" class="next-btn">Next Phase</button>
+            </div>
+        </div>
+    `;
 
     document.querySelector(".mission-content").appendChild(stageForm);
 
