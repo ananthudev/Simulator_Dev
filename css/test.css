@@ -242,6 +242,54 @@
     background: rgba(74, 144, 226, 0.9);
 }
 
+/* Add this to your test.css file */
+
+/* Dropdown Styling */
+select.input-field {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+    padding-right: 30px;
+}
+
+select.input-field option {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 8px;
+}
+
+/* select.input-field:focus {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234a90e2'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+} */
+
+/* Dropdown hover states */
+select.input-field option:hover {
+    background-color: #4a90e2;
+    color: white;
+}
+
+select.input-field option:checked {
+    background-color: #4a90e2;
+    color: white;
+}
+
+/* For Firefox */
+@-moz-document url-prefix() {
+    select.input-field {
+        color: white !important;
+        text-shadow: 0 0 0 white;
+    }
+    select.input-field option {
+        background-color: #1a1a1a;
+    }
+}
+
+
+
 /* Special Form Elements */
 .add-stg {
     background-color: #28a745;
