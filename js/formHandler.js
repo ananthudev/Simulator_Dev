@@ -146,8 +146,8 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        if (!degree.value.trim() || isNaN(degree.value) || degree.value < 1) {
-            showError(degree, "Please enter a valid degree (≥1).");
+        if (!degree.value.trim() || isNaN(degree.value) || degree.value < 0) {
+            showError(degree, "Please enter a valid degree (≥0).");
             isValid = false;
         }
 

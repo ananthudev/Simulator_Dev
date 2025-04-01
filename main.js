@@ -34,7 +34,7 @@ app.whenReady().then(() => {
     setTimeout(() => {
         splashScreen.close();
         mainWindow.show();
-    }, 3000); // Adjust time as needed
+    }, 5000); // Adjust time as needed
 
     mainWindow.on("closed", () => {
         mainWindow = null;
