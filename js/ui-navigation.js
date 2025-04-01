@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
             
             <div class="button-group">
                 <button type="reset" class="clear-btn">Clear</button>
-                <button type="submit" class="next-btn">Next Phase</button>
+                <button type="submit" class="next-stage-btn">Next Phase</button>
             </div>
         </div>
     `;
@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         <div class="button-group">
             <button type="reset" class="clear-btn">Clear</button>
-            <button type="submit" class="next-btn">Next Phase</button>
+            <button type="submit" class="next-motor-btn">Next Phase</button>
         </div>
     </div>
 `;
@@ -405,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         <div class="button-group">
             <button type="reset" class="clear-btn">Clear</button>
-            <button type="submit" class="next-btn">Next Phase</button>
+            <button type="submit" class="next-nozzle-btn">Next Phase</button>
         </div>
     </div>
 `;

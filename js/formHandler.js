@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const saveEnviroButton = enviroForm?.querySelector(".next-btn");
     const saveVehicleButton = vehicleForm?.querySelector(".next-btn");
 
+
+
+
     let missionData = {}; // Store the complete mission JSON structure
 
     // Mission Form Submission
@@ -279,6 +282,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return isValid;
     }
 
+
+    
+
     // ========== DATA SAVING FUNCTIONS ========== //
 
     function saveMissionDetails() {
@@ -456,3 +462,7 @@ function showForm(form) {
     form.classList.remove("hidden-form");
     console.log("✅ Navigating to form:", form.id);
 }
+
+// Stage Validation and json printing starts
+
+// Stage Validation and json printing starts
