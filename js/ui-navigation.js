@@ -410,24 +410,24 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
 `;
 
-    document.querySelector(".mission-content").appendChild(nozzleForm);
+        document.querySelector(".mission-content").appendChild(nozzleForm);
 
-    // Show forms on click
-    newMotor
-      .querySelector(".motor-btn")
-      .addEventListener("click", function (event) {
-        event.preventDefault();
-        showForm(motorForm);
-      });
+        // Show forms on click
+        newMotor
+        .querySelector(".motor-btn")
+        .addEventListener("click", function (event) {
+            event.preventDefault();
+            showForm(motorForm);
+        });
 
-    document
-      .getElementById(`${stageId}-motor${motorCount}-nozzle1-btn`)
-      .addEventListener("click", function (event) {
-        event.preventDefault();
-        showForm(nozzleForm);
-      });
-  }
-});
+        document
+        .getElementById(`${stageId}-motor${motorCount}-nozzle1-btn`)
+        .addEventListener("click", function (event) {
+            event.preventDefault();
+            showForm(nozzleForm);
+        });
+    }
+    });
 
 // Vehicle Dynamic Field Display
 document.addEventListener("DOMContentLoaded", function () {

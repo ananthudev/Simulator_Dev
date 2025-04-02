@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     let missionData = {}; // Store the complete mission JSON structure
+    let stageCounter = 1; // Track the number of stages
 
     // Mission Form Submission
     if (saveMissionButton && missionForm) {
@@ -78,10 +79,79 @@ document.addEventListener("DOMContentLoaded", function () {
                 }).then(() => {
                     console.log("✅ Complete Mission Data:", JSON.stringify(missionData, null, 2));
                     // Here you would typically proceed to the next step or submit the data
+
+                    const firstStageForm = document.getElementById("stage1-form");
+                    if (firstStageForm) {
+                        showForm(firstStageForm);
+                        console.log("Navigating to Stage 1 Form");
+                    }
                 });
             }
         });
     }
+    document.addEventListener("click", function(event) {
+        if (event.target && event.target.classList.contains("next-stage-btn")) {
+            event.preventDefault();
+            
+            // Find the current stage form
+            const currentStageForm = event.target.closest(".stage-form");
+            if (!currentStageForm) return;
+            
+            // Extract the stage ID from the form ID (e.g., "stage1-form" -> "stage1")
+            const stageId = currentStageForm.id.replace("-form", "");
+            const stageNumber = stageId.replace("stage", "");
+            
+            // Validate the current stage form
+            let isValid = validateStageForm(currentStageForm, stageId);
+            
+            if (isValid) {
+                console.log(`✅ Stage ${stageNumber} Form Validated!`);
+                
+                // Call the saveStageData function to save stage data to missionData
+                const savedStageData = saveStageData(currentStageForm, stageId);
+                
+                if (savedStageData) {
+                    Swal.fire({
+                        title: "Stage Saved!",
+                        text: `Stage ${stageNumber} configuration saved successfully.`,
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Determine next form to show
+                        const nextStageNumber = parseInt(stageNumber) + 1;
+                        const nextStageForm = document.getElementById(`stage${nextStageNumber}-form`);
+                        
+                        if (nextStageForm) {
+                            showForm(nextStageForm);
+                            console.log(`Navigating to Stage ${nextStageNumber} Form`);
+                        } else {
+                            // If no next stage, you might want to show a completion message or go somewhere else
+                            console.log("No more stages to configure");
+                            
+                            // Print the complete mission data at this point
+                            console.log("✅ Complete Mission Data:", JSON.stringify(missionData, null, 2));
+                            
+                            Swal.fire({
+                                title: "All Stages Configured!",
+                                text: "You have completed all stage configurations.",
+                                icon: "success"
+                            });
+                        }
+                    });
+                } else {
+                    // Handle case where stage data couldn't be saved
+                    console.error(`❌ Failed to save data for Stage ${stageNumber}`);
+                    Swal.fire({
+                        title: "Error",
+                        text: `Failed to save stage ${stageNumber} configuration.`,
+                        icon: "error"
+                    });
+                }
+            }
+        }
+    });
+
 
     // ========== VALIDATION FUNCTIONS ========== //
 
@@ -282,6 +352,59 @@ document.addEventListener("DOMContentLoaded", function () {
         return isValid;
     }
 
+    function validateStageForm(stageForm, stageId) {
+        let isValid = true;
+        clearErrorMessages();
+
+        // Get all the required input fields
+        const structuralMass = stageForm.querySelector('input[placeholder="Enter Structural Mass"]');
+        const referenceArea = stageForm.querySelector('input[placeholder="Enter Reference Area"]');
+        const burnTime = stageForm.querySelector('input[placeholder="Enter Burn Time"]');
+        const aeroFilename = stageForm.querySelector(`#aero-filename-${stageId}`);
+        const burnTimeIdentifier = stageForm.querySelector('input[value^="ST_"]:not([value$="_SEP"])');
+        const separationFlag = stageForm.querySelector('input[value^="ST_"][value$="_SEP"]');
+
+        // Check if all required elements exist
+        if (!structuralMass || !referenceArea || !burnTime || !aeroFilename || !burnTimeIdentifier || !separationFlag) {
+            console.error("❌ Missing required elements in the stage form:", stageId);
+            console.log("Elements found:", { structuralMass, referenceArea, burnTime, aeroFilename, burnTimeIdentifier, separationFlag });
+            showError(stageForm, "Form structure error. Please check console for details.");
+            isValid = false;
+            return isValid;
+        }
+
+        // Validate Structural Mass
+        if (!structuralMass.value || isNaN(structuralMass.value) || parseFloat(structuralMass.value) <= 0) {
+            showError(structuralMass, "Please enter a valid structural mass (>0).");
+            isValid = false;
+        }
+
+        // Validate Reference Area
+        if (!referenceArea.value || isNaN(referenceArea.value) || parseFloat(referenceArea.value) <= 0) {
+            showError(referenceArea, "Please enter a valid reference area (>0).");
+            isValid = false;
+        }
+
+        // Validate Burn Time
+        if (!burnTime.value || isNaN(burnTime.value) || parseFloat(burnTime.value) < 0) {
+            showError(burnTime, "Please enter a valid burn time (≥0).");
+            isValid = false;
+        }
+
+        // Validate File (optional validation)
+        if (!aeroFilename.value && aeroFilename.placeholder === "No file chosen") {
+            // Make this a warning instead of an error if you want to make it optional
+            console.warn("⚠️ No aero data file chosen for stage", stageId);
+            // Uncomment below if you want to make it required
+            // showError(aeroFilename, "Please upload an aero data file.");
+            // isValid = false;
+        }
+
+        return isValid;
+    }
+
+
+    
 
     
 
@@ -436,6 +559,75 @@ document.addEventListener("DOMContentLoaded", function () {
         missionData.vehicle = vehicleConfig;
     }
 
+
+    // Function to save stage data
+    // Function to save stage data - IMPROVED WITH ERROR HANDLING
+    function saveStageData(stageForm, stageId) {
+        const stageNumber = stageId.replace("stage", "");
+        
+        // If stages array doesn't exist in mission data, create it
+        if (!missionData.stages) {
+            missionData.stages = [];
+        }
+        
+        // Debug log to check form and elements
+        console.log(`Saving data for stage ${stageNumber}`, stageForm);
+        
+        // Get the stage form elements with error handling
+        const structuralMassInput = stageForm.querySelector('input[placeholder="Enter Structural Mass"]');
+        const referenceAreaInput = stageForm.querySelector('input[placeholder="Enter Reference Area"]');
+        const burnTimeInput = stageForm.querySelector('input[placeholder="Enter Burn Time"]');
+        const burnTimeIdentifierInput = stageForm.querySelector('input[value^="ST_"]:not([value$="_SEP"])');
+        const separationFlagInput = stageForm.querySelector('input[value^="ST_"][value$="_SEP"]');
+        const dcissToggle = stageForm.querySelector(`#dciss-toggle-${stageId}`);
+        const coastingToggle = stageForm.querySelector(`#coasting-toggle-${stageId}`);
+        const aeroFilename = stageForm.querySelector(`#aero-filename-${stageId}`);
+        
+        // Check if essential elements are found
+        if (!structuralMassInput || !referenceAreaInput || !burnTimeInput) {
+            console.error("❌ Missing critical elements in the stage form:", stageId);
+            console.log("Elements found:", { 
+                structuralMassInput, 
+                referenceAreaInput, 
+                burnTimeInput, 
+                burnTimeIdentifierInput, 
+                separationFlagInput, 
+                dcissToggle, 
+                coastingToggle, 
+                aeroFilename 
+            });
+            return null;
+        }
+        
+        // Get the stage data from the form with safe fallbacks
+        const stageData = {
+            stage_number: parseInt(stageNumber),
+            structural_mass: parseFloat(structuralMassInput.value) || 0,
+            reference_area: parseFloat(referenceAreaInput.value) || 0,
+            burn_time: parseFloat(burnTimeInput.value) || 0,
+            burn_time_identifier: burnTimeIdentifierInput ? burnTimeIdentifierInput.value : `ST_${stageNumber}`,
+            separation_flag: separationFlagInput ? separationFlagInput.value : `ST_${stageNumber}_SEP`,
+            dciss: dcissToggle ? dcissToggle.checked : false,
+            coasting: coastingToggle ? coastingToggle.checked : false,
+            aero_data_file: aeroFilename ? aeroFilename.value : ""
+        };
+        
+        // Add or update the stage data in the stages array
+        const existingStageIndex = missionData.stages.findIndex(s => s.stage_number === parseInt(stageNumber));
+        if (existingStageIndex >= 0) {
+            missionData.stages[existingStageIndex] = stageData;
+        } else {
+            missionData.stages.push(stageData);
+        }
+        
+        console.log(`✅ Stage ${stageNumber} data saved:`, stageData);
+        console.log("📦 Updated mission data:", missionData);
+        
+        return stageData;
+    }
+
+
+
     // ========== HELPER FUNCTIONS ========== //
 
     function showError(inputElement, message) {
@@ -463,6 +655,49 @@ function showForm(form) {
     console.log("✅ Navigating to form:", form.id);
 }
 
-// Stage Validation and json printing starts
 
 // Stage Validation and json printing starts
+
+// Add event listener for file uploads on stage forms
+document.addEventListener("click", function(event) {
+    if (event.target.id && event.target.id.startsWith("aero-upload-btn-")) {
+        event.preventDefault(); // Prevent default to stop page refresh
+        const stageId = event.target.id.replace("aero-upload-btn-", "");
+        const fileInput = document.getElementById(`aero-upload-${stageId}`);
+        
+        if (!fileInput) {
+            console.error(`❌ File input element not found: aero-upload-${stageId}`);
+            return;
+        }
+        
+        // Remove any existing listeners before adding a new one
+        const newFileInput = fileInput.cloneNode(true);
+        fileInput.parentNode.replaceChild(newFileInput, fileInput);
+        
+        // Add click handler
+        newFileInput.addEventListener("click", function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+        });
+        
+        // Add change listener
+        newFileInput.addEventListener("change", function() {
+            const filenameDisplay = document.getElementById(`aero-filename-${stageId}`);
+            if (!filenameDisplay) {
+                console.error(`❌ Filename display element not found: aero-filename-${stageId}`);
+                return;
+            }
+            
+            if (newFileInput.files.length > 0) {
+                filenameDisplay.value = newFileInput.files[0].name;
+                console.log(`✅ File selected: ${newFileInput.files[0].name}`);
+            } else {
+                filenameDisplay.value = "";
+                filenameDisplay.placeholder = "No file chosen";
+                console.log("❌ No file selected");
+            }
+        });
+        
+        // Trigger file selection dialog
+        newFileInput.click();
+    }
+});
