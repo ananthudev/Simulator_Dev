@@ -1,0 +1,140 @@
+{
+  "Software": "ASTRA",
+  "mission": {
+    "mission_name": "SSPO",
+    "planet_name": "",
+    "MODE": "SIMULATION",
+    "tracking_option": "ON",
+    "frame_model": "POST",
+    "output_frame": "POST",
+    "UTC": {
+      "Date": "2025-04-02",
+      "Time": "17:28:46"
+    }
+  },
+  "stopping_criteria": {
+    "type": "Flag",
+    "flag_name": "Flag_1",
+    "value": 0.7,
+    "condition": "EQ"
+  },
+  "SSPO": {
+    "vehicle": [
+      "Garuda"
+    ],
+    "vehicle_type": "ASCEND"
+  },
+  "Garuda_1": {
+    "no_Stg": 0,
+    "stage": [],
+    "payload": "",
+    "plf": "",
+    "integration_method": "",
+    "time_step": 0,
+    "effective_altitude": 0,
+    "steering": "",
+    "sequence": "",
+    "Initial_condition": ""
+  },
+  "Garuda": {
+    "no_Stg": 1,
+    "stage": [
+      "Stage_1"
+    ],
+    "payload": "James Webb",
+    "plf": "Heat Shield",
+    "integration_method": "euler",
+    "time_step": 12,
+    "effective_altitude": 12000,
+    "steering": "Garuda_Steering",
+    "sequence": "Garuda_Sequence",
+    "Initial_condition": "Location_1"
+  },
+  "James Webb": {
+    "unit": "kg",
+    "mass": 300
+  },
+  "Heat Shield": {
+    "mass_unit": "kg",
+    "mass": 100,
+    "ref_area": 0,
+    "sep_flag": "time",
+    "descend_drag": null,
+    "DCISS": "OFF"
+  },
+  "Initial_States": {
+    "Location_1": {
+      "type": "Launch_Point",
+      "latitude_unit": "deg",
+      "latitude": 0,
+      "longitude_unit": "deg",
+      "longitude": 0,
+      "azimuth_unit": "deg",
+      "azimuth": 0,
+      "above_MSL_unit": "m",
+      "above_MSL": 0,
+      "height_unit": "m",
+      "lp_height": 0,
+      "launch_set_angle": 0,
+      "pitch": 0,
+      "roll": 0,
+      "yaw": 0
+    }
+  },
+  "Stage_1": {
+    "structural_mass": 112,
+    "ref_area": 12,
+    "burn_time": 12,
+    "burn_time_identifier": "ST_1_INI",
+    "separation_flag": "ST_1_SEP",
+    "DCISS": "ON",
+    "coasting": "ON",
+    "aero_data": "aero data.csv",
+    "motors": [
+      "Motor_1"
+    ]
+  },
+  "Motor_1": {
+    "structural_mass": 1200,
+    "propulsion": {
+      "type": "solid",
+      "mass": 500
+    },
+    "flags": {
+      "burnout": "M1_Burnout",
+      "cutoff": "2323",
+      "separation": "ST_1_SEP",
+      "ignition": "M1_IGN"
+    },
+    "nozzle_diameter": 3232,
+    "burn_time": 3232,
+    "thrust_data": "aero data.csv",
+    "nozzles": [
+      "noz_1"
+    ]
+  },
+  "noz_1": {
+    "Diameter": 3223,
+    "Location": {
+      "Radial_dist": 232,
+      "Phi": 232
+    },
+    "mis_alignment": {
+      "sigma_thrust": 32,
+      "tau_thrust": 23,
+      "epsilon_thurst": 232
+    },
+    "Orientation": {
+      "mu": 2323,
+      "lamda": 31,
+      "kappa": 232
+    },
+    "eta_thrust": 323,
+    "zeta_thrust": 2323,
+    "Throat_location": {
+      "x": 232,
+      "y": 232,
+      "z": 323
+    }
+  }
+}

@@ -12,6 +12,8 @@
 
     <!-- test css -->
     <link rel="stylesheet" href="css/test.css">
+
+    <!-- main css -->
     <link rel="stylesheet" href="css/test1.css">
 
     <link rel="stylesheet" href="css/launchbutton.css">
@@ -49,6 +51,8 @@
                     <a href="#" id="vehicle-btn">└── Vehicle Configuration</a>
                     <ul id="vehicle-stages" class="submenu"></ul>
                 </li>
+                <li><a href="#" id="sequence-btn">└── Sequence</a></li>
+                <li><a href="#" id="steering-btn">└── Steering</a></li>
             </ul>
         </aside>
 
@@ -221,6 +225,29 @@
                         </div>
                     </div>
 
+                    <!-- Wind Data Upload Section -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="wind-data-input" class="label">Wind Data:</label>
+                            <div class="upload-data">
+                                <input type="file" id="wind-data-input" accept=".csv" style="display: none">
+                                <button type="button" class="upload" id="wind-data-upload">
+                                    <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-width="2" stroke="#ffffff"
+                                            d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                                            stroke-linejoin="round" stroke-linecap="round"></path>
+                                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                                            stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                                    </svg>
+                                    <span>ADD FILE</span>
+                                </button>
+                                <input type="text" id="wind-data-filename" class="filename" readonly
+                                    placeholder="No file chosen">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="order" class="label">Gravity Parameter (Order):</label>
@@ -232,22 +259,20 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="core" class="label">COE Info:</label>
-                            <select id="core" class="input-field">
-                                <option value="choose_core">Please select a model</option>
-                                <option value="PERIGEE_GC_LATITUDE">PERIGEE_GC_LATITUDE</option>
-                                <option value="RE">RE</option>
-                                <option value="MSL">MSL</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="core" class="label">COE Info:</label>
+                        <select id="core" class="input-field">
+                            <option value="choose_core">Please select a model</option>
+                            <option value="PERIGEE_GC_LATITUDE">PERIGEE_GC_LATITUDE</option>
+                            <option value="RE">RE</option>
+                            <option value="MSL">MSL</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="button-group">
                     <button type="reset" class="clear-btn">Clear</button>
-                    <button type="submit" class="next-btn">Next Phase</button>
+                    <button type="submit" class="next-btn">Save</button>
                 </div>
             </form>
 
@@ -529,6 +554,198 @@
                     <button type="submit" class="next-btn">Next Phase</button>
                 </div>
             </form>
+
+            <!-- Sequence Form -->
+            <form id="sequence-form" class="hidden">
+                <div class="form-container">
+                    <h2 class="section-title">Sequence Configuration</h2>
+                    <div class="form-fields">
+                        <!-- Event Type Section -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Event Type:</label>
+                                <select class="input-field" id="event-type">
+                                    <option value="" disabled selected>Select Event Type</option>
+                                    <option value="stage-start">Stage Start</option>
+                                    <option value="motor-ignition">Motor Ignition</option>
+                                    <option value="motor-termination">Motor Termination</option>
+                                    <option value="stage-separation">Stage Separation</option>
+                                    <option value="heat-shield-separation">Heat Shield Separation</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Event Flag:</label>
+                                <input type="text" class="input-field" id="event-flag" placeholder="Enter event flag">
+                            </div>
+                        </div>
+
+                        <!-- Timing Section -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Trigger Type:</label>
+                                <select class="input-field" id="trigger-type">
+                                    <option value="" disabled selected>Select Trigger Type</option>
+                                    <option value="mission-time">Mission Time</option>
+                                    <option value="phase-time">Phase Time</option>
+                                    <option value="altitude">Altitude</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Trigger Value:</label>
+                                <input type="number" class="input-field" id="trigger-value"
+                                    placeholder="Enter trigger value">
+                            </div>
+                        </div>
+
+                        <!-- Dependencies Section -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Reference Flag:</label>
+                                <select class="input-field" id="dependent-event">
+                                    <option value="" disabled selected>Select Reference Flag</option>
+                                    <option value="none">None</option>
+                                    <!-- Other events will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Comment:</label>
+                                <input type="text" class="input-field" id="event-comment" placeholder="Enter comment">
+                            </div>
+                        </div>
+
+                        <!-- Add Event Button -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <button type="button" class="add-stg" id="add-event-btn">
+                                    Add Event
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Event List -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label class="label">Event Sequence:</label>
+                                <div id="event-list" class="event-list">
+                                    <!-- Events will be listed here dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="reset" class="clear-btn">Clear</button>
+                        <button type="submit" class="next-btn">Save</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Steering Form -->
+            <form id="steering-form" class="hidden">
+                <div class="form-container">
+                    <h2 class="section-title">Steering Configuration</h2>
+                    <div class="form-fields">
+                        <!-- Steering Type Section -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Steering Type:</label>
+                                <select class="input-field" id="steering-type">
+                                    <option value="" disabled selected>Select Steering Type</option>
+                                    <option value="pitch">Pitch Program</option>
+                                    <option value="gravity-turn">Gravity Turn</option>
+                                    <option value="optimal">Optimal Control</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Control Mode:</label>
+                                <select class="input-field" id="control-mode">
+                                    <option value="" disabled selected>Select Control Mode</option>
+                                    <option value="open-loop">Open Loop</option>
+                                    <option value="closed-loop">Closed Loop</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Time Parameters -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Start Time (s):</label>
+                                <input type="number" class="input-field" id="start-time" placeholder="Enter start time">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">End Time (s):</label>
+                                <input type="number" class="input-field" id="end-time" placeholder="Enter end time">
+                            </div>
+                        </div>
+
+                        <!-- Angle Parameters -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Initial Angle (deg):</label>
+                                <input type="number" class="input-field" id="initial-angle"
+                                    placeholder="Enter initial angle">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Final Angle (deg):</label>
+                                <input type="number" class="input-field" id="final-angle"
+                                    placeholder="Enter final angle">
+                            </div>
+                        </div>
+
+                        <!-- Rate Parameters -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Turn Rate (deg/s):</label>
+                                <input type="number" class="input-field" id="turn-rate" placeholder="Enter turn rate">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Rate Limit (deg/s):</label>
+                                <input type="number" class="input-field" id="rate-limit" placeholder="Enter rate limit">
+                            </div>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <div class="upload-data">
+                                    <label class="upload-label">Steering Profile Data (Optional)</label>
+                                    <input type="file" id="steering-data" accept=".csv" style="display: none;">
+                                    <button type="button" class="upload"
+                                        onclick="document.getElementById('steering-data').click()">
+                                        Upload CSV
+                                    </button>
+                                    <input type="text" class="filename" id="steering-filename" readonly
+                                        placeholder="No file chosen">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile List -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label class="label">Steering Profiles:</label>
+                                <div id="profile-list" class="event-list">
+                                    <!-- Profiles will be listed here dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Profile Button -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <button type="button" class="add-stg" id="add-profile-btn">
+                                    Add Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="reset" class="clear-btn">Clear</button>
+                        <button type="submit" class="next-btn">Save</button>
+                    </div>
+                </div>
+            </form>
         </section>
     </main>
 
@@ -536,17 +753,10 @@
     <!-- JavaScript Files that really needs-->
     <script src="js/ui-navigation.js"></script>
     <script src="js/formHandler.js"></script>
-
-
-
-
-
+    <script src="js/missionDataHandler.js"></script>
 
     <!-- Sweet Alert Pop Up. make it offline, now CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Test Demo JS -->
-    <script src="js/alert.js"></script>
 </body>
 
 </html>
