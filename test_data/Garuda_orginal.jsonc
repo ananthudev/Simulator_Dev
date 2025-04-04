@@ -4784,9 +4784,6 @@
             "PROFILE_full"
         ]
     },
-    "kp": 0.5,
-    "kd": 0.01,
-    "ki": 0.1,
     "vertical_ascend": {
         "start": {
             "identity": "ST_F1",

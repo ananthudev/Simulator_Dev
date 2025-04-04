@@ -16,6 +16,11 @@
     <!-- main css -->
     <link rel="stylesheet" href="css/test1.css">
 
+    <!-- windows theme -->
+    <!-- <link rel="stylesheet" href="css/gmat-theme.css"> -->
+
+
+
     <link rel="stylesheet" href="css/launchbutton.css">
     <link rel="stylesheet" href="css/toggle.css">
 </head>
@@ -651,93 +656,121 @@
                                 <label class="label">Steering Type:</label>
                                 <select class="input-field" id="steering-type">
                                     <option value="" disabled selected>Select Steering Type</option>
-                                    <option value="pitch">Pitch Program</option>
-                                    <option value="gravity-turn">Gravity Turn</option>
-                                    <option value="optimal">Optimal Control</option>
+                                    <option value="PROFILE">PROFILE</option>
+                                    <option value="PITCH">PITCH</option>
+                                    <option value="GRAVITY">GRAVITY</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="label">Control Mode:</label>
-                                <select class="input-field" id="control-mode">
-                                    <option value="" disabled selected>Select Control Mode</option>
-                                    <option value="open-loop">Open Loop</option>
-                                    <option value="closed-loop">Closed Loop</option>
+                                <label class="label">Mode:</label>
+                                <select class="input-field" id="steering-mode">
+                                    <option value="" disabled selected>Select Mode</option>
+                                    <option value="step">Step</option>
+                                    <option value="linear">Linear</option>
+                                    <option value="spline">Spline</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Time Parameters -->
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="label">Start Time (s):</label>
-                                <input type="number" class="input-field" id="start-time" placeholder="Enter start time">
+                                <label class="label">Quantity:</label>
+                                <select class="input-field" id="steering-quantity">
+                                    <option value="" disabled selected>Select Quantity</option>
+                                    <option value="BODY_RATE">Body Rate</option>
+                                    <option value="EULER_ANGLE">Euler Angle</option>
+                                    <option value="QUATERNION">Quaternion</option>
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label class="label">End Time (s):</label>
-                                <input type="number" class="input-field" id="end-time" placeholder="Enter end time">
+                                <label class="label">Independent Variable:</label>
+                                <select class="input-field" id="ind-variable">
+                                    <option value="" disabled selected>Select Variable</option>
+                                    <option value="MISSION_TIME">Mission Time</option>
+                                    <option value="PHASE_TIME">Phase Time</option>
+                                    <option value="ALTITUDE">Altitude</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Angle Parameters -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="label">Initial Angle (deg):</label>
-                                <input type="number" class="input-field" id="initial-angle"
-                                    placeholder="Enter initial angle">
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Final Angle (deg):</label>
-                                <input type="number" class="input-field" id="final-angle"
-                                    placeholder="Enter final angle">
-                            </div>
-                        </div>
-
-                        <!-- Rate Parameters -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="label">Turn Rate (deg/s):</label>
-                                <input type="number" class="input-field" id="turn-rate" placeholder="Enter turn rate">
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Rate Limit (deg/s):</label>
-                                <input type="number" class="input-field" id="rate-limit" placeholder="Enter rate limit">
-                            </div>
-                        </div>
-
-                        <!-- Upload Section -->
                         <div class="form-row">
                             <div class="form-group full-width">
-                                <div class="upload-data">
-                                    <label class="upload-label">Steering Profile Data (Optional)</label>
-                                    <input type="file" id="steering-data" accept=".csv" style="display: none;">
-                                    <button type="button" class="upload"
-                                        onclick="document.getElementById('steering-data').click()">
-                                        Upload CSV
+                                <label class="label">Comment:</label>
+                                <input type="text" class="input-field" id="steering-comment"
+                                    placeholder="Enter comment for this profile">
+                            </div>
+                        </div>
+
+                        <!-- Profile Data Section -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label class="label">Profile Data Input Method:</label>
+                                <div class="radio-group">
+                                    <input type="radio" id="manual-input" name="data-input-method" value="manual">
+                                    <label for="manual-input">Manual Input</label>
+                                    <input type="radio" id="csv-input" name="data-input-method" value="csv">
+                                    <label for="csv-input">CSV Upload</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Input Section -->
+                        <div id="manual-input-section" class="hidden">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="label">Time Point:</label>
+                                    <input type="number" class="input-field" id="time-point"
+                                        placeholder="Enter time value">
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Roll Value:</label>
+                                    <input type="number" class="input-field" id="roll-value"
+                                        placeholder="Enter roll value">
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" class="add-stg" id="add-point-btn">
+                                        Add Point
                                     </button>
-                                    <input type="text" class="filename" id="steering-filename" readonly
-                                        placeholder="No file chosen">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Profile List -->
+                        <!-- CSV Upload Section -->
+                        <div id="csv-upload-section" class="hidden">
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <div class="upload-data">
+                                        <label class="upload-label">Profile Data CSV</label>
+                                        <input type="file" id="profile-data" accept=".csv" style="display: none;">
+                                        <button type="button" class="upload"
+                                            onclick="document.getElementById('profile-data').click()">
+                                            <svg aria-hidden="true" stroke="currentColor" stroke-width="2"
+                                                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-width="2" stroke="#ffffff"
+                                                    d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                                                    stroke-linejoin="round" stroke-linecap="round"></path>
+                                                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                                                    stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                                            </svg>
+                                            <span>Upload CSV</span>
+                                        </button>
+                                        <input type="text" class="filename" id="profile-filename" readonly
+                                            placeholder="No file chosen">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Data Display -->
                         <div class="form-row">
                             <div class="form-group full-width">
-                                <label class="label">Steering Profiles:</label>
-                                <div id="profile-list" class="event-list">
-                                    <!-- Profiles will be listed here dynamically -->
+                                <label class="label">Profile Points:</label>
+                                <div id="profile-points-list" class="event-list">
+                                    <!-- Profile points will be listed here dynamically -->
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Add Profile Button -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <button type="button" class="add-stg" id="add-profile-btn">
-                                    Add Profile
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="button-group">
