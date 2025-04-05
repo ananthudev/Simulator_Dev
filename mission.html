@@ -23,6 +23,7 @@
 
     <link rel="stylesheet" href="css/launchbutton.css">
     <link rel="stylesheet" href="css/toggle.css">
+    <link rel="stylesheet" href="css/tab-fixes.css">
 </head>
 
 <body>
@@ -165,12 +166,11 @@
                             </select>
                         </div>
                     </div>
-                </div>
 
-                <div class="button-group">
-                    <button type="reset" class="clear-btn">Clear</button>
-                    <button id="save-mission" class="next-btn">Save</button>
-
+                    <div class="button-group">
+                        <button type="reset" class="clear-btn">Clear</button>
+                        <button id="save-mission" class="next-btn">Save</button>
+                    </div>
                 </div>
             </form>
 
@@ -271,11 +271,11 @@
                             <option value="MSL">MSL</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="button-group">
-                    <button type="reset" class="clear-btn">Clear</button>
-                    <button type="submit" class="next-btn">Save</button>
+                    <div class="button-group">
+                        <button type="reset" class="clear-btn">Clear</button>
+                        <button type="submit" class="next-btn">Save</button>
+                    </div>
                 </div>
             </form>
 
@@ -557,11 +557,11 @@
                             <button type="button" id="add-stage-btn" class="add-stg">Add Stage</button>
                         </div>
                     </div>
-                </div>
 
-                <div class="button-group">
-                    <button type="reset" class="clear-btn">Clear</button>
-                    <button type="submit" class="next-btn">Next Phase</button>
+                    <div class="button-group">
+                        <button type="reset" class="clear-btn">Clear</button>
+                        <button type="submit" class="next-btn">Save</button>
+                    </div>
                 </div>
             </form>
 
@@ -636,14 +636,14 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Event List -->
-                            <div class="form-row">
-                                <div class="form-group full-width">
-                                    <label class="label">Event Sequence:</label>
-                                    <div id="event-list" class="event-list">
-                                        <!-- Events will be listed here dynamically -->
-                                    </div>
+                        <!-- Event List - Now on the right side -->
+                        <div class="event-list-container">
+                            <div class="form-group full-width">
+                                <label class="label">Event Sequence:</label>
+                                <div id="event-list" class="event-list">
+                                    <!-- Events will be listed here dynamically -->
                                 </div>
                             </div>
                         </div>
@@ -726,14 +726,14 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Event List -->
-                            <div class="form-row">
-                                <div class="form-group full-width">
-                                    <label class="label">Event Sequence:</label>
-                                    <div id="event-list" class="event-list">
-                                        <!-- Events will be listed here dynamically -->
-                                    </div>
+                        <!-- Event List - Now on the right side -->
+                        <div class="event-list-container">
+                            <div class="form-group full-width">
+                                <label class="label">Event Sequence:</label>
+                                <div id="event-list" class="event-list">
+                                    <!-- Events will be listed here dynamically -->
                                 </div>
                             </div>
                         </div>

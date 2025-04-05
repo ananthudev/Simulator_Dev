@@ -531,28 +531,36 @@ select.input-field option:checked {
 
 /* Event List Styles */
 .event-list {
-  background: rgba(255, 255, 255, 0.1);
+  max-height: 400px;
+  overflow-y: auto;
+  background: rgba(26, 26, 26, 0.6);
   border-radius: 6px;
   padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   margin-top: 10px;
-  min-height: 100px;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .event-item {
-  background: rgba(74, 144, 226, 0.1);
-  border: 1px solid rgba(74, 144, 226, 0.3);
-  border-radius: 4px;
-  padding: 12px;
+  background: rgba(20, 20, 20, 0.7);
+  border-radius: 6px;
+  padding: 12px 15px;
   margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: white;
-  cursor: move;
+  cursor: grab;
+  transition: all 0.3s;
+  border-left: 3px solid rgba(74, 144, 226, 0.7);
   user-select: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-item:last-child {
+  margin-bottom: 0;
+}
+
+.event-item:hover {
+  background: rgba(30, 30, 30, 0.9);
+  transform: translateX(2px);
 }
 
 .event-item.dragging {
@@ -566,8 +574,11 @@ select.input-field option:checked {
   margin-top: 20px;
 }
 
-.event-item:hover {
-  background: rgba(74, 144, 226, 0.2);
+.event-list-container .label {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #4a90e2;
+  font-weight: 600;
 }
 
 .event-details {
@@ -679,6 +690,11 @@ select.input-field option:checked {
   justify-content: center;
   position: relative;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 44px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .steering-tab:last-child {
@@ -725,12 +741,14 @@ select.input-field option:checked {
   margin-bottom: 20px;
 }
 
-/* Make steering form container wider */
+/* Make steering form container wider - removed in favor of specific layouts */
+/*
 #steering-form .form-container {
   max-width: 1100px;
   margin: 0 auto;
   width: 90%;
 }
+*/
 
 /* Sequence Form Tabs */
 .sequence-tabs {
@@ -760,6 +778,20 @@ select.input-field option:checked {
   justify-content: center;
   position: relative;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 44px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Make sequence form tabs match steering form tabs size */
+#sequence-form .sequence-tab {
+  font-size: 12px;
+  padding: 12px 5px;
+  white-space: normal;
+  line-height: 1.1;
+  height: 44px;
 }
 
 .sequence-tab:last-child {
@@ -791,11 +823,157 @@ select.input-field option:checked {
   padding: 25px;
 }
 
-/* Make both form containers consistent */
+/* Make both form containers consistent - removed in favor of specific layouts */
+/*
 #sequence-form .form-container,
 #steering-form .form-container {
   max-width: 1100px;
   margin: 0 auto;
   width: 90%;
   padding: 25px;
+}
+*/
+
+/* Sequence Form Specific Layout */
+#sequence-form .form-container {
+  max-width: 95%;
+  margin: 0 0 0 40px; /* Moved to the left, closer to sidebar */
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+}
+
+#sequence-form .sequence-tab-contents {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+#sequence-form .form-fields {
+  display: flex;
+  flex-direction: column;
+  width: 45%;
+  min-width: 400px;
+}
+
+#sequence-form .event-list-container {
+  width: 55%;
+  padding-left: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#sequence-form .event-list {
+  height: 100%;
+  min-height: 350px;
+  overflow-y: auto;
+}
+
+/* Steering Form Specific Layout - Matching Sequence Form */
+#steering-form .form-container {
+  max-width: 95%;
+  margin: 0 0 0 40px; /* Moved to the left, closer to sidebar */
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+}
+
+#steering-form .sequence-tab-contents {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+#steering-form .form-fields {
+  display: flex;
+  flex-direction: column;
+  width: 45%;
+  min-width: 400px;
+}
+
+#steering-form .event-list-container {
+  width: 55%;
+  padding-left: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#steering-form .event-list {
+  height: 100%;
+  min-height: 350px;
+  overflow-y: auto;
+}
+
+/* Update responsive styles for both forms */
+@media (max-width: 1200px) {
+  #sequence-form .sequence-tab-contents,
+  #steering-form .sequence-tab-contents {
+    flex-direction: column;
+  }
+
+  #sequence-form .form-fields,
+  #sequence-form .event-list-container,
+  #steering-form .form-fields,
+  #steering-form .event-list-container {
+    width: 100%;
+  }
+
+  #sequence-form .event-list-container,
+  #steering-form .event-list-container {
+    padding-left: 0;
+    border-left: none;
+    margin-top: 20px;
+  }
+
+  #sequence-form .form-container,
+  #steering-form .form-container {
+    margin: 0 auto;
+  }
+}
+
+/* Ensure Event Sequence container has proper height */
+#sequence-form .event-list-container,
+#steering-form .event-list-container {
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
+}
+
+#sequence-form .event-list,
+#steering-form .event-list {
+  flex-grow: 1;
+  min-height: 380px;
+  max-height: 450px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(74, 144, 226, 0.5) rgba(26, 26, 26, 0.3);
+}
+
+#sequence-form .event-list::-webkit-scrollbar,
+#steering-form .event-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#sequence-form .event-list::-webkit-scrollbar-track,
+#steering-form .event-list::-webkit-scrollbar-track {
+  background: rgba(26, 26, 26, 0.3);
+  border-radius: 3px;
+}
+
+#sequence-form .event-list::-webkit-scrollbar-thumb,
+#steering-form .event-list::-webkit-scrollbar-thumb {
+  background-color: rgba(74, 144, 226, 0.5);
+  border-radius: 3px;
+}
+
+/* Add specific styles for sequence form tabs to match steering form */
+#sequence-form .sequence-tabs,
+#steering-form .sequence-tabs {
+  display: flex;
+  width: 100%;
+}
+
+#sequence-form .sequence-tab,
+#steering-form .sequence-tab {
+  flex: 1;
+  width: 20%; /* Five tabs, each gets 20% */
 }

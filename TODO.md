@@ -115,21 +115,49 @@
    - [ ] Implement form auto-population from loaded JSON
    - [ ] Handle all data types during form population
 
-3. **Backend Integration**
+3. **Form Validation Status Indicators**
+
+   - [ ] Add grayed-out checkmark next to menu tree items (Details, Environment, Vehicle, Sequence, Steering)
+   - [ ] Turn checkmark green when corresponding form is completely validated and filled
+   - [ ] Turn checkmark red if user tries to save form without filling required fields
+   - [ ] Implement status tracking for each tab in multi-tab forms (Sequence and Steering)
+   - [ ] Add checkmark indicators next to tab labels in Sequence form:
+     - [ ] Stage Start tab validation status
+     - [ ] Motor Ignition tab validation status
+     - [ ] Motor Termination tab validation status
+     - [ ] Stage Separation tab validation status
+     - [ ] Heat Shield Separation tab validation status
+   - [ ] Add checkmark indicators next to tab labels in Steering form:
+     - [ ] Vehicle Ascend tab validation status
+     - [ ] Pitch Hold tab validation status
+     - [ ] Constant Pitch Rate tab validation status
+     - [ ] Gravity Turn tab validation status
+     - [ ] Profiles Separation tab validation status
+   - [ ] Create consistent visual style for all validation indicators
+   - [ ] Implement JavaScript logic to track form completion status
+   - [ ] Add form field validation to identify incomplete required fields
+   - [ ] Validation workflow logic:
+     - [ ] Individual tab validation occurs when user attempts to save or switch tabs
+     - [ ] Main form validation status (sidebar menu) is determined by all its tabs being valid
+     - [ ] Clicking save on incomplete form highlights problem fields and tabs
+     - [ ] User can see at a glance which parts of the mission need attention
+     - [ ] Validation state persists during the session until form is properly completed
+
+4. **Backend Integration**
 
    - [ ] Setup connection to ASTRA C program
    - [ ] Implement secure file transfer to backend
    - [ ] Handle execution of C program
    - [ ] Protect proprietary business logic
 
-4. **Terminal Output Display**
+5. **Terminal Output Display**
 
    - [ ] Create HTML/CSS terminal window
    - [ ] Implement real-time output streaming
    - [ ] Style terminal window for good UX
    - [ ] Handle different types of program output
 
-5. **Security Measures**
+6. **Security Measures**
 
    - [ ] Implement C program protection
    - [ ] Secure sensitive business logic
@@ -154,3 +182,11 @@
 - [ ] Implement error handling for missing stage data
 - [ ] Add tooltips/help text for event flag usage
 - [ ] Consider adding a preview of available flags in sequence form
+- [ ] Implementation details for validation status indicators:
+  - [ ] Design small, subtle checkmark icons that don't overwhelm the UI
+  - [ ] For menu tree: Position checkmarks at end of menu item text
+  - [ ] For form tabs: Position checkmarks at top-right of each tab
+  - [ ] Use consistent colors: gray (neutral/not started), green (valid/complete), red (invalid/incomplete)
+  - [ ] Add hover tooltip explaining status (e.g., "All required fields complete" or "Missing required data")
+  - [ ] Make indicators subtle enough not to distract but clear enough to serve as visual guides
+  - [ ] Store validation state persistently for multi-step form processes
