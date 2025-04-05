@@ -17,7 +17,6 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .logo-img {
@@ -25,12 +24,22 @@
   height: auto;
 }
 
+.main-nav {
+  display: flex;
+  align-items: center;
+}
+
 .main-nav ul {
   list-style: none;
   display: flex;
-  gap: 30px;
   margin: 0;
   padding: 0;
+  gap: 20px;
+}
+
+.main-nav li {
+  display: flex;
+  align-items: center;
 }
 
 .main-nav a {
@@ -39,16 +48,19 @@
   font-weight: 600;
   font-size: 16px;
   transition: color 0.3s;
+  padding: 8px 12px;
+  border-radius: 4px;
 }
 
 .main-nav a:hover {
   color: #4a90e2;
+  background: rgba(74, 144, 226, 0.1);
 }
 
 .launch-container {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Mission Page Layout */
@@ -119,7 +131,7 @@
 .mission-content {
   flex: 1;
   margin-left: 250px;
-  padding: 30px;
+  padding: 30px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -608,4 +620,182 @@ select.input-field option:checked {
 
 .full-width {
   width: 100% !important;
+}
+/* Steering Form Specific Styles */
+.section-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.subsection-container {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 15px;
+  margin: 10px 0;
+}
+
+.subsection-title {
+  color: #4a90e2;
+  font-size: 18px;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.subsection-subtitle {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+/* Steering Form Tabs */
+.steering-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  align-items: stretch;
+  background: rgba(26, 26, 26, 0.4);
+  border-radius: 6px 6px 0 0;
+}
+
+.steering-tab {
+  padding: 12px 10px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.steering-tab:last-child {
+  border-right: none;
+}
+
+.steering-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.steering-tab.active {
+  background: rgba(74, 144, 226, 0.3);
+  font-weight: 600;
+}
+
+.steering-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #4a90e2;
+}
+
+.steering-tab-contents {
+  background: rgba(26, 26, 26, 0.4);
+  border-radius: 0 0 6px 6px;
+  padding: 25px;
+}
+
+.steering-tab-content {
+  display: none;
+}
+
+.steering-tab-content.active {
+  display: block;
+}
+
+.steering-tab-content h3 {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Make steering form container wider */
+#steering-form .form-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 90%;
+}
+
+/* Sequence Form Tabs */
+.sequence-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  align-items: stretch;
+  background: rgba(26, 26, 26, 0.4);
+  border-radius: 6px 6px 0 0;
+}
+
+.sequence-tab {
+  padding: 12px 10px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sequence-tab:last-child {
+  border-right: none;
+}
+
+.sequence-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sequence-tab.active {
+  background: rgba(74, 144, 226, 0.3);
+  font-weight: 600;
+}
+
+.sequence-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #4a90e2;
+}
+
+.sequence-tab-contents {
+  background: rgba(26, 26, 26, 0.4);
+  border-radius: 0 0 6px 6px;
+  padding: 25px;
+}
+
+/* Make both form containers consistent */
+#sequence-form .form-container,
+#steering-form .form-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 90%;
+  padding: 25px;
 }

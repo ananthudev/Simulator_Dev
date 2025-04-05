@@ -28,21 +28,19 @@
 <body>
     <!-- Navigation Bar -->
     <header class="nav-bar">
-        <div class="logo">
-            <img src="assets/img/logo.png" alt="ASTRA Logo" class="logo-img">
-        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#" id="">CREATE MISSION</a></li>
+                <li><a href="#" id="open-mission-btn">OPEN MISSION</a></li>
+            </ul>
+        </nav>
         <!-- Centered Launch Mission Button -->
         <div class="launch-container">
             <button id="launch-btn" class="launch-mission-btn">Launch Mission</button>
         </div>
-
-        <nav class="main-nav">
-            <ul>
-                <li><a href="#" id="">CREATE MISSION</a></li>
-                <li><a href="#home">HOME</a></li>
-                <li><a href="#account">ACCOUNT</a></li>
-            </ul>
-        </nav>
+        <div class="logo">
+            <img src="assets/img/logo.png" alt="ASTRA Logo" class="logo-img">
+        </div>
     </header>
 
     <!-- Sidebar & Mission Page Content -->
@@ -564,75 +562,80 @@
             <form id="sequence-form" class="hidden">
                 <div class="form-container">
                     <h2 class="section-title">Sequence Configuration</h2>
-                    <div class="form-fields">
-                        <!-- Event Type Section -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="label">Event Type:</label>
-                                <select class="input-field" id="event-type">
-                                    <option value="" disabled selected>Select Event Type</option>
-                                    <option value="stage-start">Stage Start</option>
-                                    <option value="motor-ignition">Motor Ignition</option>
-                                    <option value="motor-termination">Motor Termination</option>
-                                    <option value="stage-separation">Stage Separation</option>
-                                    <option value="heat-shield-separation">Heat Shield Separation</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Event Flag:</label>
-                                <input type="text" class="input-field" id="event-flag" placeholder="Enter event flag">
-                            </div>
-                        </div>
 
-                        <!-- Timing Section -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="label">Trigger Type:</label>
-                                <select class="input-field" id="trigger-type">
-                                    <option value="" disabled selected>Select Trigger Type</option>
-                                    <option value="mission-time">Mission Time</option>
-                                    <option value="phase-time">Phase Time</option>
-                                    <option value="altitude">Altitude</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Trigger Value:</label>
-                                <input type="number" class="input-field" id="trigger-value"
-                                    placeholder="Enter trigger value">
-                            </div>
-                        </div>
+                    <!-- Event Type Tabs -->
+                    <div class="sequence-tabs">
+                        <button type="button" class="sequence-tab active" data-tab="stage-start">Stage Start</button>
+                        <button type="button" class="sequence-tab" data-tab="motor-ignition">Motor Ignition</button>
+                        <button type="button" class="sequence-tab" data-tab="motor-termination">Motor
+                            Termination</button>
+                        <button type="button" class="sequence-tab" data-tab="stage-separation">Stage Separation</button>
+                        <button type="button" class="sequence-tab" data-tab="heat-shield-separation">Heat Shield
+                            Separation</button>
+                    </div>
 
-                        <!-- Dependencies Section -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="label">Reference Flag:</label>
-                                <select class="input-field" id="dependent-event">
-                                    <option value="" disabled selected>Select Reference Flag</option>
-                                    <option value="none">None</option>
-                                    <!-- Other events will be populated dynamically -->
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Comment:</label>
-                                <input type="text" class="input-field" id="event-comment" placeholder="Enter comment">
-                            </div>
-                        </div>
+                    <div class="sequence-tab-contents">
+                        <div class="form-fields">
+                            <!-- Hidden Event Type Field -->
+                            <input type="hidden" id="event-type" value="stage-start">
 
-                        <!-- Add Event Button -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <button type="button" class="add-stg" id="add-event-btn">
-                                    Add Event
-                                </button>
+                            <!-- Common Fields for All Event Types -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="label">Event Flag:</label>
+                                    <input type="text" class="input-field" id="event-flag"
+                                        placeholder="Enter event flag">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Event List -->
-                        <div class="form-row">
-                            <div class="form-group full-width">
-                                <label class="label">Event Sequence:</label>
-                                <div id="event-list" class="event-list">
-                                    <!-- Events will be listed here dynamically -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="label">Trigger Type:</label>
+                                    <select class="input-field" id="trigger-type">
+                                        <option value="" disabled selected>Select Trigger Type</option>
+                                        <option value="mission-time">Mission Time</option>
+                                        <option value="phase-time">Phase Time</option>
+                                        <option value="altitude">Altitude</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Trigger Value:</label>
+                                    <input type="number" class="input-field" id="trigger-value"
+                                        placeholder="Enter trigger value">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="label">Reference Flag:</label>
+                                    <select class="input-field" id="dependent-event">
+                                        <option value="" disabled selected>Select Reference Flag</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Comment:</label>
+                                    <input type="text" class="input-field" id="event-comment"
+                                        placeholder="Enter comment">
+                                </div>
+                            </div>
+
+                            <!-- Add Event Button -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <button type="button" class="add-stg" id="add-event-btn">
+                                        Add Event
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Event List -->
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label class="label">Event Sequence:</label>
+                                    <div id="event-list" class="event-list">
+                                        <!-- Events will be listed here dynamically -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -649,128 +652,59 @@
             <form id="steering-form" class="hidden">
                 <div class="form-container">
                     <h2 class="section-title">Steering Configuration</h2>
-                    <div class="form-fields">
-                        <!-- Steering Type Section -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="label">Steering Type:</label>
-                                <select class="input-field" id="steering-type">
-                                    <option value="" disabled selected>Select Steering Type</option>
-                                    <option value="PROFILE">PROFILE</option>
-                                    <option value="PITCH">PITCH</option>
-                                    <option value="GRAVITY">GRAVITY</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Mode:</label>
-                                <select class="input-field" id="steering-mode">
-                                    <option value="" disabled selected>Select Mode</option>
-                                    <option value="step">Step</option>
-                                    <option value="linear">Linear</option>
-                                    <option value="spline">Spline</option>
-                                </select>
+
+                    <!-- Tabs -->
+                    <div class="steering-tabs">
+                        <button type="button" class="steering-tab active" data-tab="vertical-section">Vertical
+                            Ascend</button>
+                        <button type="button" class="steering-tab" data-tab="pitch-hold">Pitch Hold</button>
+                        <button type="button" class="steering-tab" data-tab="constant-pitch-rate">Constant Pitch
+                            Rate</button>
+                        <button type="button" class="steering-tab" data-tab="gravity-turn">Gravity Turn</button>
+                        <button type="button" class="steering-tab" data-tab="profile">Profile</button>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div class="steering-tab-contents">
+                        <!-- Vertical Section Content -->
+                        <div id="vertical-section" class="steering-tab-content active">
+                            <div class="form-fields">
+                                <h3>Vertical Section Configuration</h3>
+                                <!-- Form fields will be added later -->
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="label">Quantity:</label>
-                                <select class="input-field" id="steering-quantity">
-                                    <option value="" disabled selected>Select Quantity</option>
-                                    <option value="BODY_RATE">Body Rate</option>
-                                    <option value="EULER_ANGLE">Euler Angle</option>
-                                    <option value="QUATERNION">Quaternion</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Independent Variable:</label>
-                                <select class="input-field" id="ind-variable">
-                                    <option value="" disabled selected>Select Variable</option>
-                                    <option value="MISSION_TIME">Mission Time</option>
-                                    <option value="PHASE_TIME">Phase Time</option>
-                                    <option value="ALTITUDE">Altitude</option>
-                                </select>
+                        <!-- Pitch Hold Content -->
+                        <div id="pitch-hold" class="steering-tab-content">
+                            <div class="form-fields">
+                                <h3>Pitch Hold Configuration</h3>
+                                <!-- Form fields will be added later -->
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group full-width">
-                                <label class="label">Comment:</label>
-                                <input type="text" class="input-field" id="steering-comment"
-                                    placeholder="Enter comment for this profile">
+                        <!-- Constant Pitch Rate Content -->
+                        <div id="constant-pitch-rate" class="steering-tab-content">
+                            <div class="form-fields">
+                                <h3>Constant Pitch Rate Configuration</h3>
+                                <!-- Form fields will be added later -->
                             </div>
                         </div>
 
-                        <!-- Profile Data Section -->
-                        <div class="form-row">
-                            <div class="form-group full-width">
-                                <label class="label">Profile Data Input Method:</label>
-                                <div class="radio-group">
-                                    <input type="radio" id="manual-input" name="data-input-method" value="manual">
-                                    <label for="manual-input">Manual Input</label>
-                                    <input type="radio" id="csv-input" name="data-input-method" value="csv">
-                                    <label for="csv-input">CSV Upload</label>
-                                </div>
+                        <!-- Gravity Turn Content -->
+                        <div id="gravity-turn" class="steering-tab-content">
+                            <div class="form-fields">
+                                <h3>Gravity Turn Configuration</h3>
+                                <!-- Form fields will be added later -->
                             </div>
                         </div>
 
-                        <!-- Manual Input Section -->
-                        <div id="manual-input-section" class="hidden">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="label">Time Point:</label>
-                                    <input type="number" class="input-field" id="time-point"
-                                        placeholder="Enter time value">
-                                </div>
-                                <div class="form-group">
-                                    <label class="label">Roll Value:</label>
-                                    <input type="number" class="input-field" id="roll-value"
-                                        placeholder="Enter roll value">
-                                </div>
-                                <div class="form-group">
-                                    <button type="button" class="add-stg" id="add-point-btn">
-                                        Add Point
-                                    </button>
-                                </div>
+                        <!-- Profile Content -->
+                        <div id="profile" class="steering-tab-content">
+                            <div class="form-fields">
+                                <h3>Profile Configuration</h3>
+                                <!-- Form fields will be added later -->
                             </div>
                         </div>
-
-                        <!-- CSV Upload Section -->
-                        <div id="csv-upload-section" class="hidden">
-                            <div class="form-row">
-                                <div class="form-group full-width">
-                                    <div class="upload-data">
-                                        <label class="upload-label">Profile Data CSV</label>
-                                        <input type="file" id="profile-data" accept=".csv" style="display: none;">
-                                        <button type="button" class="upload"
-                                            onclick="document.getElementById('profile-data').click()">
-                                            <svg aria-hidden="true" stroke="currentColor" stroke-width="2"
-                                                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path stroke-width="2" stroke="#ffffff"
-                                                    d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
-                                                    stroke-linejoin="round" stroke-linecap="round"></path>
-                                                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
-                                                    stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
-                                            </svg>
-                                            <span>Upload CSV</span>
-                                        </button>
-                                        <input type="text" class="filename" id="profile-filename" readonly
-                                            placeholder="No file chosen">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Profile Data Display -->
-                        <div class="form-row">
-                            <div class="form-group full-width">
-                                <label class="label">Profile Points:</label>
-                                <div id="profile-points-list" class="event-list">
-                                    <!-- Profile points will be listed here dynamically -->
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
 
                     <div class="button-group">

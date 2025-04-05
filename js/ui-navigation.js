@@ -66,6 +66,9 @@ document.addEventListener("DOMContentLoaded", function () {
   steeringButton.addEventListener("click", (event) => {
     event.preventDefault();
     showForm(steeringForm);
+
+    // Initialize steering tabs after showing the form
+    initializeSteeringTabs();
   });
 
   // Hide "vehicle-stages" initially
@@ -722,6 +725,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     // Edit functionality can be added here
   });
+
+  // Function to initialize steering tabs
+  function initializeSteeringTabs() {
+    const steeringTabs = document.querySelectorAll(".steering-tab");
+    const steeringTabContents = document.querySelectorAll(
+      ".steering-tab-content"
+    );
+
+    if (steeringTabs.length && steeringTabContents.length) {
+      steeringTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          // Remove active class from all tabs and contents
+          steeringTabs.forEach((t) => t.classList.remove("active"));
+          steeringTabContents.forEach((content) =>
+            content.classList.remove("active")
+          );
+
+          // Add active class to clicked tab and corresponding content
+          tab.classList.add("active");
+          const contentId = tab.getAttribute("data-tab");
+          const content = document.getElementById(contentId);
+          if (content) {
+            content.classList.add("active");
+          }
+        });
+      });
+    }
+  }
 });
 
 // Vehicle Dynamic Field Display
@@ -872,3 +903,22 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // details stopping condition radio button logic ends
+
+// Sequence Form Tab Navigation
+document.addEventListener("DOMContentLoaded", function () {
+  const sequenceTabs = document.querySelectorAll(".sequence-tab");
+  const eventTypeInput = document.getElementById("event-type");
+
+  sequenceTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      // Remove active class from all tabs
+      sequenceTabs.forEach((t) => t.classList.remove("active"));
+
+      // Add active class to clicked tab
+      tab.classList.add("active");
+
+      // Update the hidden event type input
+      eventTypeInput.value = tab.getAttribute("data-tab");
+    });
+  });
+});
