@@ -73,6 +73,12 @@
    - Add drag and drop functionality for reordering events
    - Integrate with main mission data
    - Implement responsive design using existing CSS
+   - Auto-populate event flags in all tabs:
+     - Stage Start tab with stage Burn Time Identifiers (ST_X_INI)
+     - Motor Ignition tab with ignition flags (SX_MX_IGN)
+     - Motor Termination tab with burnout flags (SX_MX_Burnout)
+     - Stage Separation tab with separation flags (ST_X_SEP)
+     - Heat Shield Separation tab with PLF separation flag
 
 8. **Steering Form Implementation**
    - ✅ Create steering form UI with modern design
@@ -130,61 +136,21 @@
    - [ ] Add necessary access controls
    - [ ] Protect intellectual property
 
-6. **Orbital Mechanics Features**
+## ✅ Completed Recent Features
 
-   - [ ] Implement high-fidelity orbit propagation
-   - [ ] Add multiple coordinate system support (J2000, ICRF, LVLH, etc.)
-   - [ ] Create orbit visualization in 3D
-   - [ ] Support for multiple spacecraft configurations
-   - [ ] Add force models:
-     - Solar radiation pressure
-     - Atmospheric drag
-     - N-body gravitational effects
-     - Custom force model integration
-   - [ ] Implement orbit determination capabilities
+- [x] Auto-populate event flags in Stage Start tab with Burn Time Identifiers (ST_X_INI)
+- [x] Auto-populate event flags in Motor Ignition tab with ignition flags (SX_MX_IGN)
+- [x] Auto-populate event flags in Motor Termination tab with burnout flags (SX_MX_Burnout)
+- [x] Auto-populate event flags in Stage Separation tab with separation flags (ST_X_SEP)
+- [x] Auto-populate event flags in Heat Shield Separation tab with PLF separation flag
+- [x] Update dropdown options when switching between tabs
+- [x] Fixed stage separation flags (ST_X_SEP) incrementing for each stage
+- [x] Updated motor flags to use stage-specific format (SX_MX_Burnout, SX_MX_IGN)
+- [x] Implemented dynamic motor flag incrementing within each stage
 
-7. **Mission Analysis Tools**
+## Future Improvements
 
-   - [ ] Add trajectory optimization algorithms
-   - [ ] Implement delta-V calculations
-   - [ ] Create maneuver planning interface
-   - [ ] Add support for:
-     - Hohmann transfers
-     - Bi-elliptic transfers
-     - Low-thrust maneuvers
-   - [ ] Implement targeting sequences
-   - [ ] Add collision avoidance analysis
-
-8. **Advanced Simulation Features**
-
-   - [ ] Add Monte Carlo simulation capabilities
-   - [ ] Implement formation flying analysis
-   - [ ] Create ground station visibility tools
-   - [ ] Add eclipse prediction
-   - [ ] Implement sensor modeling
-   - [ ] Add attitude dynamics simulation
-   - [ ] Create fuel consumption analysis
-
-9. **Data Analysis and Reporting**
-
-   - [ ] Implement real-time telemetry display
-   - [ ] Create mission reports generation
-   - [ ] Add data export in standard formats
-   - [ ] Implement parameter sensitivity analysis
-   - [ ] Create mission success criteria evaluation
-   - [ ] Add custom report template system
-
-10. **User Experience Enhancements**
-    - [ ] Create mission templates library
-    - [ ] Implement command sequence scripting
-    - [ ] Add batch mission processing
-    - [ ] Create interactive 3D visualization
-    - [ ] Implement mission playback controls
-    - [ ] Add customizable workspace layouts
-
-## Notes
-
-- Priority should be given to JSON file management and Open Missions feature
-- Backend integration should be carefully planned for security
-- All new features should maintain existing validation standards
-- User feedback should be clear and informative
+- [ ] Add validation for event flag relationships
+- [ ] Implement error handling for missing stage data
+- [ ] Add tooltips/help text for event flag usage
+- [ ] Consider adding a preview of available flags in sequence form

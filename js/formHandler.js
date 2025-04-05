@@ -859,6 +859,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const payloadMass = document.getElementById("payload-mass");
     const plfMass = document.getElementById("plf-mass");
     const plfSepValue = document.getElementById("plf-sep-value");
+    const hssFlag = document.getElementById("hss-flag");
 
     // Basic required fields
     if (!vehicleName.value.trim()) {
@@ -910,6 +911,12 @@ document.addEventListener("DOMContentLoaded", function () {
       parseFloat(plfSepValue.value) <= 0
     ) {
       showError(plfSepValue, "Please enter a valid separation value (>0).");
+      isValid = false;
+    }
+
+    // Heat Shield Separation Flag validation
+    if (!hssFlag.value.trim()) {
+      showError(hssFlag, "Heat Shield Separation Flag is required.");
       isValid = false;
     }
 
@@ -1559,6 +1566,7 @@ document.addEventListener("DOMContentLoaded", function () {
           ).value,
           value: parseFloat(document.getElementById("plf-sep-value").value),
         },
+        flag: document.getElementById("hss-flag").value,
       },
       integration: {
         method: document.getElementById("integration-method").value,
@@ -1608,10 +1616,15 @@ document.addEventListener("DOMContentLoaded", function () {
         mass_unit: "kg",
         mass: vehicleConfig.plf.mass,
         ref_area: 0.0,
-        sep_flag: vehicleConfig.plf.separation.condition,
+        sep_flag: document.getElementById("hss-flag").value,
         descend_drag: null,
         DCISS: "OFF",
       };
+    } else {
+      // Update existing PLF configuration
+      finalMissionData[plfName].mass = vehicleConfig.plf.mass;
+      finalMissionData[plfName].sep_flag =
+        document.getElementById("hss-flag").value;
     }
 
     // Add Initial_States structure if it doesn't exist
@@ -1687,7 +1700,7 @@ document.addEventListener("DOMContentLoaded", function () {
       burn_time: parseFloat(burnTimeInput.value) || 0,
       burn_time_identifier: burnTimeIdentifierInput
         ? burnTimeIdentifierInput.value
-        : `ST_${stageNumber}`,
+        : `ST_${stageNumber}_INI`,
       separation_flag: separationFlagInput
         ? separationFlagInput.value
         : `ST_${stageNumber}_SEP`,
@@ -1729,13 +1742,17 @@ document.addEventListener("DOMContentLoaded", function () {
         aero_data: stageData.aero_data_file,
         motors: finalMissionData[stageName]?.motors || [], // Preserve existing motors
       };
+
+      // Try to update the sequence form's event flag dropdown
+      try {
+        if (typeof updateSequenceEventFlags === "function") {
+          updateSequenceEventFlags();
+        }
+      } catch (error) {
+        console.warn("Could not update sequence event flags:", error);
+      }
     }
 
-    // Only log the updated data
-    console.log(
-      "Updated Stage Data:",
-      JSON.stringify(finalMissionData, null, 2)
-    );
     return stageData;
   }
 
