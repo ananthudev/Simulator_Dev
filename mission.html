@@ -57,6 +57,7 @@
                 </li>
                 <li><a href="#" id="sequence-btn">└── Sequence</a></li>
                 <li><a href="#" id="steering-btn">└── Steering</a></li>
+                <li><a href="#" id="stopping-btn">└── Stopping Condition</a></li>
             </ul>
         </aside>
 
@@ -99,71 +100,6 @@
                         <div class="form-group">
                             <label for="mission-time" class="label">Time (HH:MM:SS):</label>
                             <input type="time" id="mission-time" class="input-field" step="1">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="label">Stopping Condition:</label>
-                            <div class="radio-group">
-                                <input type="radio" id="stop-flag" name="stopping-condition" value="flag">
-                                <label for="stop-flag">Flag</label>
-                                <input type="radio" id="stop-time" name="stopping-condition" value="time">
-                                <label for="stop-time">Time</label>
-                                <input type="radio" id="stop-altitude" name="stopping-condition" value="altitude">
-                                <label for="stop-altitude">Altitude</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Condition Fields (initially hidden) -->
-                    <div id="flag-fields" class="hidden form-row">
-                        <div class="form-group">
-                            <label for="flag-name" class="label">Flag Name:</label>
-                            <input type="text" id="flag-name" class="input-field" placeholder="Enter Flag Name">
-                        </div>
-                        <div class="form-group">
-                            <label for="flag-value" class="label">Value:</label>
-                            <input type="number" id="flag-value" class="input-field" placeholder="Enter Value">
-                        </div>
-                        <div class="form-group">
-                            <label for="flag-condition" class="label">Condition:</label>
-                            <select id="flag-condition" class="input-field">
-                                <option value="eq">EQ</option>
-                                <option value="lt">LT</option>
-                                <option value="gt">GT</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="time-fields" class="hidden form-row">
-                        <div class="form-group">
-                            <label for="time-value" class="label">Value:</label>
-                            <input type="number" id="time-value" class="input-field" placeholder="Time in Seconds">
-                        </div>
-                        <div class="form-group">
-                            <label for="time-condition" class="label">Condition:</label>
-                            <select id="time-condition" class="input-field">
-                                <option value="eq">EQ</option>
-                                <option value="lt">LT</option>
-                                <option value="gt">GT</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="altitude-fields" class="hidden form-row">
-                        <div class="form-group">
-                            <label for="altitude-value" class="label">Value:</label>
-                            <input type="number" id="altitude-value" class="input-field"
-                                placeholder="Altitude in Meters">
-                        </div>
-                        <div class="form-group">
-                            <label for="altitude-condition" class="label">Condition:</label>
-                            <select id="altitude-condition" class="input-field">
-                                <option value="eq">EQ</option>
-                                <option value="lt">LT</option>
-                                <option value="gt">GT</option>
-                            </select>
                         </div>
                     </div>
 
@@ -745,11 +681,101 @@
                     </div>
                 </div>
             </form>
+
+            <!-- Stopping Condition Form -->
+            <form id="stopping-form" class="hidden-form">
+                <div class="form-container">
+                    <h2 class="section-title">Stopping Condition Configuration</h2>
+                    <div class="form-fields" style="min-height: 150px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="label">Stopping Criteria:</label>
+                                <div class="radio-group">
+                                    <input type="radio" id="stop-flag" name="stopping-criteria" value="flag" checked>
+                                    <label for="stop-flag">Flag</label>
+                                    <input type="radio" id="stop-time" name="stopping-criteria" value="time">
+                                    <label for="stop-time">Time</label>
+                                    <input type="radio" id="stop-altitude" name="stopping-criteria" value="altitude">
+                                    <label for="stop-altitude">Altitude</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Flag Fields (initially shown) -->
+                        <div id="flag-fields" class="form-row"
+                            style="width: 100%; display: flex; justify-content: space-between;">
+                            <div class="form-group" style="flex: 1; margin-right: 10px;">
+                                <label for="flag-name" class="label">Flag Name:</label>
+                                <input type="text" id="flag-name" class="input-field" placeholder="Enter Flag Name">
+                            </div>
+                            <div class="form-group" style="flex: 1; margin-right: 10px;">
+                                <label for="flag-value" class="label">Value:</label>
+                                <input type="number" id="flag-value" class="input-field" placeholder="Enter Value">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="flag-condition" class="label">Condition:</label>
+                                <select id="flag-condition" class="input-field">
+                                    <option value="eq">EQ</option>
+                                    <option value="lt">LT</option>
+                                    <option value="gt">GT</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Time Fields (initially hidden) -->
+                        <div id="time-fields" class="hidden form-row"
+                            style="width: 100%; display: flex; justify-content: space-between;">
+                            <div class="form-group" style="flex: 1; margin-right: 10px;">
+                                <label for="time-value" class="label">Value:</label>
+                                <input type="number" id="time-value" class="input-field" placeholder="Time in Seconds">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="time-condition" class="label">Condition:</label>
+                                <select id="time-condition" class="input-field">
+                                    <option value="eq">EQ</option>
+                                    <option value="lt">LT</option>
+                                    <option value="gt">GT</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1; visibility: hidden;">
+                                <!-- Placeholder to maintain width -->
+                            </div>
+                        </div>
+
+                        <!-- Altitude Fields (initially hidden) -->
+                        <div id="altitude-fields" class="hidden form-row"
+                            style="width: 100%; display: flex; justify-content: space-between;">
+                            <div class="form-group" style="flex: 1; margin-right: 10px;">
+                                <label for="altitude-value" class="label">Value:</label>
+                                <input type="number" id="altitude-value" class="input-field"
+                                    placeholder="Altitude in Meters">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="altitude-condition" class="label">Condition:</label>
+                                <select id="altitude-condition" class="input-field">
+                                    <option value="eq">EQ</option>
+                                    <option value="lt">LT</option>
+                                    <option value="gt">GT</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1; visibility: hidden;">
+                                <!-- Placeholder to maintain width -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="reset" class="clear-btn">Clear</button>
+                        <button type="submit" class="next-btn">Save</button>
+                    </div>
+                </div>
+            </form>
         </section>
     </main>
 
 
     <!-- JavaScript Files that really needs-->
+    <script src="js/validation.js"></script>
     <script src="js/ui-navigation.js"></script>
     <script src="js/formHandler.js"></script>
     <script src="js/missionDataHandler.js"></script>

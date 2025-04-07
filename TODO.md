@@ -190,3 +190,44 @@
   - [ ] Add hover tooltip explaining status (e.g., "All required fields complete" or "Missing required data")
   - [ ] Make indicators subtle enough not to distract but clear enough to serve as visual guides
   - [ ] Store validation state persistently for multi-step form processes
+
+## Form Button Naming
+
+- [ ] Rename all form save buttons to be unique:
+  - Mission Details form: `save-mission-details-btn`
+  - Environment Details form: `save-environment-details-btn`
+  - Vehicle Details form: `save-vehicle-details-btn`
+  - Stage Data form: `save-stage-data-btn`
+  - Sequence Data form: `save-sequence-data-btn`
+  - Steering Data form: `save-steering-data-btn`
+
+## Form Validation
+
+- [ ] Update form validation functions to use new button IDs
+- [ ] Ensure each form's save function is properly connected to its unique button
+- [ ] Add proper error handling for each form's validation
+
+## Data Handling
+
+- [ ] Ensure each form's save function properly updates the mission data structure
+- [ ] Add proper error handling for data saving
+- [ ] Add success messages for each form save
+
+## UI Navigation
+
+- [ ] Update UI navigation to work with new button IDs
+- [ ] Ensure proper form transitions after successful saves
+- [ ] Add loading indicators during form saves
+
+## Code Organization
+
+- [ ] Move all UI navigation code to `ui-navigation.js`
+- [ ] Keep form validation and data saving in `formHandler.js`
+- [ ] Keep launch button functionality in `missionDataHandler.js`
+
+## Testing
+
+- [ ] Test each form's save functionality with new button IDs
+- [ ] Test form validation with new button IDs
+- [ ] Test UI navigation with new button IDs
+- [ ] Test data saving with new button IDs

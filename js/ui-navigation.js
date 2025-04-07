@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const vehicleForm = document.getElementById("vehicle-form");
   const sequenceForm = document.getElementById("sequence-form");
   const steeringForm = document.getElementById("steering-form");
+  const stoppingForm = document.getElementById("stopping-form");
 
   // Buttons
   const detailsButton = document.getElementById("details-btn");
@@ -16,9 +17,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const steeringButton = document.getElementById("steering-btn");
   const addStageBtn = document.getElementById("add-stage-btn");
   const vehicleStagesList = document.getElementById("vehicle-stages");
+  const stoppingButton = document.getElementById("stopping-btn");
 
   let stageCounter = 1; // Track stage numbers
   const maxStages = 4; // Maximum allowed stages
+
+  // Add a global array to track saved stages
+  let savedStages = [];
 
   // Initially hide all forms except welcome message
   function hideAllForms() {
@@ -27,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
     vehicleForm.style.display = "none";
     sequenceForm.style.display = "none";
     steeringForm.style.display = "none";
+    stoppingForm.style.display = "none";
     document
       .querySelectorAll(".stage-form, .motor-form, .nozzle-form")
       .forEach((form) => {
@@ -66,8 +72,6 @@ document.addEventListener("DOMContentLoaded", function () {
   steeringButton.addEventListener("click", (event) => {
     event.preventDefault();
     showForm(steeringForm);
-
-    // Initialize steering tabs after showing the form
     initializeSteeringTabs();
   });
 
@@ -77,7 +81,16 @@ document.addEventListener("DOMContentLoaded", function () {
   // Add stages dynamically when "Add Stage" button is clicked
   addStageBtn.addEventListener("click", function () {
     if (stageCounter > maxStages) {
-      alert("No further stages allowed. Maximum stages creation reached.");
+      Swal.fire({
+        icon: "error",
+        title: "Maximum Stages Reached",
+        text: "No further stages allowed. Maximum stages creation reached.",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
       return;
     }
 
@@ -89,52 +102,104 @@ document.addEventListener("DOMContentLoaded", function () {
     // Create new Stage entry in the sidebar
     const newStage = document.createElement("li");
     const stageId = `stage${stageCounter}`;
-    newStage.innerHTML = `<a href="#" class="stage-btn" id="${stageId}-btn">└── Stage ${stageCounter}</a>
+    newStage.innerHTML = `<div class="stage-nav-item">
+                            <a href="#" class="stage-btn" id="${stageId}-btn">└── Stage ${stageCounter}</a>
+                            <button class="delete-stage-icon" data-stage="${stageId}" data-stage-number="${stageCounter}" title="Delete Stage ${stageCounter}">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                              </svg>
+                            </button>
+                          </div>
                           <ul id="${stageId}-motors" class="submenu"></ul>`;
     vehicleStagesList.appendChild(newStage);
 
-    // Create corresponding Stage form with heading & "Add Motor" button
+    // Add styles for the stage nav item and delete icon
+    if (!document.getElementById("stage-delete-icon-styles")) {
+      const styleElement = document.createElement("style");
+      styleElement.id = "stage-delete-icon-styles";
+      styleElement.textContent = `
+        .stage-nav-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-right: 8px;
+        }
+        .delete-stage-icon {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 3px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #777;
+          opacity: 0.7;
+          transition: color 0.2s, opacity 0.2s;
+        }
+        .delete-stage-icon:hover {
+          color: #f44336;
+          opacity: 1;
+        }
+      `;
+      document.head.appendChild(styleElement);
+    }
+
+    // Create corresponding Stage form
     const stageForm = document.createElement("form");
     stageForm.id = `${stageId}-form`;
     stageForm.classList.add("hidden", "stage-form");
+
+    // Try to update the sequence form's stage start tab dropdown
+    try {
+      if (typeof updateStageStartDropdown === "function") {
+        updateStageStartDropdown();
+      }
+    } catch (error) {
+      // Handle error silently
+    }
+
+    // Add the stage form HTML
     stageForm.innerHTML = `
         <div class="form-container">
             <h2 class="stage-heading">Stage ${stageCounter}</h2>
             <div class="form-fields">
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="label">Structural Mass:</label>
-                        <input type="number" class="input-field" placeholder="Enter Structural Mass">
+                        <label for="structural-mass-${stageCounter}" class="label">Structural Mass:</label>
+                        <input type="number" id="structural-mass-${stageCounter}" class="input-field" placeholder="Enter Structural Mass">
                     </div>
                     
                     <div class="form-group">
-                        <label class="label">Reference Area:</label>
-                        <input type="number" class="input-field" placeholder="Enter Reference Area">
+                        <label for="reference-area-${stageCounter}" class="label">Reference Area:</label>
+                        <input type="number" id="reference-area-${stageCounter}" class="input-field" placeholder="Enter Reference Area">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="label">Burn Time:</label>
-                        <input type="number" class="input-field" placeholder="Enter Burn Time">
+                        <label for="burn-time-${stageCounter}" class="label">Burn Time:</label>
+                        <input type="number" id="burn-time-${stageCounter}" class="input-field" placeholder="Enter Burn Time">
                     </div>
                     
                     <div class="form-group">
-                        <label class="label">Burn Time Identifier:</label>
-                        <input type="text" class="input-field" value="ST_${stageCounter}_INI" readonly>
+                        <label for="burn-time-id-${stageCounter}" class="label">Burn Time Identifier:</label>
+                        <input type="text" id="burn-time-id-${stageCounter}" class="input-field" value="ST_${stageCounter}_INI" readonly>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="label">Separation Flag:</label>
-                        <input type="text" class="input-field" value="ST_${stageCounter}_SEP" readonly>
+                        <label for="separation-flag-${stageCounter}" class="label">Separation Flag:</label>
+                        <input type="text" id="separation-flag-${stageCounter}" class="input-field" value="ST_${stageCounter}_SEP" readonly>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="label">DCISS:</label>
+                        <label for="dciss-toggle-${stageId}" class="label">DCISS:</label>
                         <div class="toggle-container">
                             <input type="checkbox" id="dciss-toggle-${stageId}" class="toggle-input">
                             <label for="dciss-toggle-${stageId}" class="toggle-slider"></label>
@@ -142,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     
                     <div class="form-group">
-                        <label class="label">Coasting:</label>
+                        <label for="coasting-toggle-${stageId}" class="label">Coasting:</label>
                         <div class="toggle-container">
                             <input type="checkbox" id="coasting-toggle-${stageId}" class="toggle-input">
                             <label for="coasting-toggle-${stageId}" class="toggle-slider"></label>
@@ -178,20 +243,111 @@ document.addEventListener("DOMContentLoaded", function () {
             
             <div class="button-group">
                 <button type="reset" class="clear-btn">Clear</button>
-                <button type="submit" class="next-stage-btn">Save</button>
+                <button type="submit" class="next-btn">Save</button>
             </div>
         </div>
     `;
 
     document.querySelector(".mission-content").appendChild(stageForm);
 
-    // Make Stage clickable to show its form
-    newStage
-      .querySelector(".stage-btn")
-      .addEventListener("click", function (event) {
-        event.preventDefault();
-        showForm(stageForm);
+    // Add event listener for form submission
+    const saveButton = stageForm.querySelector(".next-btn");
+    saveButton.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      const errors = validateStageForm(stageForm);
+
+      if (errors.length > 0) {
+        // Show error message with SweetAlert2
+        Swal.fire({
+          icon: "error",
+          title: "Validation Error",
+          html: errors.join("<br>"),
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+      } else {
+        // Save the stage data
+        const stageData = saveStageData(stageForm, stageId);
+
+        if (stageData) {
+          // Show success message
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.addEventListener("mouseenter", Swal.stopTimer);
+              toast.addEventListener("mouseleave", Swal.resumeTimer);
+            },
+          });
+
+          Toast.fire({
+            icon: "success",
+            title: `Stage ${stageCounter - 1} has been saved successfully`,
+          });
+        }
+      }
+    });
+
+    // Add event listener for file upload
+    const aeroUploadBtn = document.getElementById(`aero-upload-btn-${stageId}`);
+    const aeroFileInput = document.getElementById(`aero-upload-${stageId}`);
+    const aeroFilename = document.getElementById(`aero-filename-${stageId}`);
+
+    if (aeroUploadBtn && aeroFileInput && aeroFilename) {
+      aeroUploadBtn.addEventListener("click", function () {
+        aeroFileInput.click();
       });
+
+      aeroFileInput.addEventListener("change", function () {
+        if (this.files.length > 0) {
+          aeroFilename.value = this.files[0].name;
+          // Remove error styling if it was previously marked as error
+          aeroFilename.classList.remove("error-field");
+        }
+      });
+    }
+
+    // Show success message for stage creation
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+
+    Toast.fire({
+      icon: "success",
+      title: `Stage ${stageCounter} has been created successfully!`,
+    });
+
+    // Add CSS for error field highlighting if it doesn't exist
+    if (!document.getElementById("error-field-styles")) {
+      const styleElement = document.createElement("style");
+      styleElement.id = "error-field-styles";
+      styleElement.textContent = `
+            .error-field {
+                border-color: #dc3545 !important;
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+            }
+        `;
+      document.head.appendChild(styleElement);
+    }
 
     stageCounter++; // Increment stage count
   });
@@ -249,8 +405,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Burn Out Flag:</label>
-                    <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_Burnout" readonly>
+                    <label class="label">Ignition Flag:</label>
+                    <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_IGN" readonly>
                 </div>
             </div>
             
@@ -268,8 +424,8 @@ document.addEventListener("DOMContentLoaded", function () {
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Ignition Flag:</label>
-                    <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_IGN" readonly>
+                    <label class="label">Burn Out Flag:</label>
+                    <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_Burnout" readonly>
                 </div>
                 
                 <div class="form-group">
@@ -432,7 +588,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelector(".mission-content").appendChild(nozzleForm);
 
-    // Show forms on click
+    // Add click handlers
     newMotor
       .querySelector(".motor-btn")
       .addEventListener("click", function (event) {
@@ -446,290 +602,30 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         showForm(nozzleForm);
       });
-  }
 
-  // Event handling for sequence form
-  const addEventBtn = document.getElementById("add-event-btn");
-  const eventList = document.getElementById("event-list");
-  let eventCounter = 1;
+    // Add file upload handler for thrust data
+    const thrustUploadBtn = document.getElementById(
+      `thrust-upload-btn-${stageId}-${motorCount}`
+    );
+    const thrustFileInput = document.getElementById(
+      `thrust-upload-${stageId}-${motorCount}`
+    );
+    const thrustFilename = document.getElementById(
+      `thrust-filename-${stageId}-${motorCount}`
+    );
 
-  // Enable drag and drop for event list
-  function enableDragAndDrop() {
-    const eventItems = document.querySelectorAll(".event-item");
-
-    eventItems.forEach((item) => {
-      item.setAttribute("draggable", true);
-
-      item.addEventListener("dragstart", (e) => {
-        e.target.classList.add("dragging");
+    if (thrustUploadBtn && thrustFileInput && thrustFilename) {
+      thrustUploadBtn.addEventListener("click", function () {
+        thrustFileInput.click();
       });
 
-      item.addEventListener("dragend", (e) => {
-        e.target.classList.remove("dragging");
-      });
-
-      item.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        const draggingItem = document.querySelector(".dragging");
-        const siblings = [
-          ...eventList.querySelectorAll(".event-item:not(.dragging)"),
-        ];
-        const nextSibling = siblings.find((sibling) => {
-          const box = sibling.getBoundingClientRect();
-          const offset = e.clientY - box.top - box.height / 2;
-          return offset < 0;
-        });
-
-        if (nextSibling) {
-          eventList.insertBefore(draggingItem, nextSibling);
-        } else {
-          eventList.appendChild(draggingItem);
+      thrustFileInput.addEventListener("change", function () {
+        if (this.files.length > 0) {
+          thrustFilename.value = this.files[0].name;
         }
       });
-    });
+    }
   }
-
-  addEventBtn.addEventListener("click", function () {
-    const eventType = document.getElementById("event-type").value;
-    const eventFlag = document.getElementById("event-flag").value;
-    const triggerType = document.getElementById("trigger-type").value;
-    const triggerValue = document.getElementById("trigger-value").value;
-    const dependentEvent = document.getElementById("dependent-event").value;
-    const eventComment = document.getElementById("event-comment").value;
-
-    if (!eventType || !eventFlag || !triggerType || !triggerValue) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
-    const eventItem = document.createElement("div");
-    eventItem.classList.add("event-item");
-    eventItem.innerHTML = `
-      <div class="event-details">
-        <div class="event-type">Event ${eventCounter}: ${eventType}</div>
-        <div class="event-info">
-          Flag: ${eventFlag} | Trigger: ${triggerType} at ${triggerValue}
-          ${dependentEvent !== "none" ? `| Depends on: ${dependentEvent}` : ""}
-          ${eventComment ? `| Comment: ${eventComment}` : ""}
-        </div>
-      </div>
-      <div class="event-actions">
-        <button class="event-edit-btn">Edit</button>
-        <button class="event-delete-btn">Delete</button>
-      </div>
-    `;
-
-    eventList.appendChild(eventItem);
-    eventCounter++;
-
-    // Add the event to dependent event dropdown
-    const dependentEventSelect = document.getElementById("dependent-event");
-    const option = document.createElement("option");
-    option.value = eventFlag;
-    option.textContent = `Event ${eventCounter - 1}: ${eventType}`;
-    dependentEventSelect.appendChild(option);
-
-    // Clear form fields
-    document.getElementById("event-type").selectedIndex = 0;
-    document.getElementById("event-flag").value = "";
-    document.getElementById("trigger-type").selectedIndex = 0;
-    document.getElementById("trigger-value").value = "";
-    document.getElementById("dependent-event").selectedIndex = 0;
-    document.getElementById("event-comment").value = "";
-
-    // Enable drag and drop for the new event item
-    enableDragAndDrop();
-  });
-
-  // Event delegation for edit and delete buttons
-  eventList.addEventListener("click", function (e) {
-    if (e.target.classList.contains("event-delete-btn")) {
-      const eventItem = e.target.closest(".event-item");
-      const eventFlag = eventItem
-        .querySelector(".event-info")
-        .textContent.split("|")[0]
-        .split(":")[1]
-        .trim();
-
-      // Remove the event from the list
-      eventItem.remove();
-
-      // Remove the event from dependent event dropdown
-      const dependentEventSelect = document.getElementById("dependent-event");
-      const options = dependentEventSelect.options;
-      for (let i = 0; i < options.length; i++) {
-        if (options[i].value === eventFlag) {
-          dependentEventSelect.remove(i);
-          break;
-        }
-      }
-    } else if (e.target.classList.contains("event-edit-btn")) {
-      e.preventDefault(); // Prevent form submission/page refresh
-      const eventItem = e.target.closest(".event-item");
-
-      // Get event info text
-      const eventInfo = eventItem.querySelector(".event-info").textContent;
-
-      // Extract values from event info
-      const flag = eventInfo.split("|")[0].split(":")[1].trim();
-      const triggerInfo = eventInfo.split("|")[1].trim();
-      const trigger = triggerInfo.split("at")[0].replace("Trigger:", "").trim();
-      const triggerValue = triggerInfo.split("at")[1].split("|")[0].trim();
-
-      // Get event type from the event-type div
-      const eventType = eventItem
-        .querySelector(".event-type")
-        .textContent.split(":")[1]
-        .trim();
-
-      // Get dependent event if it exists
-      let dependentEvent = "none";
-      if (eventInfo.includes("Depends on:")) {
-        dependentEvent = eventInfo.split("Depends on:")[1].split("|")[0].trim();
-      }
-
-      // Get comment if it exists
-      let comment = "";
-      if (eventInfo.includes("Comment:")) {
-        comment = eventInfo.split("Comment:")[1].trim();
-      }
-
-      // Populate form fields
-      const eventTypeSelect = document.getElementById("event-type");
-      const triggerTypeSelect = document.getElementById("trigger-type");
-      const dependentEventSelect = document.getElementById("dependent-event");
-
-      // Set event type
-      for (let i = 0; i < eventTypeSelect.options.length; i++) {
-        if (eventTypeSelect.options[i].text === eventType) {
-          eventTypeSelect.selectedIndex = i;
-          break;
-        }
-      }
-
-      // Set trigger type
-      for (let i = 0; i < triggerTypeSelect.options.length; i++) {
-        if (triggerTypeSelect.options[i].text === trigger) {
-          triggerTypeSelect.selectedIndex = i;
-          break;
-        }
-      }
-
-      // Set dependent event
-      for (let i = 0; i < dependentEventSelect.options.length; i++) {
-        if (dependentEventSelect.options[i].value === dependentEvent) {
-          dependentEventSelect.selectedIndex = i;
-          break;
-        }
-      }
-
-      // Set other field values
-      document.getElementById("event-flag").value = flag;
-      document.getElementById("trigger-value").value = triggerValue;
-      document.getElementById("event-comment").value = comment;
-
-      // Remove the event from list and dropdown
-      eventItem.remove();
-
-      // Remove from dependent events dropdown
-      const options = dependentEventSelect.options;
-      for (let i = 0; i < options.length; i++) {
-        if (options[i].value === flag) {
-          dependentEventSelect.remove(i);
-          break;
-        }
-      }
-
-      // Scroll to the form
-      document
-        .getElementById("event-type")
-        .scrollIntoView({ behavior: "smooth" });
-    }
-  });
-
-  // Steering form functionality
-  const addProfileBtn = document.getElementById("add-profile-btn");
-  const profileList = document.getElementById("profile-list");
-  let profileCounter = 1;
-
-  // File upload handling
-  const steeringDataInput = document.getElementById("steering-data");
-  const steeringFilename = document.getElementById("steering-filename");
-
-  if (steeringDataInput) {
-    steeringDataInput.addEventListener("change", function (e) {
-      if (e.target.files.length > 0) {
-        if (steeringFilename) {
-          steeringFilename.value = e.target.files[0].name;
-        }
-      }
-    });
-  }
-
-  addProfileBtn.addEventListener("click", function () {
-    const steeringType = document.getElementById("steering-type").value;
-    const controlMode = document.getElementById("control-mode").value;
-    const startTime = document.getElementById("start-time").value;
-    const endTime = document.getElementById("end-time").value;
-    const initialAngle = document.getElementById("initial-angle").value;
-    const finalAngle = document.getElementById("final-angle").value;
-    const turnRate = document.getElementById("turn-rate").value;
-    const rateLimit = document.getElementById("rate-limit").value;
-
-    if (
-      !steeringType ||
-      !controlMode ||
-      !startTime ||
-      !endTime ||
-      !initialAngle ||
-      !finalAngle
-    ) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
-    const profileItem = document.createElement("div");
-    profileItem.classList.add("event-item");
-    profileItem.innerHTML = `
-      <div class="event-details">
-        <div class="event-type">Profile ${profileCounter}: ${steeringType}</div>
-        <div class="event-info">
-          Mode: ${controlMode} | Time: ${startTime}s to ${endTime}s
-          <br>
-          Angle: ${initialAngle}° to ${finalAngle}° | Rate: ${
-      turnRate || "N/A"
-    }°/s
-          ${rateLimit ? `| Limit: ${rateLimit}°/s` : ""}
-        </div>
-      </div>
-      <div class="event-actions">
-        <button class="event-edit-btn">Edit</button>
-        <button class="event-delete-btn">Delete</button>
-      </div>
-    `;
-
-    profileList.appendChild(profileItem);
-    profileCounter++;
-
-    // Clear form fields
-    document.getElementById("steering-type").selectedIndex = 0;
-    document.getElementById("control-mode").selectedIndex = 0;
-    document.getElementById("start-time").value = "";
-    document.getElementById("end-time").value = "";
-    document.getElementById("initial-angle").value = "";
-    document.getElementById("final-angle").value = "";
-    document.getElementById("turn-rate").value = "";
-    document.getElementById("rate-limit").value = "";
-  });
-
-  // Event delegation for edit and delete buttons
-  profileList.addEventListener("click", function (e) {
-    if (e.target.classList.contains("event-delete-btn")) {
-      const profileItem = e.target.closest(".event-item");
-      profileItem.remove();
-    }
-    // Edit functionality can be added here
-  });
 
   // Function to initialize steering tabs
   function initializeSteeringTabs() {
@@ -741,13 +637,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (steeringTabs.length && steeringTabContents.length) {
       steeringTabs.forEach((tab) => {
         tab.addEventListener("click", () => {
-          // Remove active class from all tabs and contents
           steeringTabs.forEach((t) => t.classList.remove("active"));
           steeringTabContents.forEach((content) =>
             content.classList.remove("active")
           );
 
-          // Add active class to clicked tab and corresponding content
           tab.classList.add("active");
           const contentId = tab.getAttribute("data-tab");
           const content = document.getElementById(contentId);
@@ -759,334 +653,91 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function saveStageData(stageForm, stageId) {
-    const stageNumber = stageId.replace("stage", "");
-    const vehicleName = finalMissionData.SSPO.vehicle[0];
-
-    console.log("Saving stage data for stage:", stageNumber);
-    console.log("Vehicle name:", vehicleName);
-
-    if (!missionData.stages) {
-      missionData.stages = [];
-    }
-
-    const structuralMassInput = stageForm.querySelector(
-      'input[placeholder="Enter Structural Mass"]'
-    );
-    const referenceAreaInput = stageForm.querySelector(
-      'input[placeholder="Enter Reference Area"]'
-    );
-    const burnTimeInput = stageForm.querySelector(
-      'input[placeholder="Enter Burn Time"]'
-    );
-    const burnTimeIdentifierInput = stageForm.querySelector(
-      'input[value^="ST_"]:not([value$="_SEP"])'
-    );
-    const separationFlagInput = stageForm.querySelector(
-      'input[value^="ST_"][value$="_SEP"]'
-    );
-    const dcissToggle = stageForm.querySelector(`#dciss-toggle-${stageId}`);
-    const coastingToggle = stageForm.querySelector(
-      `#coasting-toggle-${stageId}`
-    );
-    const aeroFilename = stageForm.querySelector(`#aero-filename-${stageId}`);
-
-    if (!structuralMassInput || !referenceAreaInput || !burnTimeInput) {
-      console.error("Missing critical elements in the stage form:", stageId);
-      return null;
-    }
-
-    const stageData = {
-      stage_number: parseInt(stageNumber),
-      structural_mass: parseFloat(structuralMassInput.value) || 0,
-      reference_area: parseFloat(referenceAreaInput.value) || 0,
-      burn_time: parseFloat(burnTimeInput.value) || 0,
-      burn_time_identifier: burnTimeIdentifierInput
-        ? burnTimeIdentifierInput.value
-        : `ST_${stageNumber}_INI`,
-      separation_flag: separationFlagInput
-        ? separationFlagInput.value
-        : `ST_${stageNumber}_SEP`,
-      dciss: dcissToggle ? dcissToggle.checked : false,
-      coasting: coastingToggle ? coastingToggle.checked : false,
-      aero_data_file: aeroFilename ? aeroFilename.value : "",
+  // Create a global finalMissionData object if it doesn't exist
+  if (typeof finalMissionData === "undefined") {
+    window.finalMissionData = {
+      SSPO: { vehicle: ["Garuda_1"] },
+      Garuda_1: { stage: [] },
     };
-
-    console.log("Stage data to be saved:", stageData);
-
-    if (vehicleName) {
-      finalMissionData[vehicleName].no_Stg = Math.max(
-        parseInt(stageNumber),
-        finalMissionData[vehicleName].no_Stg
-      );
-
-      const stageName = `Stage_${stageNumber}`;
-      if (!finalMissionData[vehicleName].stage.includes(stageName)) {
-        finalMissionData[vehicleName].stage.push(stageName);
-      }
-
-      // Update or create stage data
-      finalMissionData[stageName] = {
-        ...finalMissionData[stageName], // Preserve existing data
-        structural_mass: stageData.structural_mass,
-        ref_area: stageData.reference_area,
-        burn_time: stageData.burn_time,
-        burn_time_identifier: stageData.burn_time_identifier,
-        separation_flag: stageData.separation_flag,
-        DCISS: stageData.dciss ? "ON" : "OFF",
-        coasting: stageData.coasting ? "ON" : "OFF",
-        aero_data: stageData.aero_data_file,
-        motors: finalMissionData[stageName]?.motors || [], // Preserve existing motors
-      };
-
-      console.log("Updated finalMissionData:", finalMissionData);
-
-      // Update the sequence form's event flag dropdown
-      setTimeout(() => {
-        try {
-          updateSequenceEventFlags();
-        } catch (error) {
-          console.warn("Error updating sequence flags:", error);
-        }
-      }, 0);
-    }
-
-    return stageData;
   }
 
-  // Function to update sequence form's event flag dropdown
-  function updateSequenceEventFlags() {
-    const eventFlagSelect = document.getElementById("event-flag");
-    if (!eventFlagSelect) {
-      console.warn("Event flag select element not found");
-      return;
-    }
+  // Add event listener for stopping condition button
+  stoppingButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    showForm(stoppingForm);
+  });
 
-    // Get current active tab
-    const activeTab = document.querySelector(".sequence-tab.active");
-    if (!activeTab) {
-      console.warn("No active sequence tab found");
-      return;
-    }
+  // Stopping condition radio button logic
+  const stoppingRadioButtons = document.querySelectorAll(
+    'input[name="stopping-criteria"]'
+  );
+  const flagFields = document.getElementById("flag-fields");
+  const timeFields = document.getElementById("time-fields");
+  const altitudeFields = document.getElementById("altitude-fields");
 
-    const tabType = activeTab.getAttribute("data-tab");
-    console.log("Updating sequence event flags for tab:", tabType);
+  // Get all input and select elements in each field group
+  const flagInputs = flagFields.querySelectorAll("input, select");
+  const timeInputs = timeFields.querySelectorAll("input, select");
+  const altitudeInputs = altitudeFields.querySelectorAll("input, select");
 
-    // Clear existing options except the first one (Select Event Flag)
-    while (eventFlagSelect.options.length > 1) {
-      eventFlagSelect.remove(1);
-    }
-
-    // Get all stages from finalMissionData
-    const vehicleName = finalMissionData.SSPO?.vehicle?.[0];
-    if (!vehicleName) {
-      console.warn("No vehicle name found in finalMissionData");
-      return;
-    }
-
-    console.log("Vehicle name:", vehicleName);
-    const stages = finalMissionData[vehicleName]?.stage || [];
-
-    if (stages.length === 0) {
-      console.warn("No stages found for vehicle:", vehicleName);
-      return;
-    }
-
-    console.log("Found stages:", stages);
-
-    // Sort stages by number
-    stages.sort((a, b) => {
-      const aNum = parseInt(a.split("_")[1]);
-      const bNum = parseInt(b.split("_")[1]);
-      return aNum - bNum;
+  function disableFields(elements) {
+    elements.forEach((element) => {
+      element.disabled = true;
     });
-
-    // Populate dropdown based on active tab type
-    switch (tabType) {
-      case "stage-start":
-        // Add burn time identifier flags from each stage (ST_X_INI)
-        stages.forEach((stageName) => {
-          const stage = finalMissionData[stageName];
-
-          if (stage && stage.burn_time_identifier) {
-            const option = document.createElement("option");
-            option.value = stage.burn_time_identifier;
-            option.textContent = stage.burn_time_identifier;
-            eventFlagSelect.appendChild(option);
-          }
-        });
-        break;
-
-      case "motor-ignition":
-        // Add motor ignition flags (SX_MX_IGN)
-        stages.forEach((stageName) => {
-          const stage = finalMissionData[stageName];
-          const stageNumber = stageName.split("_")[1];
-
-          if (stage && stage.motors && stage.motors.length > 0) {
-            stage.motors.forEach((motorName) => {
-              const motor = finalMissionData[motorName];
-              const motorNumber = motorName.split("_")[1];
-
-              if (motor && motor.flags && motor.flags.ignition) {
-                const option = document.createElement("option");
-                option.value = motor.flags.ignition;
-                option.textContent = motor.flags.ignition;
-                eventFlagSelect.appendChild(option);
-              } else {
-                // Fallback if motor data structure is incomplete
-                const ignitionFlag = `S${stageNumber}_M${motorNumber}_IGN`;
-                const option = document.createElement("option");
-                option.value = ignitionFlag;
-                option.textContent = ignitionFlag;
-                eventFlagSelect.appendChild(option);
-              }
-            });
-          }
-        });
-        break;
-
-      case "motor-termination":
-        // Add motor burn out flags (SX_MX_Burnout)
-        stages.forEach((stageName) => {
-          const stage = finalMissionData[stageName];
-          const stageNumber = stageName.split("_")[1];
-
-          if (stage && stage.motors && stage.motors.length > 0) {
-            stage.motors.forEach((motorName) => {
-              const motor = finalMissionData[motorName];
-              const motorNumber = motorName.split("_")[1];
-
-              if (motor && motor.flags && motor.flags.burnout) {
-                const option = document.createElement("option");
-                option.value = motor.flags.burnout;
-                option.textContent = motor.flags.burnout;
-                eventFlagSelect.appendChild(option);
-              } else {
-                // Fallback if motor data structure is incomplete
-                const burnoutFlag = `S${stageNumber}_M${motorNumber}_Burnout`;
-                const option = document.createElement("option");
-                option.value = burnoutFlag;
-                option.textContent = burnoutFlag;
-                eventFlagSelect.appendChild(option);
-              }
-            });
-          }
-        });
-        break;
-
-      case "stage-separation":
-        // Add stage separation flags (ST_X_SEP)
-        stages.forEach((stageName) => {
-          const stage = finalMissionData[stageName];
-
-          if (stage && stage.separation_flag) {
-            const option = document.createElement("option");
-            option.value = stage.separation_flag;
-            option.textContent = stage.separation_flag;
-            eventFlagSelect.appendChild(option);
-          }
-        });
-        break;
-
-      case "heat-shield-separation":
-        // Get the PLF name and then get its separation flag
-        const plfName = finalMissionData[vehicleName]?.plf;
-        if (plfName && finalMissionData[plfName]) {
-          const plfFlag = finalMissionData[plfName].sep_flag;
-          if (plfFlag) {
-            const option = document.createElement("option");
-            option.value = plfFlag;
-            option.textContent = plfFlag;
-            eventFlagSelect.appendChild(option);
-          } else {
-            // If no flag is defined, use HSS_Flag as default
-            const option = document.createElement("option");
-            option.value = "HSS_Flag";
-            option.textContent = "HSS_Flag";
-            eventFlagSelect.appendChild(option);
-          }
-        } else {
-          // Fallback if PLF isn't configured yet
-          const option = document.createElement("option");
-          option.value = "HSS_Flag";
-          option.textContent = "HSS_Flag";
-          eventFlagSelect.appendChild(option);
-        }
-        break;
-
-      default:
-        console.warn("Unknown tab type:", tabType);
-        break;
-    }
-
-    console.log(
-      "Final dropdown options:",
-      Array.from(eventFlagSelect.options).map((opt) => opt.value)
-    );
   }
 
-  // Make sure to call updateSequenceEventFlags after saving stage data
-  // Initial population of sequence event flags
-  setTimeout(() => {
-    try {
-      updateSequenceEventFlags();
-    } catch (error) {
-      console.warn("Error during initial sequence flags population:", error);
-    }
-  }, 500); // Small delay to ensure DOM is fully ready
+  function enableFields(elements) {
+    elements.forEach((element) => {
+      element.disabled = false;
+    });
+  }
 
-  // Add event listener for stage form submission
-  document.addEventListener("click", function (event) {
-    if (event.target && event.target.classList.contains("next-stage-btn")) {
-      event.preventDefault();
+  // Show flag fields and enable them by default
+  flagFields.classList.remove("hidden");
+  timeFields.classList.add("hidden");
+  altitudeFields.classList.add("hidden");
+  enableFields(flagInputs);
+  disableFields(timeInputs);
+  disableFields(altitudeInputs);
 
-      const currentStageForm = event.target.closest(".stage-form");
-      if (!currentStageForm) return;
+  function resetStoppingFields() {
+    // Hide all fields
+    flagFields.classList.add("hidden");
+    timeFields.classList.add("hidden");
+    altitudeFields.classList.add("hidden");
 
-      const stageId = currentStageForm.id.replace("-form", "");
-      const stageNumber = stageId.replace("stage", "");
+    // Disable all inputs
+    disableFields(flagInputs);
+    disableFields(timeInputs);
+    disableFields(altitudeInputs);
 
-      let isValid = validateStageForm(currentStageForm, stageId);
+    // Reset input values
+    document.getElementById("flag-name").value = "";
+    document.getElementById("flag-value").value = "";
+    document.getElementById("flag-condition").selectedIndex = 0;
 
-      if (isValid) {
-        const savedStageData = saveStageData(currentStageForm, stageId);
+    document.getElementById("time-value").value = "";
+    document.getElementById("time-condition").selectedIndex = 0;
 
-        if (savedStageData) {
-          // Update the sequence form's event flag dropdown
-          updateSequenceEventFlags();
+    document.getElementById("altitude-value").value = "";
+    document.getElementById("altitude-condition").selectedIndex = 0;
+  }
 
-          Swal.fire({
-            title: "Stage Saved!",
-            text: `Stage ${stageNumber} configuration saved successfully.`,
-            icon: "success",
-            timer: 1500,
-            showConfirmButton: false,
-          }).then(() => {
-            const nextStageNumber = parseInt(stageNumber) + 1;
-            const nextStageForm = document.getElementById(
-              `stage${nextStageNumber}-form`
-            );
+  stoppingRadioButtons.forEach((radio) => {
+    radio.addEventListener("change", function () {
+      resetStoppingFields(); // Hide and disable all fields, reset values
 
-            if (nextStageForm) {
-              showForm(nextStageForm);
-            } else {
-              Swal.fire({
-                title: "All Stages Configured!",
-                text: "You have completed all stage configurations.",
-                icon: "success",
-              });
-            }
-          });
-        } else {
-          Swal.fire({
-            title: "Error",
-            text: `Failed to save stage ${stageNumber} configuration.`,
-            icon: "error",
-          });
-        }
+      if (this.value === "flag") {
+        flagFields.classList.remove("hidden");
+        enableFields(flagInputs);
+      } else if (this.value === "time") {
+        timeFields.classList.remove("hidden");
+        enableFields(timeInputs);
+      } else if (this.value === "altitude") {
+        altitudeFields.classList.remove("hidden");
+        enableFields(altitudeInputs);
       }
-    }
+    });
   });
 });
 
@@ -1195,72 +846,385 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// details stopping condition radio button logic starts
+// Update the saveStageData function to add the stage to savedStages
+function saveStageData(stageForm, stageId) {
+  const stageNumber = stageId.replace("stage", "");
+  const vehicleName = document.getElementById("vehicle-name").value.trim();
+  const stageName = `Stage_${stageNumber}`;
 
-document.addEventListener("DOMContentLoaded", function () {
-  const radioButtons = document.querySelectorAll(
-    'input[name="stopping-condition"]'
-  );
-  const flagFields = document.getElementById("flag-fields");
-  const timeFields = document.getElementById("time-fields");
-  const altitudeFields = document.getElementById("altitude-fields");
+  console.log("Saving stage data for stage:", stageNumber);
+  console.log("Vehicle name:", vehicleName);
 
-  function resetFields() {
-    flagFields.classList.add("hidden");
-    timeFields.classList.add("hidden");
-    altitudeFields.classList.add("hidden");
-
-    // Reset input values
-    document.getElementById("flag-name").value = "";
-    document.getElementById("flag-value").value = "";
-    document.getElementById("flag-condition").selectedIndex = 0;
-
-    document.getElementById("time-value").value = "";
-    document.getElementById("time-condition").selectedIndex = 0;
-
-    document.getElementById("altitude-value").value = "";
-    document.getElementById("altitude-condition").selectedIndex = 0;
+  if (!missionData.stages) {
+    missionData.stages = [];
   }
 
-  radioButtons.forEach((radio) => {
-    radio.addEventListener("change", function () {
-      resetFields(); // Hide all fields and reset values
+  const structuralMassInput = stageForm.querySelector(
+    'input[placeholder="Enter Structural Mass"]'
+  );
+  const referenceAreaInput = stageForm.querySelector(
+    'input[placeholder="Enter Reference Area"]'
+  );
+  const burnTimeInput = stageForm.querySelector(
+    'input[placeholder="Enter Burn Time"]'
+  );
+  const burnTimeIdentifierInput = stageForm.querySelector(
+    'input[value^="ST_"]:not([value$="_SEP"])'
+  );
+  const separationFlagInput = stageForm.querySelector(
+    'input[value^="ST_"][value$="_SEP"]'
+  );
+  const dcissToggle = stageForm.querySelector(`#dciss-toggle-${stageId}`);
+  const coastingToggle = stageForm.querySelector(`#coasting-toggle-${stageId}`);
+  const aeroFilename = stageForm.querySelector(`#aero-filename-${stageId}`);
 
-      if (this.value === "flag") {
-        flagFields.classList.remove("hidden");
-      } else if (this.value === "time") {
-        timeFields.classList.remove("hidden");
-      } else if (this.value === "altitude") {
-        altitudeFields.classList.remove("hidden");
-      }
-    });
-  });
-});
+  if (!structuralMassInput || !referenceAreaInput || !burnTimeInput) {
+    console.error("Missing critical elements in the stage form:", stageId);
+    return null;
+  }
 
-// details stopping condition radio button logic ends
+  const stageData = {
+    stage_number: parseInt(stageNumber),
+    structural_mass: parseFloat(structuralMassInput.value) || 0,
+    reference_area: parseFloat(referenceAreaInput.value) || 0,
+    burn_time: parseFloat(burnTimeInput.value) || 0,
+    burn_time_identifier: burnTimeIdentifierInput
+      ? burnTimeIdentifierInput.value
+      : `ST_${stageNumber}_INI`,
+    separation_flag: separationFlagInput
+      ? separationFlagInput.value
+      : `ST_${stageNumber}_SEP`,
+    dciss: dcissToggle ? dcissToggle.checked : false,
+    coasting: coastingToggle ? coastingToggle.checked : false,
+    aero_data_file: aeroFilename ? aeroFilename.value : "",
+  };
 
-// Sequence Form Tab Navigation
-document.addEventListener("DOMContentLoaded", function () {
-  const sequenceTabs = document.querySelectorAll(".sequence-tab");
-  const eventTypeInput = document.getElementById("event-type");
+  console.log("Stage data to be saved:", stageData);
 
-  sequenceTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      // Remove active class from all tabs
-      sequenceTabs.forEach((t) => t.classList.remove("active"));
+  // Add the stage to savedStages array if it's not already there
+  const stageIndex = savedStages.findIndex(
+    (s) => s.stage_number === parseInt(stageNumber)
+  );
+  if (stageIndex === -1) {
+    // Add new stage
+    savedStages.push(stageData);
+    console.log(`Added stage ${stageNumber} to savedStages`);
+  } else {
+    // Update existing stage
+    savedStages[stageIndex] = stageData;
+    console.log(`Updated stage ${stageNumber} in savedStages`);
+  }
 
-      // Add active class to clicked tab
-      tab.classList.add("active");
+  // Sort savedStages by stage_number
+  savedStages.sort((a, b) => a.stage_number - b.stage_number);
+  console.log("Current saved stages:", savedStages);
 
-      // Update the hidden event type input
-      eventTypeInput.value = tab.getAttribute("data-tab");
+  if (vehicleName) {
+    finalMissionData[vehicleName].no_Stg = Math.max(
+      parseInt(stageNumber),
+      finalMissionData[vehicleName].no_Stg
+    );
 
-      // Update the dropdown options based on the selected tab
+    const stageName = `Stage_${stageNumber}`;
+    if (!finalMissionData[vehicleName].stage.includes(stageName)) {
+      finalMissionData[vehicleName].stage.push(stageName);
+    }
+
+    // Update or create stage data
+    finalMissionData[stageName] = {
+      ...finalMissionData[stageName], // Preserve existing data
+      structural_mass: stageData.structural_mass,
+      ref_area: stageData.reference_area,
+      burn_time: stageData.burn_time,
+      burn_time_identifier: stageData.burn_time_identifier,
+      separation_flag: stageData.separation_flag,
+      DCISS: stageData.dciss ? "ON" : "OFF",
+      coasting: stageData.coasting ? "ON" : "OFF",
+      aero_data: stageData.aero_data_file,
+      motors: finalMissionData[stageName]?.motors || [], // Preserve existing motors
+    };
+
+    // Update the sequence form's event flag dropdown
+    setTimeout(() => {
       try {
         updateSequenceEventFlags();
       } catch (error) {
-        console.warn("Error updating event flags on tab change:", error);
+        console.warn("Error updating sequence flags:", error);
+      }
+    }, 0);
+  }
+
+  return stageData;
+}
+
+// Add this function to update the event flag dropdown in Stage Start tab of Sequence form
+function updateStageStartDropdown() {
+  console.log("Updating Stage Start dropdown with saved stages:", savedStages);
+  // Find the event-flag dropdown in the sequence form
+  const eventFlagDropdown = document.getElementById("event-flag");
+
+  // Check if we're on the Stage Start tab
+  const activeTab = document.querySelector(".sequence-tab.active");
+  if (
+    activeTab &&
+    activeTab.getAttribute("data-tab") === "stage-start" &&
+    eventFlagDropdown
+  ) {
+    // Clear existing options except the first default one
+    while (eventFlagDropdown.options.length > 1) {
+      eventFlagDropdown.remove(1);
+    }
+
+    // Use savedStages array instead of stageCounter
+    if (savedStages.length > 0) {
+      savedStages.forEach((stage) => {
+        const option = document.createElement("option");
+        option.value = stage.burn_time_identifier;
+        option.text = `${stage.burn_time_identifier} - Stage ${stage.stage_number}`;
+        eventFlagDropdown.appendChild(option);
+      });
+      console.log(`Added ${savedStages.length} saved stages to dropdown`);
+    } else {
+      console.log("No saved stages found");
+    }
+  }
+}
+
+// Update the motor ignition dropdown to use saved stages
+function updateMotorIgnitionDropdown() {
+  console.log("Updating motor ignition dropdown with saved stages");
+  const eventFlagDropdown = document.getElementById("event-flag");
+  if (eventFlagDropdown) {
+    // Clear existing options except the first default one
+    while (eventFlagDropdown.options.length > 1) {
+      eventFlagDropdown.remove(1);
+    }
+
+    // Use savedStages instead of looping through stageCounter
+    savedStages.forEach((stage) => {
+      const stageNum = stage.stage_number;
+      const stageId = `stage${stageNum}`;
+
+      // Find all motor buttons for this stage
+      const motorButtons = document.querySelectorAll(
+        `#${stageId}-motors .motor-btn`
+      );
+      const motorsCount = motorButtons.length;
+
+      console.log(`Found ${motorsCount} motors for saved stage ${stageNum}`);
+
+      // Add options for each motor in this stage
+      for (let motorNum = 1; motorNum <= motorsCount; motorNum++) {
+        const option = document.createElement("option");
+        option.value = `S${stageNum}_M${motorNum}_IGN`;
+        option.text = `S${stageNum}_M${motorNum}_IGN - Stage ${stageNum} Motor ${motorNum}`;
+        eventFlagDropdown.appendChild(option);
       }
     });
+  }
+}
+
+// Update the motor termination dropdown to use saved stages
+function updateMotorTerminationDropdown() {
+  console.log("Updating motor termination dropdown with saved stages");
+  const eventFlagDropdown = document.getElementById("event-flag");
+  if (eventFlagDropdown) {
+    // Clear existing options except the first default one
+    while (eventFlagDropdown.options.length > 1) {
+      eventFlagDropdown.remove(1);
+    }
+
+    // Use savedStages instead of looping through stageCounter
+    savedStages.forEach((stage) => {
+      const stageNum = stage.stage_number;
+      const stageId = `stage${stageNum}`;
+
+      // Find all motor buttons for this stage
+      const motorButtons = document.querySelectorAll(
+        `#${stageId}-motors .motor-btn`
+      );
+      const motorsCount = motorButtons.length;
+
+      // Add options for each motor in this stage
+      for (let motorNum = 1; motorNum <= motorsCount; motorNum++) {
+        const option = document.createElement("option");
+        option.value = `S${stageNum}_M${motorNum}_Burnout`;
+        option.text = `S${stageNum}_M${motorNum}_Burnout - Stage ${stageNum} Motor ${motorNum}`;
+        eventFlagDropdown.appendChild(option);
+      }
+    });
+  }
+}
+
+// Update the stage separation dropdown to use saved stages
+function updateStageSeparationDropdown() {
+  console.log("Updating stage separation dropdown with saved stages");
+  const eventFlagDropdown = document.getElementById("event-flag");
+  if (eventFlagDropdown) {
+    // Clear existing options except the first default one
+    while (eventFlagDropdown.options.length > 1) {
+      eventFlagDropdown.remove(1);
+    }
+
+    // Use savedStages array
+    savedStages.forEach((stage) => {
+      const option = document.createElement("option");
+      option.value = stage.separation_flag;
+      option.text = `${stage.separation_flag} - Stage ${stage.stage_number} Separation`;
+      eventFlagDropdown.appendChild(option);
+    });
+  }
+}
+
+// Function to populate event flag dropdown based on event type
+function populateEventFlagDropdown(eventType) {
+  const dropdown = document.getElementById("event-flag");
+
+  // Clear existing options except the first one
+  while (dropdown.options.length > 1) {
+    dropdown.remove(1);
+  }
+
+  // Get appropriate flags based on event type
+  let flags = [];
+  switch (eventType) {
+    case "stage-start":
+      flags = window.flagRegistry.burnTimeIdentifiers.map((item) => item.flag);
+      break;
+    case "stage-separation":
+      flags = window.flagRegistry.separationFlags.map((item) => item.flag);
+      break;
+    case "motor-ignition":
+      flags = window.flagRegistry.motorIgnitionFlags.map((item) => item.flag);
+      break;
+    case "motor-termination":
+      flags = window.flagRegistry.motorBurnoutFlags.map((item) => item.flag);
+      break;
+    case "heat-shield-separation":
+      // Add heat shield separation flag if exists
+      flags = window.flagRegistry.heatShieldFlags.map((item) => item.flag);
+      if (flags.length === 0) {
+        flags.push("HSS_Flag"); // Default value
+      }
+      break;
+  }
+
+  // Add options to dropdown
+  flags.forEach((flag) => {
+    const option = document.createElement("option");
+    option.value = flag;
+    option.textContent = flag;
+    dropdown.appendChild(option);
   });
+
+  console.log(
+    `Populated event flag dropdown for ${eventType} with flags:`,
+    flags
+  );
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  // ... existing code ...
+
+  // Add event listeners to sequence tabs
+  const sequenceTabs = document.querySelectorAll(".sequence-tab");
+  if (sequenceTabs.length > 0) {
+    sequenceTabs.forEach((tab) => {
+      tab.addEventListener("click", function () {
+        // Remove 'active' class from all tabs
+        sequenceTabs.forEach((t) => t.classList.remove("active"));
+
+        // Add 'active' class to clicked tab
+        this.classList.add("active");
+
+        // Update event type hidden field
+        const eventType = this.getAttribute("data-tab");
+        if (document.getElementById("event-type")) {
+          document.getElementById("event-type").value = eventType;
+        }
+
+        // Populate event flag dropdown
+        populateEventFlagDropdown(eventType);
+      });
+    });
+  }
+
+  // Add event listener to sequence button to populate flags when sequence form is opened
+  const sequenceBtn = document.getElementById("sequence-btn");
+  if (sequenceBtn) {
+    sequenceBtn.addEventListener("click", function () {
+      // If sequence form has been loaded
+      setTimeout(() => {
+        // Get the active tab's event type
+        const activeTab = document.querySelector(".sequence-tab.active");
+        if (activeTab) {
+          const eventType = activeTab.getAttribute("data-tab");
+          // Populate dropdown with appropriate flags
+          populateEventFlagDropdown(eventType);
+        }
+      }, 100); // Small timeout to ensure DOM is ready
+    });
+  }
+
+  // ... existing code ...
 });
+
+// Function to validate stage form
+function validateStageForm(stageForm) {
+  const errors = [];
+
+  // Get all required fields
+  const structuralMass = stageForm.querySelector(
+    'input[placeholder="Enter Structural Mass"]'
+  );
+  const referenceArea = stageForm.querySelector(
+    'input[placeholder="Enter Reference Area"]'
+  );
+  const burnTime = stageForm.querySelector(
+    'input[placeholder="Enter Burn Time"]'
+  );
+  const aeroFilename = stageForm.querySelector('input[type="text"].filename');
+
+  // Validate Structural Mass
+  if (!structuralMass.value.trim()) {
+    errors.push("Structural Mass is required");
+    structuralMass.classList.add("error-field");
+  } else if (parseFloat(structuralMass.value) <= 0) {
+    errors.push("Structural Mass must be greater than 0");
+    structuralMass.classList.add("error-field");
+  } else {
+    structuralMass.classList.remove("error-field");
+  }
+
+  // Validate Reference Area
+  if (!referenceArea.value.trim()) {
+    errors.push("Reference Area is required");
+    referenceArea.classList.add("error-field");
+  } else if (parseFloat(referenceArea.value) <= 0) {
+    errors.push("Reference Area must be greater than 0");
+    referenceArea.classList.add("error-field");
+  } else {
+    referenceArea.classList.remove("error-field");
+  }
+
+  // Validate Burn Time
+  if (!burnTime.value.trim()) {
+    errors.push("Burn Time is required");
+    burnTime.classList.add("error-field");
+  } else if (parseFloat(burnTime.value) <= 0) {
+    errors.push("Burn Time must be greater than 0");
+    burnTime.classList.add("error-field");
+  } else {
+    burnTime.classList.remove("error-field");
+  }
+
+  // Validate Aero Data File
+  if (!aeroFilename.value.trim()) {
+    errors.push("Aero Data file is required");
+    aeroFilename.classList.add("error-field");
+  } else {
+    aeroFilename.classList.remove("error-field");
+  }
+
+  return errors;
+}
