@@ -526,7 +526,7 @@ function validateMissionForm() {
 
     Toast.fire({
       icon: "error",
-      title: "Validation Errors",
+      title: "Input Data Missing",
       html: validation.errors.join("<br>"),
     });
 
@@ -554,7 +554,7 @@ function validateEnvironmentForm() {
 
     Toast.fire({
       icon: "error",
-      title: "Validation Errors",
+      title: "Input Data Missing",
       html: validation.errors.join("<br>"),
     });
 
@@ -582,7 +582,7 @@ function validateVehicleForm() {
 
     Toast.fire({
       icon: "error",
-      title: "Validation Errors",
+      title: "Input Data Missing",
       html: validation.errors.join("<br>"),
     });
 
@@ -610,7 +610,7 @@ function validateSequenceForm() {
 
     Toast.fire({
       icon: "error",
-      title: "Validation Errors",
+      title: "Input Data Missing",
       html: validation.errors.join("<br>"),
     });
 
@@ -638,7 +638,7 @@ function validateSteeringForm() {
 
     Toast.fire({
       icon: "error",
-      title: "Validation Errors",
+      title: "Input Data Missing",
       html: validation.errors.join("<br>"),
     });
 

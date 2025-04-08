@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let stageCounter = 1; // Track stage numbers
   const maxStages = 4; // Maximum allowed stages
+  let deletedStages = []; // Track deleted stage numbers
 
   // Add a global array to track saved stages
   let savedStages = [];
@@ -45,7 +46,11 @@ document.addEventListener("DOMContentLoaded", function () {
   function showForm(formToShow) {
     hideAllForms();
     formToShow.style.display = "block";
-    welcomeMessage.style.display = "none";
+    // Hide both welcome message and its container
+    const welcomeMessage = document.getElementById("welcome-message");
+    const welcomeContainer = document.querySelector(".welcome-container");
+    if (welcomeMessage) welcomeMessage.style.display = "none";
+    if (welcomeContainer) welcomeContainer.style.display = "none";
   }
 
   // Navigation buttons event listeners
@@ -80,7 +85,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Add stages dynamically when "Add Stage" button is clicked
   addStageBtn.addEventListener("click", function () {
-    if (stageCounter > maxStages) {
+    // Check if we've reached the maximum number of active stages
+    const activeStages = document.querySelectorAll(".stage-nav-item").length;
+    if (activeStages >= maxStages) {
       Swal.fire({
         icon: "error",
         title: "Maximum Stages Reached",
@@ -95,16 +102,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Show the "vehicle-stages" menu if it's the first stage
-    if (stageCounter === 1) {
+    if (activeStages === 0) {
       vehicleStagesList.style.display = "block";
+    }
+
+    // Find the next available stage number
+    let nextStageNumber = 1;
+    const existingStages = Array.from(
+      document.querySelectorAll(".stage-nav-item")
+    ).map((item) =>
+      parseInt(item.querySelector(".stage-btn").textContent.match(/\d+/)[0])
+    );
+
+    while (existingStages.includes(nextStageNumber)) {
+      nextStageNumber++;
     }
 
     // Create new Stage entry in the sidebar
     const newStage = document.createElement("li");
-    const stageId = `stage${stageCounter}`;
+    const stageId = `stage${nextStageNumber}`;
     newStage.innerHTML = `<div class="stage-nav-item">
-                            <a href="#" class="stage-btn" id="${stageId}-btn">└── Stage ${stageCounter}</a>
-                            <button class="delete-stage-icon" data-stage="${stageId}" data-stage-number="${stageCounter}" title="Delete Stage ${stageCounter}">
+                            <a href="#" class="stage-btn" id="${stageId}-btn">└── Stage ${nextStageNumber}</a>
+                            <button class="delete-stage-icon" data-stage="${stageId}" data-stage-number="${nextStageNumber}" title="Delete Stage ${nextStageNumber}">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -115,6 +134,16 @@ document.addEventListener("DOMContentLoaded", function () {
                           </div>
                           <ul id="${stageId}-motors" class="submenu"></ul>`;
     vehicleStagesList.appendChild(newStage);
+
+    // Add click event listener for the stage button
+    const stageButton = newStage.querySelector(`#${stageId}-btn`);
+    stageButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      const stageForm = document.getElementById(`${stageId}-form`);
+      if (stageForm) {
+        showForm(stageForm);
+      }
+    });
 
     // Add styles for the stage nav item and delete icon
     if (!document.getElementById("stage-delete-icon-styles")) {
@@ -164,36 +193,36 @@ document.addEventListener("DOMContentLoaded", function () {
     // Add the stage form HTML
     stageForm.innerHTML = `
         <div class="form-container">
-            <h2 class="stage-heading">Stage ${stageCounter}</h2>
+            <h2 class="stage-heading">Stage ${nextStageNumber}</h2>
             <div class="form-fields">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="structural-mass-${stageCounter}" class="label">Structural Mass:</label>
-                        <input type="number" id="structural-mass-${stageCounter}" class="input-field" placeholder="Enter Structural Mass">
+                        <label for="structural-mass-${nextStageNumber}" class="label">Structural Mass:</label>
+                        <input type="number" id="structural-mass-${nextStageNumber}" class="input-field" placeholder="Enter Structural Mass">
                     </div>
                     
                     <div class="form-group">
-                        <label for="reference-area-${stageCounter}" class="label">Reference Area:</label>
-                        <input type="number" id="reference-area-${stageCounter}" class="input-field" placeholder="Enter Reference Area">
+                        <label for="reference-area-${nextStageNumber}" class="label">Reference Area:</label>
+                        <input type="number" id="reference-area-${nextStageNumber}" class="input-field" placeholder="Enter Reference Area">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="burn-time-${stageCounter}" class="label">Burn Time:</label>
-                        <input type="number" id="burn-time-${stageCounter}" class="input-field" placeholder="Enter Burn Time">
+                        <label for="burn-time-${nextStageNumber}" class="label">Burn Time:</label>
+                        <input type="number" id="burn-time-${nextStageNumber}" class="input-field" placeholder="Enter Burn Time">
                     </div>
                     
                     <div class="form-group">
-                        <label for="burn-time-id-${stageCounter}" class="label">Burn Time Identifier:</label>
-                        <input type="text" id="burn-time-id-${stageCounter}" class="input-field" value="ST_${stageCounter}_INI" readonly>
+                        <label for="burn-time-id-${nextStageNumber}" class="label">Burn Time Identifier:</label>
+                        <input type="text" id="burn-time-id-${nextStageNumber}" class="input-field" value="ST_${nextStageNumber}_INI" readonly>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="separation-flag-${stageCounter}" class="label">Separation Flag:</label>
-                        <input type="text" id="separation-flag-${stageCounter}" class="input-field" value="ST_${stageCounter}_SEP" readonly>
+                        <label for="separation-flag-${stageId}" class="label">Separation Flag:</label>
+                        <input type="text" id="separation-flag-${stageId}" class="input-field" value="ST_${nextStageNumber}_SEP" readonly>
                     </div>
                 </div>
                 
@@ -214,31 +243,31 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="button-group">
-                <button type="button" class="add-motor-btn add-stg" data-stage="${stageId}">Add Motor</button>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group full-width">
-                    <div class="upload-data">
-                        <label for="aero-upload-${stageId}" class="upload-label">Aero Data:</label>
-                        <input type="file" id="aero-upload-${stageId}" accept=".csv" style="display: none" />
-                        <button type="button" class="upload" id="aero-upload-btn-${stageId}">
-                            <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-width="2" stroke="#ffffff"
-                                    d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
-                                    stroke-linejoin="round" stroke-linecap="round"></path>
-                                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
-                                    stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
-                            </svg>
-                            <span>ADD FILE</span>
-                        </button>
-                        <input type="text" id="aero-filename-${stageId}" class="filename" readonly placeholder="No file chosen" />
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <div class="upload-data">
+                            <label for="aero-upload-${stageId}" class="upload-label">Aero Data:</label>
+                            <input type="file" id="aero-upload-${stageId}" accept=".csv" style="display: none" />
+                            <button type="button" class="upload" id="aero-upload-btn-${stageId}">
+                                <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-width="2" stroke="#ffffff"
+                                        d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                                        stroke-linejoin="round" stroke-linecap="round"></path>
+                                    <path stroke-linejoin="round" stroke-linecap="round" stroke-width="2"
+                                        stroke="#ffffff" d="M17 15V18M17 21V18M17 18H14M17 18H20"></path>
+                                </svg>
+                                <span>ADD FILE</span>
+                            </button>
+                            <input type="text" id="aero-filename-${stageId}" class="filename" readonly placeholder="No file chosen" />
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0; padding: 20px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <button type="button" class="add-motor-btn add-stg" data-stage="${stageId}" style="margin: 0 auto; min-width: 200px;">Add Motor</button>
             </div>
             
             <div class="button-group">
@@ -261,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Show error message with SweetAlert2
         Swal.fire({
           icon: "error",
-          title: "Validation Error",
+          title: "Input Data Missing",
           html: errors.join("<br>"),
           toast: true,
           position: "top-end",
@@ -293,7 +322,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           Toast.fire({
             icon: "success",
-            title: `Stage ${stageCounter - 1} has been saved successfully`,
+            title: `Stage ${nextStageNumber - 1} has been saved successfully`,
           });
         }
       }
@@ -333,7 +362,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     Toast.fire({
       icon: "success",
-      title: `Stage ${stageCounter} has been created successfully!`,
+      title: `Stage ${nextStageNumber} has been created successfully!`,
     });
 
     // Add CSS for error field highlighting if it doesn't exist
@@ -738,6 +767,117 @@ document.addEventListener("DOMContentLoaded", function () {
         enableFields(altitudeInputs);
       }
     });
+  });
+
+  // Update the stage deletion event listener
+  document.addEventListener("click", function (event) {
+    if (event.target.closest(".delete-stage-icon")) {
+      const deleteButton = event.target.closest(".delete-stage-icon");
+      const stageId = deleteButton.dataset.stage;
+      const stageNumber = parseInt(deleteButton.dataset.stageNumber);
+
+      // Show confirmation dialog
+      Swal.fire({
+        title: `Delete Stage ${stageNumber}?`,
+        text: "This will delete the stage and all its motors and nozzles. This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Delete stage from UI
+          const stageElement = deleteButton.closest("li");
+          if (stageElement) {
+            stageElement.remove();
+          }
+
+          // Delete stage form
+          const stageForm = document.getElementById(`${stageId}-form`);
+          if (stageForm) {
+            stageForm.remove();
+          }
+
+          // Remove stage from savedStages array
+          const stageIndex = savedStages.findIndex(
+            (s) => s.stage_number === stageNumber
+          );
+          if (stageIndex !== -1) {
+            savedStages.splice(stageIndex, 1);
+          }
+
+          // Remove stage from finalMissionData
+          const vehicleName = document
+            .getElementById("vehicle-name")
+            .value.trim();
+          if (vehicleName && finalMissionData[vehicleName]) {
+            // Remove stage from vehicle's stage array
+            const stageName = `Stage_${stageNumber}`;
+            const stageIndex =
+              finalMissionData[vehicleName].stage.indexOf(stageName);
+            if (stageIndex !== -1) {
+              finalMissionData[vehicleName].stage.splice(stageIndex, 1);
+            }
+
+            // Delete stage data
+            delete finalMissionData[stageName];
+
+            // Update number of stages
+            finalMissionData[vehicleName].no_Stg =
+              finalMissionData[vehicleName].stage.length;
+          }
+
+          // Remove stage flags from registry
+          const burnTimeIndex = flagRegistry.burnTimeIdentifiers.findIndex(
+            (flag) => flag.stageNumber === stageNumber
+          );
+          if (burnTimeIndex !== -1) {
+            flagRegistry.burnTimeIdentifiers.splice(burnTimeIndex, 1);
+          }
+
+          const sepFlagIndex = flagRegistry.separationFlags.findIndex(
+            (flag) => flag.stageNumber === stageNumber
+          );
+          if (sepFlagIndex !== -1) {
+            flagRegistry.separationFlags.splice(sepFlagIndex, 1);
+          }
+
+          // Remove motor flags for this stage
+          flagRegistry.motorIgnitionFlags =
+            flagRegistry.motorIgnitionFlags.filter(
+              (flag) => flag.stageNumber !== stageNumber
+            );
+          flagRegistry.motorBurnoutFlags =
+            flagRegistry.motorBurnoutFlags.filter(
+              (flag) => flag.stageNumber !== stageNumber
+            );
+
+          // Update dropdowns in sequence form
+          try {
+            updateStageStartDropdown();
+            updateMotorIgnitionDropdown();
+            updateMotorTerminationDropdown();
+            updateStageSeparationDropdown();
+          } catch (error) {
+            console.warn("Error updating sequence dropdowns:", error);
+          }
+
+          // Show success message
+          Swal.fire({
+            icon: "success",
+            title: `Stage ${stageNumber} Deleted`,
+            text: "The stage and all its components have been removed.",
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+          });
+        }
+      });
+    }
   });
 });
 
