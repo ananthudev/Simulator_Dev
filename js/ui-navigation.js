@@ -394,13 +394,55 @@ document.addEventListener("DOMContentLoaded", function () {
     const stageMotorsList = document.getElementById(`${stageId}-motors`);
     let motorCount = stageMotorsList.childElementCount + 1;
 
-    // Create new Motor entry in the sidebar
+    // Create new Motor entry in the sidebar with delete icon
     const newMotor = document.createElement("li");
-    newMotor.innerHTML = `<a href="#" class="motor-btn" id="${stageId}-motor${motorCount}-btn">└── Motor ${motorCount}</a>
-                          <ul id="${stageId}-motor${motorCount}-nozzles" class="submenu">
-                              <li><a href="#" class="nozzle-btn" id="${stageId}-motor${motorCount}-nozzle1-btn">└── Nozzle 1</a></li>
-                          </ul>`;
+    newMotor.innerHTML = `
+      <div class="motor-nav-item">
+        <a href="#" class="motor-btn" id="${stageId}-motor${motorCount}-btn">└── Motor ${motorCount}</a>
+        <button class="delete-motor-icon" data-stage="${stageId}" data-motor="${motorCount}" title="Delete Motor ${motorCount}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+      <ul id="${stageId}-motor${motorCount}-nozzles" class="submenu">
+        <li><a href="#" class="nozzle-btn" id="${stageId}-motor${motorCount}-nozzle1-btn">└── Nozzle 1</a></li>
+      </ul>`;
     stageMotorsList.appendChild(newMotor);
+
+    // Add styles for the motor nav item and delete icon if not already added
+    if (!document.getElementById("motor-delete-icon-styles")) {
+      const styleElement = document.createElement("style");
+      styleElement.id = "motor-delete-icon-styles";
+      styleElement.textContent = `
+            .motor-nav-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding-right: 8px;
+            }
+            .delete-motor-icon {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 3px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #777;
+                opacity: 0.7;
+                transition: color 0.2s, opacity 0.2s;
+            }
+            .delete-motor-icon:hover {
+                color: #f44336;
+                opacity: 1;
+            }
+        `;
+      document.head.appendChild(styleElement);
+    }
 
     // Create Motor form
     const motorForm = document.createElement("form");
@@ -654,6 +696,100 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     }
+
+    // Add event listener for form submission
+    const saveButton = motorForm.querySelector(".next-motor-btn");
+    saveButton.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      const errors = validateMotorForm(motorForm);
+
+      if (errors.length > 0) {
+        // Show error message with SweetAlert2
+        Swal.fire({
+          icon: "error",
+          title: "Input Data Missing",
+          html: errors.join("<br>"),
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+      } else {
+        // Show success message
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+
+        Toast.fire({
+          icon: "success",
+          title: `Motor ${motorCount} has been saved successfully`,
+        });
+
+        // TODO: Add logic to save motor data
+        // This is where we'll add the code to save the motor data once validation passes
+      }
+    });
+
+    // Add event listener for nozzle form submission
+    const saveNozzleButton = nozzleForm.querySelector(".next-nozzle-btn");
+    saveNozzleButton.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      const errors = validateNozzleForm(nozzleForm);
+
+      if (errors.length > 0) {
+        // Show error message with SweetAlert2
+        Swal.fire({
+          icon: "error",
+          title: "Input Data Missing",
+          html: errors.join("<br>"),
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+      } else {
+        // Show success message
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+
+        Toast.fire({
+          icon: "success",
+          title: `Nozzle 1 has been saved successfully`,
+        });
+
+        // TODO: Add logic to save nozzle data
+        // This is where we'll add the code to save the nozzle data once validation passes
+      }
+    });
   }
 
   // Function to initialize steering tabs
@@ -1078,6 +1214,64 @@ document.addEventListener("DOMContentLoaded", function () {
       updateStageSeparationDropdown();
     } catch (error) {
       console.warn("Error updating sequence dropdowns:", error);
+    }
+  });
+
+  // Add event listener for motor deletion
+  document.addEventListener("click", function (event) {
+    if (event.target.closest(".delete-motor-icon")) {
+      const deleteButton = event.target.closest(".delete-motor-icon");
+      const stageId = deleteButton.dataset.stage;
+      const motorNumber = parseInt(deleteButton.dataset.motor);
+      const stageNumber = stageId.replace("stage", "");
+
+      // Show confirmation dialog
+      Swal.fire({
+        title: `Delete Motor ${motorNumber} of Stage ${stageNumber}?`,
+        text: "This will delete the motor and its nozzle. This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Delete motor from UI
+          const motorElement = deleteButton.closest("li");
+          if (motorElement) {
+            motorElement.remove();
+          }
+
+          // Delete motor form
+          const motorForm = document.getElementById(
+            `${stageId}-motor${motorNumber}-form`
+          );
+          if (motorForm) {
+            motorForm.remove();
+          }
+
+          // Delete nozzle form
+          const nozzleForm = document.getElementById(
+            `${stageId}-motor${motorNumber}-nozzle1-form`
+          );
+          if (nozzleForm) {
+            nozzleForm.remove();
+          }
+
+          // Show success message
+          Swal.fire({
+            icon: "success",
+            title: `Motor ${motorNumber} of Stage ${stageNumber} Deleted`,
+            text: "The motor and its nozzle have been removed.",
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+          });
+        }
+      });
     }
   });
 });
@@ -1507,6 +1701,259 @@ function validateStageForm(stageForm) {
     aeroFilename.classList.add("error-field");
   } else {
     aeroFilename.classList.remove("error-field");
+  }
+
+  return errors;
+}
+
+// Function to validate motor form
+function validateMotorForm(motorForm) {
+  const errors = [];
+
+  // Get all required fields
+  const structuralMass = motorForm.querySelector(
+    'input[placeholder="Enter Structural Mass"]'
+  );
+  const propulsionType = motorForm.querySelector("select.input-field");
+  const propulsionMass = motorForm.querySelector(
+    'input[placeholder="Enter Propulsion Mass"]'
+  );
+  const cutOffFlag = motorForm.querySelector(
+    'input[placeholder="Enter COF Value"]'
+  );
+  const nozzleDiameter = motorForm.querySelector(
+    'input[placeholder="Enter Nozzle Diameter"]'
+  );
+  const burnTime = motorForm.querySelector(
+    'input[placeholder="Enter Burn Time"]'
+  );
+  const thrustFilename = motorForm.querySelector('input[type="text"].filename');
+
+  // Validate Structural Mass
+  if (!structuralMass.value.trim()) {
+    errors.push("Structural Mass is required");
+    structuralMass.classList.add("error-field");
+  } else if (parseFloat(structuralMass.value) <= 0) {
+    errors.push("Structural Mass must be greater than 0");
+    structuralMass.classList.add("error-field");
+  } else {
+    structuralMass.classList.remove("error-field");
+  }
+
+  // Validate Propulsion Type
+  if (!propulsionType.value || propulsionType.value === "") {
+    errors.push("Propulsion Type is required");
+    propulsionType.classList.add("error-field");
+  } else {
+    propulsionType.classList.remove("error-field");
+  }
+
+  // Validate Propulsion Mass
+  if (!propulsionMass.value.trim()) {
+    errors.push("Propulsion Mass is required");
+    propulsionMass.classList.add("error-field");
+  } else if (parseFloat(propulsionMass.value) <= 0) {
+    errors.push("Propulsion Mass must be greater than 0");
+    propulsionMass.classList.add("error-field");
+  } else {
+    propulsionMass.classList.remove("error-field");
+  }
+
+  // Validate Cut Off Flag
+  if (!cutOffFlag.value.trim()) {
+    errors.push("Cut Off Flag is required");
+    cutOffFlag.classList.add("error-field");
+  } else {
+    cutOffFlag.classList.remove("error-field");
+  }
+
+  // Validate Nozzle Diameter
+  if (!nozzleDiameter.value.trim()) {
+    errors.push("Nozzle Diameter is required");
+    nozzleDiameter.classList.add("error-field");
+  } else if (parseFloat(nozzleDiameter.value) <= 0) {
+    errors.push("Nozzle Diameter must be greater than 0");
+    nozzleDiameter.classList.add("error-field");
+  } else {
+    nozzleDiameter.classList.remove("error-field");
+  }
+
+  // Validate Burn Time
+  if (!burnTime.value.trim()) {
+    errors.push("Burn Time is required");
+    burnTime.classList.add("error-field");
+  } else if (parseFloat(burnTime.value) <= 0) {
+    errors.push("Burn Time must be greater than 0");
+    burnTime.classList.add("error-field");
+  } else {
+    burnTime.classList.remove("error-field");
+  }
+
+  // Validate Thrust Time File
+  if (!thrustFilename.value.trim()) {
+    errors.push("Thrust Time file is required");
+    thrustFilename.classList.add("error-field");
+  } else {
+    thrustFilename.classList.remove("error-field");
+  }
+
+  return errors;
+}
+
+// Function to validate nozzle form
+function validateNozzleForm(nozzleForm) {
+  const errors = [];
+
+  // Get all required fields
+  const nozzleDiameter = nozzleForm.querySelector(
+    'input[placeholder="Enter nozzle diameter"]'
+  );
+  const etaThrust = nozzleForm.querySelector(
+    'input[placeholder="Enter ETA thrust"]'
+  );
+  const zetaThrust = nozzleForm.querySelector(
+    'input[placeholder="Enter Zeta thrust"]'
+  );
+  const radialDistance = nozzleForm.querySelector(
+    'input[placeholder="Enter radial distance"]'
+  );
+  const phi = nozzleForm.querySelector('input[placeholder="Enter Phi value"]');
+  const sigmaThrust = nozzleForm.querySelector(
+    'input[placeholder="Enter sigma thrust"]'
+  );
+  const thauThrust = nozzleForm.querySelector(
+    'input[placeholder="Enter thau thrust"]'
+  );
+  const epsilonThrust = nozzleForm.querySelector(
+    'input[placeholder="Enter epsilon thrust"]'
+  );
+  const mu = nozzleForm.querySelector('input[placeholder="Enter MU value"]');
+  const lamda = nozzleForm.querySelector(
+    'input[placeholder="Enter LAMDA value"]'
+  );
+  const kappa = nozzleForm.querySelector(
+    'input[placeholder="Enter KAPPA value"]'
+  );
+  const xValue = nozzleForm.querySelector('input[placeholder="Enter X value"]');
+  const yValue = nozzleForm.querySelector('input[placeholder="Enter Y value"]');
+  const zValue = nozzleForm.querySelector('input[placeholder="Enter Z value"]');
+
+  // Validate Nozzle Diameter
+  if (!nozzleDiameter.value.trim()) {
+    errors.push("Nozzle Diameter is required");
+    nozzleDiameter.classList.add("error-field");
+  } else if (parseFloat(nozzleDiameter.value) <= 0) {
+    errors.push("Nozzle Diameter must be greater than 0");
+    nozzleDiameter.classList.add("error-field");
+  } else {
+    nozzleDiameter.classList.remove("error-field");
+  }
+
+  // Validate ETA Thrust
+  if (!etaThrust.value.trim()) {
+    errors.push("ETA Thrust is required");
+    etaThrust.classList.add("error-field");
+  } else {
+    etaThrust.classList.remove("error-field");
+  }
+
+  // Validate Zeta Thrust
+  if (!zetaThrust.value.trim()) {
+    errors.push("Zeta Thrust is required");
+    zetaThrust.classList.add("error-field");
+  } else {
+    zetaThrust.classList.remove("error-field");
+  }
+
+  // Validate Radial Distance
+  if (!radialDistance.value.trim()) {
+    errors.push("Radial Distance is required");
+    radialDistance.classList.add("error-field");
+  } else if (parseFloat(radialDistance.value) < 0) {
+    errors.push("Radial Distance cannot be negative");
+    radialDistance.classList.add("error-field");
+  } else {
+    radialDistance.classList.remove("error-field");
+  }
+
+  // Validate Phi
+  if (!phi.value.trim()) {
+    errors.push("Phi value is required");
+    phi.classList.add("error-field");
+  } else {
+    phi.classList.remove("error-field");
+  }
+
+  // Validate Sigma Thrust
+  if (!sigmaThrust.value.trim()) {
+    errors.push("Sigma Thrust is required");
+    sigmaThrust.classList.add("error-field");
+  } else {
+    sigmaThrust.classList.remove("error-field");
+  }
+
+  // Validate Thau Thrust
+  if (!thauThrust.value.trim()) {
+    errors.push("Thau Thrust is required");
+    thauThrust.classList.add("error-field");
+  } else {
+    thauThrust.classList.remove("error-field");
+  }
+
+  // Validate Epsilon Thrust
+  if (!epsilonThrust.value.trim()) {
+    errors.push("Epsilon Thrust is required");
+    epsilonThrust.classList.add("error-field");
+  } else {
+    epsilonThrust.classList.remove("error-field");
+  }
+
+  // Validate MU
+  if (!mu.value.trim()) {
+    errors.push("MU value is required");
+    mu.classList.add("error-field");
+  } else {
+    mu.classList.remove("error-field");
+  }
+
+  // Validate LAMDA
+  if (!lamda.value.trim()) {
+    errors.push("LAMDA value is required");
+    lamda.classList.add("error-field");
+  } else {
+    lamda.classList.remove("error-field");
+  }
+
+  // Validate KAPPA
+  if (!kappa.value.trim()) {
+    errors.push("KAPPA value is required");
+    kappa.classList.add("error-field");
+  } else {
+    kappa.classList.remove("error-field");
+  }
+
+  // Validate X Value
+  if (!xValue.value.trim()) {
+    errors.push("X value is required");
+    xValue.classList.add("error-field");
+  } else {
+    xValue.classList.remove("error-field");
+  }
+
+  // Validate Y Value
+  if (!yValue.value.trim()) {
+    errors.push("Y value is required");
+    yValue.classList.add("error-field");
+  } else {
+    yValue.classList.remove("error-field");
+  }
+
+  // Validate Z Value
+  if (!zValue.value.trim()) {
+    errors.push("Z value is required");
+    zValue.classList.add("error-field");
+  } else {
+    zValue.classList.remove("error-field");
   }
 
   return errors;
