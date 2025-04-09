@@ -393,8 +393,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function addMotorAndNozzle(stageId) {
     const stageMotorsList = document.getElementById(`${stageId}-motors`);
     let motorCount = stageMotorsList.childElementCount + 1;
+    const stageNumber = stageId.replace("stage", "");
 
-    // Create new Motor entry in the sidebar with delete icon
+    // Create new Motor entry in the sidebar
     const newMotor = document.createElement("li");
     newMotor.innerHTML = `
       <div class="motor-nav-item">
@@ -412,6 +413,24 @@ document.addEventListener("DOMContentLoaded", function () {
         <li><a href="#" class="nozzle-btn" id="${stageId}-motor${motorCount}-nozzle1-btn">└── Nozzle 1</a></li>
       </ul>`;
     stageMotorsList.appendChild(newMotor);
+
+    // Show success toast for motor creation
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+
+    Toast.fire({
+      icon: "success",
+      title: `Motor ${motorCount} has been added to Stage ${stageNumber}`,
+    });
 
     // Add styles for the motor nav item and delete icon if not already added
     if (!document.getElementById("motor-delete-icon-styles")) {
@@ -448,7 +467,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const motorForm = document.createElement("form");
     motorForm.id = `${stageId}-motor${motorCount}-form`;
     motorForm.classList.add("hidden", "motor-form");
-    const stageNumber = stageId.replace("stage", "");
     motorForm.innerHTML = `
     <div class="form-container">
         <h2 class="stage-heading">Motor ${motorCount} - ${stageId}</h2>
@@ -1566,16 +1584,32 @@ function populateEventFlagDropdown(eventType) {
   let flags = [];
   switch (eventType) {
     case "stage-start":
-      flags = window.flagRegistry.burnTimeIdentifiers.map((item) => item.flag);
+      // Only show flags for saved stages
+      flags = savedStages.map((stage) => `ST_${stage.stage_number}_INI`);
       break;
     case "stage-separation":
-      flags = window.flagRegistry.separationFlags.map((item) => item.flag);
+      // Only show flags for saved stages
+      flags = savedStages.map((stage) => `ST_${stage.stage_number}_SEP`);
       break;
     case "motor-ignition":
-      flags = window.flagRegistry.motorIgnitionFlags.map((item) => item.flag);
+      // Only show flags for saved stages with motors
+      savedStages.forEach((stage) => {
+        if (stage.motors) {
+          stage.motors.forEach((motor, index) => {
+            flags.push(`S${stage.stage_number}_M${index + 1}_IGN`);
+          });
+        }
+      });
       break;
     case "motor-termination":
-      flags = window.flagRegistry.motorBurnoutFlags.map((item) => item.flag);
+      // Only show flags for saved stages with motors
+      savedStages.forEach((stage) => {
+        if (stage.motors) {
+          stage.motors.forEach((motor, index) => {
+            flags.push(`S${stage.stage_number}_M${index + 1}_Burnout`);
+          });
+        }
+      });
       break;
     case "heat-shield-separation":
       // Add heat shield separation flag if exists

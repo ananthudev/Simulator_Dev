@@ -1,0 +1,23 @@
+/* Add Stage Navigation Button Styles */
+.nav-add-stage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  margin: 4px 8px;
+  background: rgba(74, 144, 226, 0.1);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.nav-add-stage:hover {
+  background: rgba(74, 144, 226, 0.2);
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+.nav-add-stage svg {
+  opacity: 0.8;
+}

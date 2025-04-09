@@ -182,6 +182,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+  // Initialize the Reference Flag dropdown when the page loads
+  updateReferenceFlagDropdown();
 });
 
 // Save functions
@@ -855,12 +858,105 @@ function addSteeringEventToList() {
 
   eventList.appendChild(eventItem);
 
+  // Update the Reference Flag dropdown
+  updateReferenceFlagDropdown();
+
   // Clear form fields after adding event
   document.getElementById("event-flag").value = "";
   document.getElementById("trigger-type").value = "";
   document.getElementById("trigger-value").value = "";
-  document.getElementById("dependent-event").value = "";
+  document.getElementById("dependent-event").value = "none"; // Reset to "None"
   document.getElementById("event-comment").value = "";
+}
+
+// Function to update the Reference Flag dropdown
+function updateReferenceFlagDropdown() {
+  const activeTab = document.querySelector(".sequence-tab.active");
+  if (!activeTab) {
+    return;
+  }
+
+  const tabName = activeTab.getAttribute("data-tab");
+  if (tabName !== "stage-start" && tabName !== "motor-ignition") {
+    return;
+  }
+
+  // Get the sequence form specifically
+  const sequenceForm = document.getElementById("sequence-form");
+  if (!sequenceForm) {
+    return;
+  }
+
+  const referenceFlagDropdown = sequenceForm.querySelector("#dependent-event");
+  if (!referenceFlagDropdown) {
+    return;
+  }
+
+  // Clear existing options
+  while (referenceFlagDropdown.options.length > 0) {
+    referenceFlagDropdown.remove(0);
+  }
+
+  // Always add "None" as the first option
+  const noneOption = document.createElement("option");
+  noneOption.value = "none";
+  noneOption.text = "None";
+  referenceFlagDropdown.appendChild(noneOption);
+
+  // Get all events from the event list within the sequence form
+  const eventList = sequenceForm.querySelector("#event-list");
+  if (!eventList) {
+    return;
+  }
+
+  const events = eventList.querySelectorAll(".event-item");
+
+  // Add each event's flag as an option
+  events.forEach((event) => {
+    const eventFlag = event.querySelector(".event-flag").textContent;
+    // For motor ignition, only add stage start flags
+    if (tabName === "motor-ignition") {
+      if (eventFlag.startsWith("ST_") && eventFlag.endsWith("_INI")) {
+        const option = document.createElement("option");
+        option.value = eventFlag;
+        option.text = eventFlag;
+        referenceFlagDropdown.appendChild(option);
+      }
+    } else {
+      // For stage start, add all flags
+      const option = document.createElement("option");
+      option.value = eventFlag;
+      option.text = eventFlag;
+      referenceFlagDropdown.appendChild(option);
+    }
+  });
+}
+
+// Update the tab switching logic
+function switchTab(tabName) {
+  const tabs = document.querySelectorAll(".sequence-tab");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabs.forEach((tab) => {
+    if (tab.getAttribute("data-tab") === tabName) {
+      tab.classList.add("active");
+    } else {
+      tab.classList.remove("active");
+    }
+  });
+
+  tabContents.forEach((content) => {
+    if (content.getAttribute("data-tab") === tabName) {
+      content.style.display = "block";
+    } else {
+      content.style.display = "none";
+    }
+  });
+
+  // Update Reference Flag dropdown for both stage-start and motor-ignition tabs
+  if (tabName === "stage-start" || tabName === "motor-ignition") {
+    updateReferenceFlagDropdown();
+  }
 }
 
 // Make finalMissionData accessible globally
