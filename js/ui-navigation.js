@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
         form.style.display = "none";
       });
   }
-  hideAllForms(); // Apply initially
+  hideAllForms();
 
   // Function to show only one form at a time
   function showForm(formToShow) {
@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     
                     <div class="form-group">
-                        <label for="burn-time-id-${nextStageNumber}" class="label">Burn Time Identifier:</label>
+                        <label for="burn-time-id-${nextStageNumber}" class="label">Initialization Flag:</label>
                         <input type="text" id="burn-time-id-${nextStageNumber}" class="input-field" value="ST_${nextStageNumber}_INI" readonly>
                     </div>
                 </div>
@@ -879,6 +879,207 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   });
+
+  // Function to update UI after stage changes
+  function updateStageUI(stages) {
+    // Update stage buttons and forms
+    stages.forEach((stage) => {
+      const oldStageId = `stage${stage.stage_number}`;
+      const stageBtn = document.querySelector(`#${oldStageId}-btn`);
+      if (stageBtn) {
+        stageBtn.textContent = `└── Stage ${stage.stage_number}`;
+      }
+
+      // Update form headings and IDs
+      const stageForm = document.getElementById(`${oldStageId}-form`);
+      if (stageForm) {
+        const heading = stageForm.querySelector(".stage-heading");
+        if (heading) {
+          heading.textContent = `Stage ${stage.stage_number}`;
+        }
+
+        // Update flag input values
+        const burnTimeId = stageForm.querySelector(
+          'input[id^="burn-time-id-"]'
+        );
+        const separationFlag = stageForm.querySelector(
+          'input[id^="separation-flag-"]'
+        );
+
+        if (burnTimeId) {
+          burnTimeId.value = stage.burn_time_identifier;
+        }
+        if (separationFlag) {
+          separationFlag.value = stage.separation_flag;
+        }
+      }
+    });
+  }
+
+  // Function to update all dropdowns
+  function updateAllDropdowns() {
+    try {
+      updateStageStartDropdown();
+      updateMotorIgnitionDropdown();
+      updateMotorTerminationDropdown();
+      updateStageSeparationDropdown();
+    } catch (error) {
+      console.warn("Error updating sequence dropdowns:", error);
+    }
+  }
+
+  // Add rearrange button to the side navigation menu
+  const rearrangeBtn = document.createElement("button");
+  rearrangeBtn.id = "rearrange-stages-btn";
+  rearrangeBtn.className = "rearrange-btn";
+  rearrangeBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12H3M3 12L7 8M3 12L7 16"></path>
+          <path d="M3 6H21M21 6L17 2M21 6L17 10"></path>
+          <path d="M21 18H3M3 18L7 14M3 18L7 22"></path>
+      </svg>
+      Rearrange
+  `;
+  vehicleStagesList.insertBefore(rearrangeBtn, vehicleStagesList.firstChild);
+
+  // Add styles for the rearrange button
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+      .rearrange-btn {
+          background: rgba(74, 144, 226, 0.1);
+          border: 1px solid rgba(74, 144, 226, 0.2);
+          color: #4a90e2;
+          padding: 4px 8px;
+          border-radius: 4px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 11px;
+          margin-bottom: 8px;
+          width: calc(100% - 16px);
+          margin-left: 8px;
+          transition: all 0.3s ease;
+      }
+      
+      .rearrange-btn:hover {
+          background: rgba(74, 144, 226, 0.2);
+          border-color: rgba(74, 144, 226, 0.3);
+      }
+      
+      .rearrange-btn svg {
+          opacity: 0.8;
+      }
+  `;
+  document.head.appendChild(styleElement);
+
+  // Add click handler for rearrange button
+  rearrangeBtn.addEventListener("click", function () {
+    const stagesList = document.getElementById("vehicle-stages");
+    const stages = Array.from(document.querySelectorAll(".stage-nav-item"))
+      .map((item) => {
+        const btn = item.querySelector(".stage-btn");
+        const currentNumber = parseInt(btn.textContent.match(/\d+/)[0]);
+        return {
+          element: item.closest("li"),
+          currentNumber: currentNumber,
+          stageId: `stage${currentNumber}`,
+        };
+      })
+      .sort((a, b) => a.currentNumber - b.currentNumber);
+
+    if (stages.length === 0) return;
+
+    // Remove all stages from DOM temporarily
+    stages.forEach((stage) => stage.element.remove());
+
+    // Reinsert stages in sorted order after the rearrange button
+    stages.forEach((stage, index) => {
+      const newNumber = index + 1;
+      const oldNumber = stage.currentNumber;
+
+      if (oldNumber !== newNumber) {
+        // Update stage button text and ID
+        const stageBtn = stage.element.querySelector(".stage-btn");
+        stageBtn.textContent = `└── Stage ${newNumber}`;
+        stageBtn.id = `stage${newNumber}-btn`;
+
+        // Update delete button attributes
+        const deleteBtn = stage.element.querySelector(".delete-stage-icon");
+        deleteBtn.dataset.stage = `stage${newNumber}`;
+        deleteBtn.dataset.stageNumber = newNumber;
+
+        // Update motors submenu id
+        const motorsMenu = stage.element.querySelector(".submenu");
+        motorsMenu.id = `stage${newNumber}-motors`;
+
+        // Update stage form id and ensure click handler works
+        const stageForm = document.getElementById(`${stage.stageId}-form`);
+        if (stageForm) {
+          const newFormId = `stage${newNumber}-form`;
+          stageForm.id = newFormId;
+
+          // Update heading
+          const heading = stageForm.querySelector(".stage-heading");
+          if (heading) heading.textContent = `Stage ${newNumber}`;
+
+          // Update burn time identifier and separation flag
+          const burnTimeId = stageForm.querySelector(
+            'input[id^="burn-time-id-"]'
+          );
+          const separationFlag = stageForm.querySelector(
+            'input[id^="separation-flag-"]'
+          );
+
+          if (burnTimeId) {
+            burnTimeId.value = `ST_${newNumber}_INI`;
+            burnTimeId.id = `burn-time-id-${newNumber}`;
+          }
+
+          if (separationFlag) {
+            separationFlag.value = `ST_${newNumber}_SEP`;
+            separationFlag.id = `separation-flag-stage${newNumber}`;
+          }
+
+          // Update click handler for the stage button
+          stageBtn.onclick = function (event) {
+            event.preventDefault();
+            showForm(document.getElementById(newFormId));
+          };
+
+          // Update savedStages array
+          const savedStageIndex = savedStages.findIndex(
+            (s) => s.stage_number === oldNumber
+          );
+          if (savedStageIndex !== -1) {
+            savedStages[savedStageIndex].stage_number = newNumber;
+            savedStages[
+              savedStageIndex
+            ].burn_time_identifier = `ST_${newNumber}_INI`;
+            savedStages[
+              savedStageIndex
+            ].separation_flag = `ST_${newNumber}_SEP`;
+          }
+        }
+      }
+
+      // Reinsert the stage element after the rearrange button
+      stagesList.appendChild(stage.element);
+    });
+
+    // Sort savedStages array
+    savedStages.sort((a, b) => a.stage_number - b.stage_number);
+
+    // Update sequence dropdowns
+    try {
+      updateStageStartDropdown();
+      updateMotorIgnitionDropdown();
+      updateMotorTerminationDropdown();
+      updateStageSeparationDropdown();
+    } catch (error) {
+      console.warn("Error updating sequence dropdowns:", error);
+    }
+  });
 });
 
 // Vehicle Dynamic Field Display
@@ -986,125 +1187,76 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// Update the saveStageData function to add the stage to savedStages
+// Update the saveStageData function to use StageManager
 function saveStageData(stageForm, stageId) {
-  const stageNumber = stageId.replace("stage", "");
+  const stageNumber = parseInt(stageId.replace("stage", ""));
   const vehicleName = document.getElementById("vehicle-name").value.trim();
-  const stageName = `Stage_${stageNumber}`;
 
-  console.log("Saving stage data for stage:", stageNumber);
-  console.log("Vehicle name:", vehicleName);
-
-  if (!missionData.stages) {
-    missionData.stages = [];
-  }
-
-  const structuralMassInput = stageForm.querySelector(
-    'input[placeholder="Enter Structural Mass"]'
-  );
-  const referenceAreaInput = stageForm.querySelector(
-    'input[placeholder="Enter Reference Area"]'
-  );
-  const burnTimeInput = stageForm.querySelector(
-    'input[placeholder="Enter Burn Time"]'
-  );
-  const burnTimeIdentifierInput = stageForm.querySelector(
-    'input[value^="ST_"]:not([value$="_SEP"])'
-  );
-  const separationFlagInput = stageForm.querySelector(
-    'input[value^="ST_"][value$="_SEP"]'
-  );
-  const dcissToggle = stageForm.querySelector(`#dciss-toggle-${stageId}`);
-  const coastingToggle = stageForm.querySelector(`#coasting-toggle-${stageId}`);
-  const aeroFilename = stageForm.querySelector(`#aero-filename-${stageId}`);
-
-  if (!structuralMassInput || !referenceAreaInput || !burnTimeInput) {
-    console.error("Missing critical elements in the stage form:", stageId);
-    return null;
-  }
-
-  const stageData = {
-    stage_number: parseInt(stageNumber),
-    structural_mass: parseFloat(structuralMassInput.value) || 0,
-    reference_area: parseFloat(referenceAreaInput.value) || 0,
-    burn_time: parseFloat(burnTimeInput.value) || 0,
-    burn_time_identifier: burnTimeIdentifierInput
-      ? burnTimeIdentifierInput.value
-      : `ST_${stageNumber}_INI`,
-    separation_flag: separationFlagInput
-      ? separationFlagInput.value
-      : `ST_${stageNumber}_SEP`,
-    dciss: dcissToggle ? dcissToggle.checked : false,
-    coasting: coastingToggle ? coastingToggle.checked : false,
-    aero_data_file: aeroFilename ? aeroFilename.value : "",
+  const formData = {
+    structural_mass:
+      parseFloat(
+        stageForm.querySelector('input[placeholder="Enter Structural Mass"]')
+          .value
+      ) || 0,
+    reference_area:
+      parseFloat(
+        stageForm.querySelector('input[placeholder="Enter Reference Area"]')
+          .value
+      ) || 0,
+    burn_time:
+      parseFloat(
+        stageForm.querySelector('input[placeholder="Enter Burn Time"]').value
+      ) || 0,
+    dciss: stageForm.querySelector(`#dciss-toggle-${stageId}`).checked,
+    coasting: stageForm.querySelector(`#coasting-toggle-${stageId}`).checked,
+    aero_data_file:
+      stageForm.querySelector(`#aero-filename-${stageId}`).value || "",
   };
 
-  console.log("Stage data to be saved:", stageData);
+  // Update stage in StageManager
+  const updatedStage = stageManager.updateStage(stageNumber, formData);
+  if (!updatedStage) return null;
 
-  // Add the stage to savedStages array if it's not already there
-  const stageIndex = savedStages.findIndex(
-    (s) => s.stage_number === parseInt(stageNumber)
-  );
-  if (stageIndex === -1) {
-    // Add new stage
-    savedStages.push(stageData);
-    console.log(`Added stage ${stageNumber} to savedStages`);
-  } else {
-    // Update existing stage
-    savedStages[stageIndex] = stageData;
-    console.log(`Updated stage ${stageNumber} in savedStages`);
-  }
-
-  // Sort savedStages by stage_number
-  savedStages.sort((a, b) => a.stage_number - b.stage_number);
-  console.log("Current saved stages:", savedStages);
-
+  // Update finalMissionData
   if (vehicleName) {
-    finalMissionData[vehicleName].no_Stg = Math.max(
-      parseInt(stageNumber),
-      finalMissionData[vehicleName].no_Stg
-    );
-
-    const stageName = `Stage_${stageNumber}`;
-    if (!finalMissionData[vehicleName].stage.includes(stageName)) {
-      finalMissionData[vehicleName].stage.push(stageName);
-    }
-
-    // Update or create stage data
-    finalMissionData[stageName] = {
-      ...finalMissionData[stageName], // Preserve existing data
-      structural_mass: stageData.structural_mass,
-      ref_area: stageData.reference_area,
-      burn_time: stageData.burn_time,
-      burn_time_identifier: stageData.burn_time_identifier,
-      separation_flag: stageData.separation_flag,
-      DCISS: stageData.dciss ? "ON" : "OFF",
-      coasting: stageData.coasting ? "ON" : "OFF",
-      aero_data: stageData.aero_data_file,
-      motors: finalMissionData[stageName]?.motors || [], // Preserve existing motors
-    };
-
-    // Update the sequence form's event flag dropdown
-    setTimeout(() => {
-      try {
-        updateSequenceEventFlags();
-      } catch (error) {
-        console.warn("Error updating sequence flags:", error);
-      }
-    }, 0);
+    updateFinalMissionData(vehicleName, updatedStage);
   }
 
-  return stageData;
+  return updatedStage;
 }
 
-// Add this function to update the event flag dropdown in Stage Start tab of Sequence form
-function updateStageStartDropdown() {
-  console.log("Updating Stage Start dropdown with saved stages:", savedStages);
-  // Find the event-flag dropdown in the sequence form
-  const eventFlagDropdown = document.getElementById("event-flag");
+// Helper function to update finalMissionData
+function updateFinalMissionData(vehicleName, stageData) {
+  const stageName = `Stage_${stageData.stage_number}`;
 
-  // Check if we're on the Stage Start tab
+  if (!finalMissionData[vehicleName].stage.includes(stageName)) {
+    finalMissionData[vehicleName].stage.push(stageName);
+  }
+
+  finalMissionData[stageName] = {
+    ...finalMissionData[stageName],
+    structural_mass: stageData.structural_mass,
+    ref_area: stageData.reference_area,
+    burn_time: stageData.burn_time,
+    burn_time_identifier: stageData.burn_time_identifier,
+    separation_flag: stageData.separation_flag,
+    DCISS: stageData.dciss ? "ON" : "OFF",
+    coasting: stageData.coasting ? "ON" : "OFF",
+    aero_data: stageData.aero_data_file,
+    motors: finalMissionData[stageName]?.motors || [],
+  };
+
+  finalMissionData[vehicleName].no_Stg = Math.max(
+    stageData.stage_number,
+    finalMissionData[vehicleName].no_Stg
+  );
+}
+
+// Update the sequence dropdown functions to work without stageManager
+function updateStageStartDropdown() {
+  const eventFlagDropdown = document.getElementById("event-flag");
   const activeTab = document.querySelector(".sequence-tab.active");
+
   if (
     activeTab &&
     activeTab.getAttribute("data-tab") === "stage-start" &&
@@ -1115,92 +1267,83 @@ function updateStageStartDropdown() {
       eventFlagDropdown.remove(1);
     }
 
-    // Use savedStages array instead of stageCounter
-    if (savedStages.length > 0) {
-      savedStages.forEach((stage) => {
-        const option = document.createElement("option");
-        option.value = stage.burn_time_identifier;
-        option.text = `${stage.burn_time_identifier} - Stage ${stage.stage_number}`;
-        eventFlagDropdown.appendChild(option);
-      });
-      console.log(`Added ${savedStages.length} saved stages to dropdown`);
-    } else {
-      console.log("No saved stages found");
-    }
+    // Use savedStages array instead of stageManager
+    savedStages.forEach((stage) => {
+      const option = document.createElement("option");
+      option.value = `ST_${stage.stage_number}_INI`;
+      option.text = `ST_${stage.stage_number}_INI - Stage ${stage.stage_number}`;
+      eventFlagDropdown.appendChild(option);
+    });
   }
 }
 
-// Update the motor ignition dropdown to use saved stages
 function updateMotorIgnitionDropdown() {
-  console.log("Updating motor ignition dropdown with saved stages");
   const eventFlagDropdown = document.getElementById("event-flag");
-  if (eventFlagDropdown) {
+  const activeTab = document.querySelector(".sequence-tab.active");
+
+  if (
+    activeTab &&
+    activeTab.getAttribute("data-tab") === "motor-ignition" &&
+    eventFlagDropdown
+  ) {
     // Clear existing options except the first default one
     while (eventFlagDropdown.options.length > 1) {
       eventFlagDropdown.remove(1);
     }
 
-    // Use savedStages instead of looping through stageCounter
+    // Use savedStages array
     savedStages.forEach((stage) => {
-      const stageNum = stage.stage_number;
-      const stageId = `stage${stageNum}`;
-
-      // Find all motor buttons for this stage
-      const motorButtons = document.querySelectorAll(
-        `#${stageId}-motors .motor-btn`
-      );
-      const motorsCount = motorButtons.length;
-
-      console.log(`Found ${motorsCount} motors for saved stage ${stageNum}`);
-
-      // Add options for each motor in this stage
-      for (let motorNum = 1; motorNum <= motorsCount; motorNum++) {
-        const option = document.createElement("option");
-        option.value = `S${stageNum}_M${motorNum}_IGN`;
-        option.text = `S${stageNum}_M${motorNum}_IGN - Stage ${stageNum} Motor ${motorNum}`;
-        eventFlagDropdown.appendChild(option);
+      if (stage.motors) {
+        stage.motors.forEach((motor, index) => {
+          const motorNum = index + 1;
+          const option = document.createElement("option");
+          option.value = `S${stage.stage_number}_M${motorNum}_IGN`;
+          option.text = `S${stage.stage_number}_M${motorNum}_IGN - Stage ${stage.stage_number} Motor ${motorNum}`;
+          eventFlagDropdown.appendChild(option);
+        });
       }
     });
   }
 }
 
-// Update the motor termination dropdown to use saved stages
 function updateMotorTerminationDropdown() {
-  console.log("Updating motor termination dropdown with saved stages");
   const eventFlagDropdown = document.getElementById("event-flag");
-  if (eventFlagDropdown) {
+  const activeTab = document.querySelector(".sequence-tab.active");
+
+  if (
+    activeTab &&
+    activeTab.getAttribute("data-tab") === "motor-termination" &&
+    eventFlagDropdown
+  ) {
     // Clear existing options except the first default one
     while (eventFlagDropdown.options.length > 1) {
       eventFlagDropdown.remove(1);
     }
 
-    // Use savedStages instead of looping through stageCounter
+    // Use savedStages array
     savedStages.forEach((stage) => {
-      const stageNum = stage.stage_number;
-      const stageId = `stage${stageNum}`;
-
-      // Find all motor buttons for this stage
-      const motorButtons = document.querySelectorAll(
-        `#${stageId}-motors .motor-btn`
-      );
-      const motorsCount = motorButtons.length;
-
-      // Add options for each motor in this stage
-      for (let motorNum = 1; motorNum <= motorsCount; motorNum++) {
-        const option = document.createElement("option");
-        option.value = `S${stageNum}_M${motorNum}_Burnout`;
-        option.text = `S${stageNum}_M${motorNum}_Burnout - Stage ${stageNum} Motor ${motorNum}`;
-        eventFlagDropdown.appendChild(option);
+      if (stage.motors) {
+        stage.motors.forEach((motor, index) => {
+          const motorNum = index + 1;
+          const option = document.createElement("option");
+          option.value = `S${stage.stage_number}_M${motorNum}_Burnout`;
+          option.text = `S${stage.stage_number}_M${motorNum}_Burnout - Stage ${stage.stage_number} Motor ${motorNum}`;
+          eventFlagDropdown.appendChild(option);
+        });
       }
     });
   }
 }
 
-// Update the stage separation dropdown to use saved stages
 function updateStageSeparationDropdown() {
-  console.log("Updating stage separation dropdown with saved stages");
   const eventFlagDropdown = document.getElementById("event-flag");
-  if (eventFlagDropdown) {
+  const activeTab = document.querySelector(".sequence-tab.active");
+
+  if (
+    activeTab &&
+    activeTab.getAttribute("data-tab") === "stage-separation" &&
+    eventFlagDropdown
+  ) {
     // Clear existing options except the first default one
     while (eventFlagDropdown.options.length > 1) {
       eventFlagDropdown.remove(1);
@@ -1209,8 +1352,8 @@ function updateStageSeparationDropdown() {
     // Use savedStages array
     savedStages.forEach((stage) => {
       const option = document.createElement("option");
-      option.value = stage.separation_flag;
-      option.text = `${stage.separation_flag} - Stage ${stage.stage_number} Separation`;
+      option.value = `ST_${stage.stage_number}_SEP`;
+      option.text = `ST_${stage.stage_number}_SEP - Stage ${stage.stage_number} Separation`;
       eventFlagDropdown.appendChild(option);
     });
   }

@@ -102,20 +102,66 @@
 
 ## 🚀 Pending Tasks
 
-1. **JSON File Management**
+1. **Smart Stage Management System Implementation**
+
+   - [ ] Create StageManager service:
+
+     - [ ] Implement stage addition logic
+     - [ ] Implement stage deletion logic with renumbering
+     - [ ] Add validation system for stage operations
+     - [ ] Create stage dependency tracker
+
+   - [ ] Implement Smart Renumbering Algorithm:
+
+     - [ ] Stage number sequential update
+     - [ ] Auto-update flag references (ST_X_INI, SX_MX_IGN, ST_X_SEP)
+     - [ ] Update motor flags (SX_MX_Burnout, SX_MX_IGN)
+     - [ ] Update sequence event references
+     - [ ] Update stage dependencies
+
+   - [ ] Add User Interface Enhancements:
+
+     - [ ] Add confirmation dialog for stage deletion
+     - [ ] Show impact analysis before deletion
+     - [ ] Display visual feedback during renumbering
+     - [ ] Add undo capability for stage operations
+
+   - [ ] Implement Data Validation:
+
+     - [ ] Validate stage references before deletion
+     - [ ] Check sequence integrity after renumbering
+     - [ ] Verify all flag references are updated
+     - [ ] Ensure no broken dependencies
+
+   - [ ] Add Error Handling:
+     - [ ] Handle edge cases in renumbering
+     - [ ] Provide clear error messages
+     - [ ] Implement rollback mechanism
+     - [ ] Add error recovery options
+
+2. **Stage Navigation Menu Implementation**
+
+   - [ ] Add "Stages" item to main navigation menu
+   - [ ] Create stage overview interface
+   - [ ] Implement stage list display with summary information
+   - [ ] Add ability to quickly jump between stage configurations
+   - [ ] Add visual indicators for stage status/completion
+   - [ ] Integrate with existing stage data management
+
+3. **JSON File Management**
 
    - [ ] Complete JSON structure with all uploaded CSV data
    - [ ] Ensure proper key-value pairing
    - [ ] Validate entire JSON structure before saving
 
-2. **Open Missions Feature**
+4. **Open Missions Feature**
 
    - [ ] Add "Open Missions" button to navigation bar
    - [ ] Create missions loading interface
    - [ ] Implement form auto-population from loaded JSON
    - [ ] Handle all data types during form population
 
-3. **Form Validation Status Indicators**
+5. **Form Validation Status Indicators**
 
    - [ ] Add grayed-out checkmark next to menu tree items (Details, Environment, Vehicle, Sequence, Steering)
    - [ ] Turn checkmark green when corresponding form is completely validated and filled
@@ -143,21 +189,21 @@
      - [ ] User can see at a glance which parts of the mission need attention
      - [ ] Validation state persists during the session until form is properly completed
 
-4. **Backend Integration**
+6. **Backend Integration**
 
    - [ ] Setup connection to ASTRA C program
    - [ ] Implement secure file transfer to backend
    - [ ] Handle execution of C program
    - [ ] Protect proprietary business logic
 
-5. **Terminal Output Display**
+7. **Terminal Output Display**
 
    - [ ] Create HTML/CSS terminal window
    - [ ] Implement real-time output streaming
    - [ ] Style terminal window for good UX
    - [ ] Handle different types of program output
 
-6. **Security Measures**
+8. **Security Measures**
 
    - [ ] Implement C program protection
    - [ ] Secure sensitive business logic
