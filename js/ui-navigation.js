@@ -502,7 +502,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Cut Off Flag:</label>
-                    <input type="text" class="input-field" placeholder="Enter COF Value">
+                    <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_CUTOFF" readonly>
                 </div>
                 
                 <div class="form-group">
@@ -739,6 +739,48 @@ document.addEventListener("DOMContentLoaded", function () {
           },
         });
       } else {
+        // Save motor data
+        const stageId = motorForm
+          .querySelector(".stage-heading")
+          .textContent.split(" - ")[1];
+        const stageNumber = parseInt(stageId.replace("stage", ""));
+        const motorNumber = parseInt(
+          motorForm
+            .querySelector(".stage-heading")
+            .textContent.split(" - ")[0]
+            .split(" ")[1]
+        );
+
+        const motorData = saveMotorData(motorForm, stageNumber, motorNumber);
+
+        // Update the stage's motors array
+        const stageIndex = savedStages.findIndex(
+          (s) => s.stage_number === stageNumber
+        );
+        if (stageIndex !== -1) {
+          // Ensure motors array exists
+          if (!savedStages[stageIndex].motors) {
+            savedStages[stageIndex].motors = [];
+          }
+
+          // Add motor at the correct index (motorNumber-1)
+          // But first, ensure any needed empty slots are filled
+          while (savedStages[stageIndex].motors.length < motorNumber) {
+            savedStages[stageIndex].motors.push(null);
+          }
+
+          // Now add the motor at the correct index
+          savedStages[stageIndex].motors[motorNumber - 1] = motorData;
+
+          console.log(
+            `Updated savedStages for stage ${stageNumber} with motor ${motorNumber}:`,
+            JSON.stringify(savedStages[stageIndex], null, 2)
+          );
+
+          // Update dropdowns in case sequence form is open
+          updateAllDropdowns();
+        }
+
         // Show success message
         const Toast = Swal.mixin({
           toast: true,
@@ -757,8 +799,9 @@ document.addEventListener("DOMContentLoaded", function () {
           title: `Motor ${motorCount} has been saved successfully`,
         });
 
-        // TODO: Add logic to save motor data
-        // This is where we'll add the code to save the motor data once validation passes
+        // Update dropdowns
+        updateMotorIgnitionDropdown();
+        updateMotorTerminationDropdown();
       }
     });
 
@@ -1292,6 +1335,59 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   });
+
+  // Add event listeners to sequence tabs
+  const sequenceTabs = document.querySelectorAll(".sequence-tab");
+  if (sequenceTabs.length > 0) {
+    sequenceTabs.forEach((tab) => {
+      tab.addEventListener("click", function () {
+        // Remove 'active' class from all tabs
+        sequenceTabs.forEach((t) => t.classList.remove("active"));
+
+        // Add 'active' class to clicked tab
+        this.classList.add("active");
+
+        // Update event type hidden field
+        const eventType = this.getAttribute("data-tab");
+        if (document.getElementById("event-type")) {
+          document.getElementById("event-type").value = eventType;
+        }
+
+        // Populate event flag dropdown
+        populateEventFlagDropdown(eventType);
+
+        // Log for debugging
+        console.log(`Tab clicked: ${eventType}`);
+        console.log("Current savedStages:", savedStages);
+        console.log("Current flagRegistry:", flagRegistry);
+      });
+    });
+  }
+
+  // Add event listener to sequence button to populate flags when sequence form is opened
+  const sequenceBtn = document.getElementById("sequence-btn");
+  if (sequenceBtn) {
+    sequenceBtn.addEventListener("click", function () {
+      // If sequence form has been loaded
+      setTimeout(() => {
+        // Get the active tab's event type
+        const activeTab = document.querySelector(".sequence-tab.active");
+        if (activeTab) {
+          const eventType = activeTab.getAttribute("data-tab");
+
+          // First update all dropdowns to ensure data is consistent
+          updateAllDropdowns();
+
+          // Then populate the specific dropdown with appropriate flags
+          populateEventFlagDropdown(eventType);
+
+          console.log("Sequence form opened, current activeTab:", eventType);
+          console.log("Current savedStages:", savedStages);
+          console.log("Current flagRegistry:", flagRegistry);
+        }
+      }, 100); // Small timeout to ensure DOM is ready
+    });
+  }
 });
 
 // Vehicle Dynamic Field Display
@@ -1490,61 +1586,37 @@ function updateStageStartDropdown() {
 }
 
 function updateMotorIgnitionDropdown() {
-  const eventFlagDropdown = document.getElementById("event-flag");
-  const activeTab = document.querySelector(".sequence-tab.active");
-
-  if (
-    activeTab &&
-    activeTab.getAttribute("data-tab") === "motor-ignition" &&
-    eventFlagDropdown
-  ) {
-    // Clear existing options except the first default one
-    while (eventFlagDropdown.options.length > 1) {
-      eventFlagDropdown.remove(1);
-    }
-
-    // Use savedStages array
-    savedStages.forEach((stage) => {
-      if (stage.motors) {
-        stage.motors.forEach((motor, index) => {
-          const motorNum = index + 1;
-          const option = document.createElement("option");
-          option.value = `S${stage.stage_number}_M${motorNum}_IGN`;
-          option.text = `S${stage.stage_number}_M${motorNum}_IGN - Stage ${stage.stage_number} Motor ${motorNum}`;
-          eventFlagDropdown.appendChild(option);
-        });
+  const ignitionDropdowns = document.querySelectorAll(
+    ".motor-ignition-dropdown"
+  );
+  ignitionDropdowns.forEach((dropdown) => {
+    dropdown.innerHTML = `<option value="">Select Ignition Flag</option>`;
+    flagRegistry.motors.forEach((motor) => {
+      if (motor.flags.ignition) {
+        const option = document.createElement("option");
+        option.value = motor.flags.ignition;
+        option.textContent = motor.flags.ignition;
+        dropdown.appendChild(option);
       }
     });
-  }
+  });
 }
 
 function updateMotorTerminationDropdown() {
-  const eventFlagDropdown = document.getElementById("event-flag");
-  const activeTab = document.querySelector(".sequence-tab.active");
-
-  if (
-    activeTab &&
-    activeTab.getAttribute("data-tab") === "motor-termination" &&
-    eventFlagDropdown
-  ) {
-    // Clear existing options except the first default one
-    while (eventFlagDropdown.options.length > 1) {
-      eventFlagDropdown.remove(1);
-    }
-
-    // Use savedStages array
-    savedStages.forEach((stage) => {
-      if (stage.motors) {
-        stage.motors.forEach((motor, index) => {
-          const motorNum = index + 1;
-          const option = document.createElement("option");
-          option.value = `S${stage.stage_number}_M${motorNum}_Burnout`;
-          option.text = `S${stage.stage_number}_M${motorNum}_Burnout - Stage ${stage.stage_number} Motor ${motorNum}`;
-          eventFlagDropdown.appendChild(option);
-        });
+  const terminationDropdowns = document.querySelectorAll(
+    ".motor-termination-dropdown"
+  );
+  terminationDropdowns.forEach((dropdown) => {
+    dropdown.innerHTML = `<option value="">Select Burnout Flag</option>`;
+    flagRegistry.motors.forEach((motor) => {
+      if (motor.flags.burnout) {
+        const option = document.createElement("option");
+        option.value = motor.flags.burnout;
+        option.textContent = motor.flags.burnout;
+        dropdown.appendChild(option);
       }
     });
-  }
+  });
 }
 
 function updateStageSeparationDropdown() {
@@ -1575,6 +1647,9 @@ function updateStageSeparationDropdown() {
 function populateEventFlagDropdown(eventType) {
   const dropdown = document.getElementById("event-flag");
 
+  console.log("Attempting to populate dropdown for event type:", eventType);
+  console.log("Current flagRegistry state:", flagRegistry);
+
   // Clear existing options except the first one
   while (dropdown.options.length > 1) {
     dropdown.remove(1);
@@ -1592,33 +1667,72 @@ function populateEventFlagDropdown(eventType) {
       flags = savedStages.map((stage) => `ST_${stage.stage_number}_SEP`);
       break;
     case "motor-ignition":
-      // Only show flags for saved stages with motors
-      savedStages.forEach((stage) => {
-        if (stage.motors) {
-          stage.motors.forEach((motor, index) => {
-            flags.push(`S${stage.stage_number}_M${index + 1}_IGN`);
-          });
-        }
-      });
+      // Get ignition flags from the motor flag registry
+      console.log(
+        "Motor Ignition tab selected, flagRegistry.motors:",
+        flagRegistry.motors
+      );
+      if (
+        flagRegistry &&
+        flagRegistry.motors &&
+        flagRegistry.motors.length > 0
+      ) {
+        console.log("Using flags from flagRegistry.motors");
+        flagRegistry.motors.forEach((motor) => {
+          flags.push(motor.flags.ignition);
+        });
+      } else {
+        console.log("Falling back to savedStages for motor flags");
+        // Fallback to generate from savedStages if flagRegistry is not populated
+        savedStages.forEach((stage) => {
+          if (stage.motors && stage.motors.length > 0) {
+            console.log(
+              `Stage ${stage.stage_number} has ${stage.motors.length} motors`
+            );
+            stage.motors.forEach((motor, index) => {
+              const motorNum = index + 1;
+              flags.push(`S${stage.stage_number}_M${motorNum}_IGN`);
+            });
+          } else {
+            console.log(`Stage ${stage.stage_number} has no motors defined`);
+          }
+        });
+      }
       break;
     case "motor-termination":
-      // Only show flags for saved stages with motors
-      savedStages.forEach((stage) => {
-        if (stage.motors) {
-          stage.motors.forEach((motor, index) => {
-            flags.push(`S${stage.stage_number}_M${index + 1}_Burnout`);
-          });
-        }
-      });
+      // Get burnout flags from the motor flag registry
+      if (
+        flagRegistry &&
+        flagRegistry.motors &&
+        flagRegistry.motors.length > 0
+      ) {
+        flagRegistry.motors.forEach((motor) => {
+          flags.push(motor.flags.burnout);
+        });
+      } else {
+        // Fallback to generate from savedStages if flagRegistry is not populated
+        savedStages.forEach((stage) => {
+          if (stage.motors && stage.motors.length > 0) {
+            stage.motors.forEach((motor, index) => {
+              const motorNum = index + 1;
+              flags.push(`S${stage.stage_number}_M${motorNum}_Burnout`);
+            });
+          }
+        });
+      }
       break;
     case "heat-shield-separation":
       // Add heat shield separation flag if exists
-      flags = window.flagRegistry.heatShieldFlags.map((item) => item.flag);
+      if (flagRegistry && flagRegistry.heatShieldFlags) {
+        flags = flagRegistry.heatShieldFlags.map((item) => item.flag);
+      }
       if (flags.length === 0) {
         flags.push("HSS_Flag"); // Default value
       }
       break;
   }
+
+  console.log(`Final flags array for ${eventType}:`, flags);
 
   // Add options to dropdown
   flags.forEach((flag) => {
@@ -1633,52 +1747,6 @@ function populateEventFlagDropdown(eventType) {
     flags
   );
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  // ... existing code ...
-
-  // Add event listeners to sequence tabs
-  const sequenceTabs = document.querySelectorAll(".sequence-tab");
-  if (sequenceTabs.length > 0) {
-    sequenceTabs.forEach((tab) => {
-      tab.addEventListener("click", function () {
-        // Remove 'active' class from all tabs
-        sequenceTabs.forEach((t) => t.classList.remove("active"));
-
-        // Add 'active' class to clicked tab
-        this.classList.add("active");
-
-        // Update event type hidden field
-        const eventType = this.getAttribute("data-tab");
-        if (document.getElementById("event-type")) {
-          document.getElementById("event-type").value = eventType;
-        }
-
-        // Populate event flag dropdown
-        populateEventFlagDropdown(eventType);
-      });
-    });
-  }
-
-  // Add event listener to sequence button to populate flags when sequence form is opened
-  const sequenceBtn = document.getElementById("sequence-btn");
-  if (sequenceBtn) {
-    sequenceBtn.addEventListener("click", function () {
-      // If sequence form has been loaded
-      setTimeout(() => {
-        // Get the active tab's event type
-        const activeTab = document.querySelector(".sequence-tab.active");
-        if (activeTab) {
-          const eventType = activeTab.getAttribute("data-tab");
-          // Populate dropdown with appropriate flags
-          populateEventFlagDropdown(eventType);
-        }
-      }, 100); // Small timeout to ensure DOM is ready
-    });
-  }
-
-  // ... existing code ...
-});
 
 // Function to validate stage form
 function validateStageForm(stageForm) {
@@ -1752,9 +1820,6 @@ function validateMotorForm(motorForm) {
   const propulsionMass = motorForm.querySelector(
     'input[placeholder="Enter Propulsion Mass"]'
   );
-  const cutOffFlag = motorForm.querySelector(
-    'input[placeholder="Enter COF Value"]'
-  );
   const nozzleDiameter = motorForm.querySelector(
     'input[placeholder="Enter Nozzle Diameter"]'
   );
@@ -1764,9 +1829,9 @@ function validateMotorForm(motorForm) {
   const thrustFilename = motorForm.querySelector('input[type="text"].filename');
 
   // Validate Structural Mass
-  if (!structuralMass.value.trim()) {
+  if (!structuralMass || !structuralMass.value.trim()) {
     errors.push("Structural Mass is required");
-    structuralMass.classList.add("error-field");
+    if (structuralMass) structuralMass.classList.add("error-field");
   } else if (parseFloat(structuralMass.value) <= 0) {
     errors.push("Structural Mass must be greater than 0");
     structuralMass.classList.add("error-field");
@@ -1775,17 +1840,17 @@ function validateMotorForm(motorForm) {
   }
 
   // Validate Propulsion Type
-  if (!propulsionType.value || propulsionType.value === "") {
+  if (!propulsionType || !propulsionType.value) {
     errors.push("Propulsion Type is required");
-    propulsionType.classList.add("error-field");
+    if (propulsionType) propulsionType.classList.add("error-field");
   } else {
     propulsionType.classList.remove("error-field");
   }
 
   // Validate Propulsion Mass
-  if (!propulsionMass.value.trim()) {
+  if (!propulsionMass || !propulsionMass.value.trim()) {
     errors.push("Propulsion Mass is required");
-    propulsionMass.classList.add("error-field");
+    if (propulsionMass) propulsionMass.classList.add("error-field");
   } else if (parseFloat(propulsionMass.value) <= 0) {
     errors.push("Propulsion Mass must be greater than 0");
     propulsionMass.classList.add("error-field");
@@ -1793,18 +1858,10 @@ function validateMotorForm(motorForm) {
     propulsionMass.classList.remove("error-field");
   }
 
-  // Validate Cut Off Flag
-  if (!cutOffFlag.value.trim()) {
-    errors.push("Cut Off Flag is required");
-    cutOffFlag.classList.add("error-field");
-  } else {
-    cutOffFlag.classList.remove("error-field");
-  }
-
   // Validate Nozzle Diameter
-  if (!nozzleDiameter.value.trim()) {
+  if (!nozzleDiameter || !nozzleDiameter.value.trim()) {
     errors.push("Nozzle Diameter is required");
-    nozzleDiameter.classList.add("error-field");
+    if (nozzleDiameter) nozzleDiameter.classList.add("error-field");
   } else if (parseFloat(nozzleDiameter.value) <= 0) {
     errors.push("Nozzle Diameter must be greater than 0");
     nozzleDiameter.classList.add("error-field");
@@ -1813,9 +1870,9 @@ function validateMotorForm(motorForm) {
   }
 
   // Validate Burn Time
-  if (!burnTime.value.trim()) {
+  if (!burnTime || !burnTime.value.trim()) {
     errors.push("Burn Time is required");
-    burnTime.classList.add("error-field");
+    if (burnTime) burnTime.classList.add("error-field");
   } else if (parseFloat(burnTime.value) <= 0) {
     errors.push("Burn Time must be greater than 0");
     burnTime.classList.add("error-field");
@@ -1824,9 +1881,9 @@ function validateMotorForm(motorForm) {
   }
 
   // Validate Thrust Time File
-  if (!thrustFilename.value.trim()) {
+  if (!thrustFilename || !thrustFilename.value.trim()) {
     errors.push("Thrust Time file is required");
-    thrustFilename.classList.add("error-field");
+    if (thrustFilename) thrustFilename.classList.add("error-field");
   } else {
     thrustFilename.classList.remove("error-field");
   }

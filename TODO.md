@@ -277,3 +277,15 @@
 - [ ] Test form validation with new button IDs
 - [ ] Test UI navigation with new button IDs
 - [ ] Test data saving with new button IDs
+
+## Sequence Configuration
+
+- [ ] Event Flag Dropdown Enhancement
+  - Implement functionality to fetch corresponding flags from Stages and Motor forms for all 5 tabs:
+    - Stage Start (currently working)
+    - Motor Ignition
+    - Motor Termination
+    - Stage Separation
+    - Heat Shield Separation
+  - Each tab should populate its event flag dropdown with appropriate flags from the respective forms
+  - Reference flags should be properly filtered based on the event type
