@@ -445,6 +445,37 @@ function saveStageData(stageForm, stageId) {
   if (stageIndex >= 0) {
     // Preserve existing motors when updating stage
     stageData.motors = savedStages[stageIndex].motors || [];
+
+    // Update burn time in all associated motor forms and data
+    if (stageData.motors && stageData.motors.length > 0) {
+      stageData.motors.forEach((motor, motorIndex) => {
+        if (motor) {
+          // Update motor data
+          motor.burn_time = formData.burn_time;
+
+          // Update motor form if it exists
+          const motorNumber = motorIndex + 1;
+          const motorForm = document.getElementById(
+            `${stageId}-motor${motorNumber}-form`
+          );
+          if (motorForm) {
+            const burnTimeInput = motorForm.querySelector(
+              'input[placeholder="Enter Burn Time"]'
+            );
+            if (burnTimeInput) {
+              burnTimeInput.value = formData.burn_time;
+            }
+          }
+
+          // Update finalMissionData for this motor
+          const motorName = `S${stageNumber}_M${motorNumber}`;
+          if (finalMissionData[motorName]) {
+            finalMissionData[motorName].burn_time = formData.burn_time;
+          }
+        }
+      });
+    }
+
     savedStages[stageIndex] = stageData;
   } else {
     savedStages.push(stageData);
@@ -489,6 +520,7 @@ function saveStageData(stageForm, stageId) {
   // Log the stage data
   console.log(`Stage ${stageNumber} saved:`, stageData);
   console.log("Updated savedStages:", savedStages);
+  console.log("Updated finalMissionData:", finalMissionData);
 
   return stageData;
 }
@@ -742,8 +774,8 @@ function saveMotorData(form, stageNumber, motorNumber) {
     const nozzleDiameter = form.querySelector(
       'input[placeholder="Enter Nozzle Diameter"]'
     );
-    const burnTime = form.querySelector('input[placeholder="Enter Burn Time"]');
     const thrustFilename = form.querySelector('input[type="text"].filename');
+    const burnTime = form.querySelector(".stage-burn-time");
 
     // Generate flags with consistent format
     const ignitionFlag = `S${stageNumber}_M${motorNumber}_IGN`;
@@ -757,10 +789,23 @@ function saveMotorData(form, stageNumber, motorNumber) {
       !propulsionType ||
       !propulsionMass ||
       !nozzleDiameter ||
-      !burnTime ||
-      !thrustFilename
+      !thrustFilename ||
+      !burnTime
     ) {
       throw new Error("One or more required form fields are missing");
+    }
+
+    // Find the stage to get its burn time
+    const stage = savedStages.find((s) => s.stage_number === stageNumber);
+    if (!stage) {
+      // If stage is not found, create a basic stage object
+      const stageData = {
+        stage_number: stageNumber,
+        burn_time: parseFloat(burnTime.value) || 0,
+        motors: [],
+      };
+      savedStages.push(stageData);
+      console.log(`Created new stage ${stageNumber} for motor ${motorNumber}`);
     }
 
     const motorData = {
@@ -770,9 +815,10 @@ function saveMotorData(form, stageNumber, motorNumber) {
       propulsion_mass: parseFloat(propulsionMass.value),
       ignition_flag: ignitionFlag,
       cut_off_flag: cutOffFlag,
+      burnout_flag: burnoutFlag,
       separation_flag: separationFlag,
       nozzle_diameter: parseFloat(nozzleDiameter.value),
-      burn_time: parseFloat(burnTime.value),
+      burn_time: parseFloat(burnTime.value), // Use the burn time from the form
       thrust_file: thrustFilename.value,
     };
 
@@ -786,12 +832,83 @@ function saveMotorData(form, stageNumber, motorNumber) {
       separationFlag
     );
 
+    // Find the stage in savedStages (it should exist now)
+    const stageIndex = savedStages.findIndex(
+      (stage) => stage.stage_number === stageNumber
+    );
+
+    if (stageIndex !== -1) {
+      // Initialize motors array if it doesn't exist
+      if (!savedStages[stageIndex].motors) {
+        savedStages[stageIndex].motors = [];
+      }
+
+      // Add or update motor data
+      const motorIndex = savedStages[stageIndex].motors.findIndex(
+        (m) => m && m.motor_number === motorNumber
+      );
+
+      if (motorIndex !== -1) {
+        savedStages[stageIndex].motors[motorIndex] = motorData;
+      } else {
+        // Add new motor at the correct index (motorNumber-1)
+        while (savedStages[stageIndex].motors.length < motorNumber) {
+          savedStages[stageIndex].motors.push(null);
+        }
+        savedStages[stageIndex].motors[motorNumber - 1] = motorData;
+      }
+
+      // Update finalMissionData
+      const vehicleName = document.getElementById("vehicle-name").value.trim();
+      if (vehicleName) {
+        const stageName = `Stage_${stageNumber}`;
+
+        // Initialize stage in finalMissionData if it doesn't exist
+        if (!finalMissionData[stageName]) {
+          finalMissionData[stageName] = {
+            motors: [],
+            burn_time: parseFloat(burnTime.value) || 0,
+          };
+        }
+
+        // Initialize motors array if it doesn't exist
+        if (!finalMissionData[stageName].motors) {
+          finalMissionData[stageName].motors = [];
+        }
+
+        // Update or add motor in finalMissionData
+        const motorName = `S${stageNumber}_M${motorNumber}`;
+        finalMissionData[motorName] = {
+          structural_mass: motorData.structural_mass,
+          propulsion_type: motorData.propulsion_type,
+          propulsion_mass: motorData.propulsion_mass,
+          ignition_flag: motorData.ignition_flag,
+          cut_off_flag: motorData.cut_off_flag,
+          separation_flag: motorData.separation_flag,
+          nozzle_diameter: motorData.nozzle_diameter,
+          burn_time: motorData.burn_time,
+          thrust_file: motorData.thrust_file,
+        };
+
+        // Add motor to stage's motor array if not already present
+        if (!finalMissionData[stageName].motors.includes(motorName)) {
+          finalMissionData[stageName].motors.push(motorName);
+        }
+
+        // Ensure the stage is in the vehicle's stage array
+        if (!finalMissionData[vehicleName].stage.includes(stageName)) {
+          finalMissionData[vehicleName].stage.push(stageName);
+        }
+      }
+    }
+
     // Log the motor data
     console.log(
       `Motor ${motorNumber} for Stage ${stageNumber} saved:`,
       motorData
     );
     console.log("Updated savedStages:", savedStages);
+    console.log("Updated finalMissionData:", finalMissionData);
 
     return motorData;
   } catch (error) {
@@ -903,20 +1020,61 @@ function addEventToSequence(eventData) {
 
   eventItem.innerHTML = `
     <div class="event-content">
-            <span class="event-flag">${eventData.flag}</span>
-            <span class="trigger-type">${eventData.triggerType}</span>
-            <span class="trigger-value">${eventData.triggerValue}</span>
-            <span class="reference-flag">${eventData.referenceFlag}</span>
-            <span class="event-comment">${eventData.comment || ""}</span>
+      <span class="event-flag" title="Event Flag">${eventData.flag}</span>
+      <span class="trigger-type" title="Trigger Type">${
+        eventData.triggerType
+      }</span>
+      <span class="trigger-value" title="Trigger Value">${
+        eventData.triggerValue
+      }</span>
+      <span class="reference-flag" title="Reference Flag">${
+        eventData.referenceFlag
+      }</span>
+      ${
+        eventData.comment
+          ? `<span class="event-comment" title="Comment">${eventData.comment}</span>`
+          : ""
+      }
     </div>
     <div class="event-actions">
-            <button class="delete-event" title="Delete Event">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-            </button>
+      <button class="delete-event" title="Delete Event">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"></path>
+        </svg>
+      </button>
     </div>
   `;
+
+  // Add click handler for delete button
+  const deleteBtn = eventItem.querySelector(".delete-event");
+  deleteBtn.addEventListener("click", () => {
+    // Show confirmation dialog
+    Swal.fire({
+      title: "Delete Event?",
+      text: `Are you sure you want to delete this event (${eventData.flag})?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ff3b30",
+      cancelButtonColor: "#8e8e93",
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        removeEventFromSequence(eventData.flag);
+        // Show success message
+        Swal.fire({
+          icon: "success",
+          title: "Event Deleted",
+          text: "The event has been removed from the sequence.",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+      }
+    });
+  });
 
   eventList.appendChild(eventItem);
 

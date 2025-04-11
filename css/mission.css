@@ -1,54 +1,51 @@
-    /* Navbar */
-    .nav-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(7, 10, 14, 1);
-        padding: 10px 20px;
-        color: white;
-    }
+/* Navbar */
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(7, 10, 14, 1);
+  padding: 10px 20px;
+  color: white;
+}
 
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px; /* Space between logo and text */
-    }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between logo and text */
+}
 
-    .logo-img {
-        width: 200px;  /* Adjust size as needed */
-        height: auto;
-    }
+.logo-img {
+  width: 200px; /* Adjust size as needed */
+  height: auto;
+}
 
-    .logo-text h2, 
-    .logo-text p {
-        margin: 0;
-        color: white;
-    }
+.logo-text h2,
+.logo-text p {
+  margin: 0;
+  color: white;
+}
 
+.main-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
 
-    .main-nav ul {
-        list-style: none;
-        display: flex;
-        gap: 20px;
-    }
+.main-nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
 
-    .main-nav a {
-        color: white;
-        text-decoration: none;
-        font-weight: 600;
-    }
+.mission-page {
+  display: flex;
+  height: 100vh;
+  position: relative;
+  background: url("../assets/img/missionbg.png") no-repeat center center/cover;
+}
 
-    
-    .mission-page {
-        display: flex;
-        height: 100vh;
-        position: relative;
-        background: url("../assets/img/missionbg.png") no-repeat center center/cover;
-
-    }
-    
-    /* Add an overlay for transparency */
-    /* .mission-page::before {
+/* Add an overlay for transparency */
+/* .mission-page::before {
         content: "";
         position: absolute;
         top: 0;
@@ -56,115 +53,112 @@
         width: 100%;
         height: 100%;
          /* Adjust transparency (0.4 = 40% transparent) */
-    
-    .sidebar {
-        width: 250px;
-        background: rgba(26, 26, 26, 0.8); /* Dark but slightly transparent */
-        color: white;
-        padding: 20px;
-        backdrop-filter: blur(5px); /* Optional blur effect */
-    }
 
-    .sidebar h1 {
-        font-size: 22px;
-        margin-bottom: 10px;
-    }
+.sidebar {
+  width: 250px;
+  background: rgba(26, 26, 26, 0.8); /* Dark but slightly transparent */
+  color: white;
+  padding: 20px;
+  backdrop-filter: blur(5px); /* Optional blur effect */
+}
 
-    .menu-tree {
-        list-style: none;
-        padding: 0;
-    }
+.sidebar h1 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
 
-    .menu-tree a {
-        display: block;
-        padding: 10px;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-    }
+.menu-tree {
+  list-style: none;
+  padding: 0;
+}
 
-    .menu-tree a:hover {
-        background: rgb(0, 0, 0);
-    }
+.menu-tree a {
+  display: block;
+  padding: 10px;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.menu-tree a:hover {
+  background: rgb(0, 0, 0);
+}
 
 /* welcome content */
 .mission-content {
-    flex-grow: 1;
-    display: flex; 
-    flex-direction: column;
-    justify-content: center; /* Center vertically */
-    align-items: center; /* Center horizontally */
-    text-align: center; /* Ensure text is centered */
-    padding-top: 80px; /* Adjust for navbar height */
-    min-height: calc(100vh - 80px); /* Full height minus navbar */
-    
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center vertically */
+  align-items: center; /* Center horizontally */
+  text-align: center; /* Ensure text is centered */
+  padding-top: 80px; /* Adjust for navbar height */
+  min-height: calc(100vh - 80px); /* Full height minus navbar */
 }
 
 .mission-content h2 {
-    font-size: 2.5rem;  /* Make text larger */
-    font-weight: bold; /* Bold text */
-    text-transform: uppercase; /* Uppercase */
-    color: #ffffff; /* White text */
-    margin: 20px 0; /* Add space from the top */
+  font-size: 2.5rem; /* Make text larger */
+  font-weight: bold; /* Bold text */
+  text-transform: uppercase; /* Uppercase */
+  color: #ffffff; /* White text */
+  margin: 20px 0; /* Add space from the top */
 }
 
 /* Form Container */
 /* Center the form container */
 .form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 30px;
-    width: 500px; /* Adjust width for better spacing */
-    max-width: 80%;
-    background: rgba(26, 26, 26, 0.7); /* Transparent dark */
-    border-radius: 12px;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    align-items: center;
-    justify-content: center;
-    margin: auto; /* Center the form horizontally */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px;
+  width: 500px; /* Adjust width for better spacing */
+  max-width: 80%;
+  background: rgba(26, 26, 26, 0.7); /* Transparent dark */
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  align-items: center;
+  justify-content: center;
+  margin: auto; /* Center the form horizontally */
 }
 
-
 .form-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: white;
 }
 
 .label {
-    font-size: 16px;
-    font-weight: bold;
-    text-transform: uppercase;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .input-field {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    font-size: 16px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 16px;
 }
 
 .input-field::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .input-field option {
-    background: #1a1a1a; /* Dark background */
-    color: white; /* Ensure text is visible */
+  background: #1a1a1a; /* Dark background */
+  color: white; /* Ensure text is visible */
 }
-
 
 /* Upload JSON */
 .upload-section {
-    position: absolute;
-    right: 15%;
-    top: 50%;
+  position: absolute;
+  right: 15%;
+  top: 50%;
 }
 
 /* .upload-btn {
@@ -188,41 +182,43 @@
 
 /* Buttons */
 .button-group {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
 }
 
-.clear-btn, .next-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.3);
-    color: white;
-    text-transform: uppercase;
+.clear-btn,
+.next-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  text-transform: uppercase;
 }
 
-.clear-btn:hover, .next-btn:hover {
-    background: rgba(255, 255, 255, 0.5);
+.clear-btn:hover,
+.next-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* upload csv for enviro form */
 /* Atmospheric Model and Upload Container */
 .atmosphere-container {
-    gap: 50px;
-    justify-content: flex-start; /* Align items neatly */
-    width: 100%;
-    flex-wrap: wrap;
+  gap: 50px;
+  justify-content: flex-start; /* Align items neatly */
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 /* OR Text */
 .or-text {
-    font-size: 18px;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* CSV File Upload Button use it globally */
@@ -230,184 +226,176 @@
 /* Upload Data Container */
 /* Upload Button */
 .upload-data {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .upload-label {
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 /* File Upload Button */
 .upload {
-    border: none;
-    white-space: nowrap;
-    padding: 10.4px;
-    background-color: #488aec;
-    color: #ffffff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-align: center;
-    cursor: pointer;
-    text-transform: uppercase;
-    align-items: center;
-    border-radius: 0.5rem;
-    user-select: none;
-    display: flex;
-    gap: 8px;
-    box-shadow: 0 4px 6px -1px #488aec31, 0 2px 4px -1px #488aec17;
-    transition: all 0.6s ease;
+  border: none;
+  white-space: nowrap;
+  padding: 10.4px;
+  background-color: #488aec;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  text-transform: uppercase;
+  align-items: center;
+  border-radius: 0.5rem;
+  user-select: none;
+  display: flex;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px #488aec31, 0 2px 4px -1px #488aec17;
+  transition: all 0.6s ease;
 }
 
 .upload:hover {
-    box-shadow: 0 10px 15px -3px #488aec4f, 0 4px 6px -2px #488aec17;
+  box-shadow: 0 10px 15px -3px #488aec4f, 0 4px 6px -2px #488aec17;
 }
 
 .upload:active {
-    opacity: 0.85;
-    box-shadow: none;
-    background-color: rgb(79, 149, 214);
-    transform: scale(0.989);
+  opacity: 0.85;
+  box-shadow: none;
+  background-color: rgb(79, 149, 214);
+  transform: scale(0.989);
 }
 
 .upload svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    position: relative;
+  width: 1.25rem;
+  height: 1.25rem;
+  position: relative;
 }
 
 .upload span {
-    position: relative;
-    left: -5px;
+  position: relative;
+  left: -5px;
 }
 
 .upload h3 {
-    text-decoration: none;
-    font-weight: 200;
-    font-size: 12px;
-    text-transform: lowercase;
-    position: absolute;
-    top: 45px;
-    left: -5px;
+  text-decoration: none;
+  font-weight: 200;
+  font-size: 12px;
+  text-transform: lowercase;
+  position: absolute;
+  top: 45px;
+  left: -5px;
 }
 
 /* File Name Input */
 /* File Name Input */
 .filename {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    width: 180px;
-    text-align: center;
-    margin-top: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  width: 180px;
+  text-align: center;
+  margin-top: 5px;
 }
-
-
-
-
-
 
 /* add stage button css */
 .add-stg {
-    background-color: #28a745; /* Green color for "Add" action */
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s ease-in-out;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  background-color: #28a745; /* Green color for "Add" action */
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .add-stg:hover {
-    background-color: #218838; /* Darker green on hover */
+  background-color: #218838; /* Darker green on hover */
 }
 
 .add-stg::before {
-    content: "+";
-    font-size: 18px;
-    font-weight: bold;
+  content: "+";
+  font-size: 18px;
+  font-weight: bold;
 }
-
 
 /* styling for submenu */
 
 /* Styling for submenus */
 .submenu {
-    list-style-type: none;
-    padding-left: 20px;
+  list-style-type: none;
+  padding-left: 20px;
 }
 
 .submenu li {
-    font-size: 14px;
-    color: #ffffff;
+  font-size: 14px;
+  color: #ffffff;
 }
 
 /* stage 1 form hidden */
 .hidden {
-    display: none;
+  display: none;
 }
 
 /* stage heading */
 
 .stage-heading {
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    margin-bottom: 15px;
-    text-transform: uppercase;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 15px;
+  text-transform: uppercase;
 }
 
 /* Vehicle type, dynamic choosing */
 
-
 /* Responsive Grid Layout */
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 /* Radio Button Group */
 .radio-group {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-bottom: 10px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 /* Adjust Select and Input Fields */
 .input-field {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 /* Button Styling */
 .button-group {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
 }
 
-
-    /* Colors */
-    :root {
-        --navbartrans: rgba(7, 10, 14, 1);
-        --spacelabspurple: rgba(191, 21, 145, 1);
-    }
+/* Colors */
+:root {
+  --navbartrans: rgba(7, 10, 14, 1);
+  --spacelabspurple: rgba(191, 21, 145, 1);
+}

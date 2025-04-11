@@ -198,19 +198,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="structural-mass-${nextStageNumber}" class="label">Structural Mass:</label>
-                        <input type="number" id="structural-mass-${nextStageNumber}" class="input-field" placeholder="Enter Structural Mass">
+                        <input type="number" id="structural-mass-${nextStageNumber}" class="input-field" placeholder="Enter Structural Mass" step="any">
                     </div>
                     
                     <div class="form-group">
                         <label for="reference-area-${nextStageNumber}" class="label">Reference Area:</label>
-                        <input type="number" id="reference-area-${nextStageNumber}" class="input-field" placeholder="Enter Reference Area">
+                        <input type="number" id="reference-area-${nextStageNumber}" class="input-field" placeholder="Enter Reference Area" step="any">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="burn-time-${nextStageNumber}" class="label">Burn Time:</label>
-                        <input type="number" id="burn-time-${nextStageNumber}" class="input-field" placeholder="Enter Burn Time">
+                        <input type="number" id="burn-time-${nextStageNumber}" class="input-field" placeholder="Enter Burn Time" step="any">
                     </div>
                     
                     <div class="form-group">
@@ -304,6 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       } else {
         // Save the stage data
+        const stageNumber = parseInt(stageId.replace("stage", ""));
         const stageData = saveStageData(stageForm, stageId);
 
         if (stageData) {
@@ -322,7 +323,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           Toast.fire({
             icon: "success",
-            title: `Stage ${nextStageNumber - 1} has been saved successfully`,
+            title: `Stage ${stageNumber} has been saved successfully`,
           });
         }
       }
@@ -395,6 +396,37 @@ document.addEventListener("DOMContentLoaded", function () {
     let motorCount = stageMotorsList.childElementCount + 1;
     const stageNumber = stageId.replace("stage", "");
 
+    // Check if we've reached the maximum number of motors (15)
+    if (motorCount > 15) {
+      // Show error toast message
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+
+      Toast.fire({
+        icon: "error",
+        title: "Maximum limit of 15 motors per stage reached",
+      });
+      return; // Exit the function without adding a new motor
+    }
+
+    // Get burn time from parent stage form instead of savedStages
+    const stageForm = document.getElementById(`${stageId}-form`);
+    const stageBurnTimeInput = stageForm.querySelector(
+      'input[placeholder="Enter Burn Time"]'
+    );
+    const stageBurnTime = stageBurnTimeInput
+      ? parseFloat(stageBurnTimeInput.value) || 0
+      : 0;
+
     // Create new Motor entry in the sidebar
     const newMotor = document.createElement("li");
     newMotor.innerHTML = `
@@ -459,6 +491,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 color: #f44336;
                 opacity: 1;
             }
+            .input-help {
+                display: block;
+                font-size: 0.8em;
+                color: #666;
+                margin-top: 2px;
+            }
+            .stage-burn-time {
+                background-color: rgba(0, 0, 0, 0.1) !important;
+            }
         `;
       document.head.appendChild(styleElement);
     }
@@ -469,12 +510,13 @@ document.addEventListener("DOMContentLoaded", function () {
     motorForm.classList.add("hidden", "motor-form");
     motorForm.innerHTML = `
     <div class="form-container">
-        <h2 class="stage-heading">Motor ${motorCount} - ${stageId}</h2>
+        <h2 class="stage-heading">Stage ${stageNumber} - Motor ${motorCount}</h2>
         <div class="form-fields">
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Structural Mass:</label>
-                    <input type="number" class="input-field" placeholder="Enter Structural Mass">
+                    <input type="number" class="input-field" placeholder="Enter Structural Mass" step="any">
+                    <small class="input-help">Inherited from stage</small>
                 </div>
                 
                 <div class="form-group">
@@ -490,7 +532,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Propulsion Mass:</label>
-                    <input type="number" class="input-field" placeholder="Enter Propulsion Mass">
+                    <input type="number" class="input-field" placeholder="Enter Propulsion Mass" step="any">
                 </div>
                 
                 <div class="form-group">
@@ -519,14 +561,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 <div class="form-group">
                     <label class="label">Nozzle Diameter:</label>
-                    <input type="number" class="input-field" placeholder="Enter Nozzle Diameter">
+                    <input type="number" class="input-field" placeholder="Enter Nozzle Diameter" step="any">
                 </div>
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Burn Time:</label>
-                    <input type="number" class="input-field" placeholder="Enter Burn Time">
+                    <input type="number" class="input-field stage-burn-time" value="${stageBurnTime}" readonly>
+                    <small class="input-help">Inherited from stage</small>
                 </div>
             </div>
             
@@ -535,7 +578,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="upload-data">
                         <label for="thrust-upload-${stageId}-${motorCount}" class="upload-label">Thrust Time:</label>
                         <input type="file" id="thrust-upload-${stageId}-${motorCount}" accept=".csv" style="display: none" />
-                        <button class="upload" id="thrust-upload-btn-${stageId}-${motorCount}">
+                        <button type="button" class="upload" id="thrust-upload-btn-${stageId}-${motorCount}">
                             <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                                 fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-width="2" stroke="#ffffff"
@@ -556,37 +599,63 @@ document.addEventListener("DOMContentLoaded", function () {
             <button type="reset" class="clear-btn">Clear</button>
             <button type="submit" class="next-motor-btn">Save</button>
         </div>
-    </div>
-`;
+    </div>`;
 
     document.querySelector(".mission-content").appendChild(motorForm);
+
+    // Inherit structural mass from stage form
+    const stageStructuralMassInput = stageForm.querySelector(
+      'input[placeholder="Enter Structural Mass"]'
+    );
+    const motorStructuralMassInput = motorForm.querySelector(
+      'input[placeholder="Enter Structural Mass"]'
+    );
+
+    if (stageStructuralMassInput && motorStructuralMassInput) {
+      motorStructuralMassInput.value = stageStructuralMassInput.value;
+
+      // Add listener to keep motor structural mass in sync with stage
+      stageStructuralMassInput.addEventListener("input", function () {
+        motorStructuralMassInput.value = this.value;
+      });
+    }
 
     // Create Nozzle form
     const nozzleForm = document.createElement("form");
     nozzleForm.id = `${stageId}-motor${motorCount}-nozzle1-form`;
     nozzleForm.classList.add("hidden", "nozzle-form");
+
+    // Get the motor form's nozzle diameter input
+    const motorNozzleDiameterInput = motorForm.querySelector(
+      'input[placeholder="Enter Nozzle Diameter"]'
+    );
+    const motorNozzleDiameter = motorNozzleDiameterInput
+      ? motorNozzleDiameterInput.value
+      : "";
+
     nozzleForm.innerHTML = `
     <div class="form-container">
-        <h2 class="stage-heading">Nozzle 1 - Motor ${motorCount}</h2>
+        <h2 class="stage-heading">Stage ${stageNumber} - Motor ${motorCount} - Nozzle 1</h2>
         
         <!-- Nozzle Parameters -->
         <div class="form-fields">
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Nozzle Diameter:</label>
-                    <input type="number" class="input-field" placeholder="Enter nozzle diameter">
+                    <input type="number" class="input-field" placeholder="Enter nozzle diameter" step="any" value="${motorNozzleDiameter}">
+                    <small class="input-help">Inherited from motor</small>
                 </div>
                 
                 <div class="form-group">
                     <label class="label">ETA Thrust:</label>
-                    <input type="number" class="input-field" placeholder="Enter ETA thrust">
+                    <input type="number" class="input-field" placeholder="Enter ETA thrust" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Zeta Thrust:</label>
-                    <input type="number" class="input-field" placeholder="Enter Zeta thrust">
+                    <input type="number" class="input-field" placeholder="Enter Zeta thrust" step="any" value="0">
                 </div>
             </div>
 
@@ -595,12 +664,12 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Radial Distance:</label>
-                    <input type="number" class="input-field" placeholder="Enter radial distance">
+                    <input type="number" class="input-field" placeholder="Enter radial distance" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
                     <label class="label">Phi:</label>
-                    <input type="number" class="input-field" placeholder="Enter Phi value">
+                    <input type="number" class="input-field" placeholder="Enter Phi value" step="any" value="0">
                 </div>
             </div>
 
@@ -609,19 +678,19 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Sigma Thrust:</label>
-                    <input type="number" class="input-field" placeholder="Enter sigma thrust">
+                    <input type="number" class="input-field" placeholder="Enter sigma thrust" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
                     <label class="label">Thau Thrust:</label>
-                    <input type="number" class="input-field" placeholder="Enter thau thrust">
+                    <input type="number" class="input-field" placeholder="Enter thau thrust" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Epsilon Thrust:</label>
-                    <input type="number" class="input-field" placeholder="Enter epsilon thrust">
+                    <input type="number" class="input-field" placeholder="Enter epsilon thrust" step="any" value="0">
                 </div>
             </div>
 
@@ -630,19 +699,19 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">MU:</label>
-                    <input type="number" class="input-field" placeholder="Enter MU value">
+                    <input type="number" class="input-field" placeholder="Enter MU value" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
                     <label class="label">LAMDA:</label>
-                    <input type="number" class="input-field" placeholder="Enter LAMDA value">
+                    <input type="number" class="input-field" placeholder="Enter LAMDA value" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">KAPPA:</label>
-                    <input type="number" class="input-field" placeholder="Enter KAPPA value">
+                    <input type="number" class="input-field" placeholder="Enter KAPPA value" step="any" value="0">
                 </div>
             </div>
 
@@ -651,19 +720,19 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">X:</label>
-                    <input type="number" class="input-field" placeholder="Enter X value">
+                    <input type="number" class="input-field" placeholder="Enter X value" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
                     <label class="label">Y:</label>
-                    <input type="number" class="input-field" placeholder="Enter Y value">
+                    <input type="number" class="input-field" placeholder="Enter Y value" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Z:</label>
-                    <input type="number" class="input-field" placeholder="Enter Z value">
+                    <input type="number" class="input-field" placeholder="Enter Z value" step="any" value="0">
                 </div>
             </div>
         </div>
@@ -672,8 +741,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <button type="reset" class="clear-btn">Clear</button>
             <button type="submit" class="next-nozzle-btn">Save</button>
         </div>
-    </div>
-`;
+    </div>`;
 
     document.querySelector(".mission-content").appendChild(nozzleForm);
 
@@ -740,16 +808,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       } else {
         // Save motor data
-        const stageId = motorForm
-          .querySelector(".stage-heading")
-          .textContent.split(" - ")[1];
         const stageNumber = parseInt(stageId.replace("stage", ""));
-        const motorNumber = parseInt(
-          motorForm
-            .querySelector(".stage-heading")
-            .textContent.split(" - ")[0]
-            .split(" ")[1]
-        );
+        const motorNumber = motorCount;
 
         const motorData = saveMotorData(motorForm, stageNumber, motorNumber);
 
@@ -796,7 +856,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         Toast.fire({
           icon: "success",
-          title: `Motor ${motorCount} has been saved successfully`,
+          title: `Motor ${motorNumber} has been saved successfully`,
         });
 
         // Update dropdowns
@@ -851,6 +911,18 @@ document.addEventListener("DOMContentLoaded", function () {
         // This is where we'll add the code to save the nozzle data once validation passes
       }
     });
+
+    // Add event listener to sync nozzle diameter when motor form changes
+    if (motorNozzleDiameterInput) {
+      motorNozzleDiameterInput.addEventListener("input", function () {
+        const nozzleDiameterInput = nozzleForm.querySelector(
+          'input[placeholder="Enter nozzle diameter"]'
+        );
+        if (nozzleDiameterInput) {
+          nozzleDiameterInput.value = this.value;
+        }
+      });
+    }
   }
 
   // Function to initialize steering tabs
@@ -1388,6 +1460,87 @@ document.addEventListener("DOMContentLoaded", function () {
       }, 100); // Small timeout to ensure DOM is ready
     });
   }
+
+  function updateMotorBurnTimes(stageId, newBurnTime) {
+    const stageNumber = stageId.replace("stage", "");
+    const stageMotorsList = document.getElementById(`${stageId}-motors`);
+    if (!stageMotorsList) return;
+
+    // Update all motor forms for this stage
+    const motorForms = document.querySelectorAll(
+      `form[id^="${stageId}-motor"]`
+    );
+    motorForms.forEach((form) => {
+      const burnTimeInput = form.querySelector(".stage-burn-time");
+      if (burnTimeInput) {
+        burnTimeInput.value = newBurnTime;
+      }
+    });
+
+    // Update savedStages
+    const stageIndex = savedStages.findIndex(
+      (s) => s.stage_number === parseInt(stageNumber)
+    );
+    if (stageIndex !== -1 && savedStages[stageIndex].motors) {
+      savedStages[stageIndex].motors.forEach((motor) => {
+        if (motor) {
+          motor.burn_time = newBurnTime;
+        }
+      });
+    }
+  }
+
+  // Add event listener for stage burn time changes
+  document.addEventListener("input", function (event) {
+    if (event.target.matches('input[placeholder="Enter Burn Time"]')) {
+      const stageForm = event.target.closest("form");
+      if (stageForm) {
+        const stageId = stageForm.id.replace("-form", "");
+        const newBurnTime = parseFloat(event.target.value) || 0;
+        updateMotorBurnTimes(stageId, newBurnTime);
+      }
+    }
+  });
+
+  // Add event listener for stage structural mass changes
+  document.addEventListener("input", function (event) {
+    if (event.target.matches('input[placeholder="Enter Structural Mass"]')) {
+      const stageForm = event.target.closest("form");
+      if (stageForm && stageForm.id.includes("stage")) {
+        const stageId = stageForm.id.replace("-form", "");
+        const newStructuralMass = event.target.value;
+        updateMotorStructuralMass(stageId, newStructuralMass);
+      }
+    }
+  });
+
+  // Function to update structural mass in all motors of a stage
+  function updateMotorStructuralMass(stageId, newStructuralMass) {
+    const motorForms = document.querySelectorAll(
+      `form[id^="${stageId}-motor"]`
+    );
+    motorForms.forEach((form) => {
+      const structuralMassInput = form.querySelector(
+        'input[placeholder="Enter Structural Mass"]'
+      );
+      if (structuralMassInput) {
+        structuralMassInput.value = newStructuralMass;
+      }
+    });
+
+    // Update savedStages if needed
+    const stageNumber = parseInt(stageId.replace("stage", ""));
+    const stageIndex = savedStages.findIndex(
+      (s) => s.stage_number === stageNumber
+    );
+    if (stageIndex !== -1 && savedStages[stageIndex].motors) {
+      savedStages[stageIndex].motors.forEach((motor) => {
+        if (motor) {
+          motor.structural_mass = parseFloat(newStructuralMass) || 0;
+        }
+      });
+    }
+  }
 });
 
 // Vehicle Dynamic Field Display
@@ -1823,9 +1976,6 @@ function validateMotorForm(motorForm) {
   const nozzleDiameter = motorForm.querySelector(
     'input[placeholder="Enter Nozzle Diameter"]'
   );
-  const burnTime = motorForm.querySelector(
-    'input[placeholder="Enter Burn Time"]'
-  );
   const thrustFilename = motorForm.querySelector('input[type="text"].filename');
 
   // Validate Structural Mass
@@ -1867,17 +2017,6 @@ function validateMotorForm(motorForm) {
     nozzleDiameter.classList.add("error-field");
   } else {
     nozzleDiameter.classList.remove("error-field");
-  }
-
-  // Validate Burn Time
-  if (!burnTime || !burnTime.value.trim()) {
-    errors.push("Burn Time is required");
-    if (burnTime) burnTime.classList.add("error-field");
-  } else if (parseFloat(burnTime.value) <= 0) {
-    errors.push("Burn Time must be greater than 0");
-    burnTime.classList.add("error-field");
-  } else {
-    burnTime.classList.remove("error-field");
   }
 
   // Validate Thrust Time File
