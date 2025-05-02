@@ -1,0 +1,59 @@
+{
+  "name": "my-electron-app",
+  "version": "1.0.0",
+  "description": "Astra GUI Simulator Application",
+  "author": "Space Labs",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "build:linux": "electron-builder --linux",
+    "clean": "rimraf dist build-output",
+    "build:win": "electron-builder --win --x64 --dir",
+    "package": "node package-app.js"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3",
+    "rimraf": "^5.0.10"
+  },
+  "build": {
+    "appId": "com.space.labs.simulator",
+    "productName": "Astra GUI",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ],
+    "win": {
+      "target": "dir",
+      "icon": "assets/icons/logo.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/icons/logo.png",
+      "category": "Utility",
+      "maintainer": "Space Labs"
+    }
+  },
+  "dependencies": {
+    "my-electron-app": "file:"
+  }
+}

@@ -1,0 +1,3140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ASTRA - Mission Creation</title>
+
+    <!-- Stylesheets -->
+    <!-- Main css -->
+    <!-- <link rel="stylesheet" href="css/main.css"> -->
+
+    <!-- windows theme -->
+    <!-- <link rel="stylesheet" href="css/gmat-theme.css"> -->
+
+    <!-- New theme -->
+    <link rel="stylesheet" href="css/desktop-theme.css" />
+  </head>
+
+  <body>
+    <!-- Navigation Bar -->
+    <header class="nav-bar">
+      <nav class="main-nav">
+        <ul>
+          <li><a href="#" id="">CREATE MISSION</a></li>
+          <li><a href="#" id="open-mission-btn">OPEN MISSION</a></li>
+        </ul>
+      </nav>
+      <!-- Centered Launch Mission Button -->
+      <div class="launch-container">
+        <button id="launch-btn" class="launch-mission-btn">
+          Launch Mission
+        </button>
+      </div>
+      <div class="logo">
+        <img src="assets/img/logo.png" alt="ASTRA Logo" class="logo-img" />
+      </div>
+    </header>
+
+    <!-- Sidebar & Mission Page Content -->
+    <main class="mission-page">
+      <aside class="sidebar">
+        <h1>MISSION</h1>
+        <ul class="menu-tree">
+          <li><a href="#" id="details-btn">└── Details</a></li>
+          <li><a href="#" id="enviro-btn">└── Environment</a></li>
+          <li>
+            <a href="#" id="vehicle-btn">└── Vehicle Configuration</a>
+            <ul id="vehicle-stages" class="submenu"></ul>
+          </li>
+          <li>
+            <a href="#" id="add-stage-btn" class="nav-add-stage">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Stage
+            </a>
+          </li>
+          <li><a href="#" id="sequence-btn">└── Sequence</a></li>
+          <li><a href="#" id="steering-btn">└── Steering</a></li>
+          <li><a href="#" id="stopping-btn">└── Stopping Condition</a></li>
+        </ul>
+      </aside>
+
+      <section class="mission-content">
+        <div class="welcome-container">
+          <h2 id="welcome-message">Welcome to Mission Creation</h2>
+          <p id="welcome-tutorial">
+            To begin creating your mission, follow these steps:<br />
+            1. Start with <strong>Details</strong> to set basic mission
+            parameters<br />
+            2. Configure <strong>Environment</strong> settings for your
+            mission<br />
+            3. Set up <strong>Vehicle Configuration</strong> including stages<br />
+            4. Define mission <strong>Sequence</strong> and
+            <strong>Steering</strong><br />
+            5. Set mission <strong>Stopping Condition</strong><br /><br />
+            Click any option in the menu on the left to begin.
+          </p>
+        </div>
+
+        <!-- Mission Form -->
+        <form id="mission-form" class="active-form">
+          <div class="form-container">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="mission-name" class="label">Mission:</label>
+                <input
+                  type="text"
+                  id="mission-name"
+                  class="input-field"
+                  placeholder="Enter mission name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="modes" class="label">Modes:</label>
+                <select id="modes" class="input-field">
+                  <option value="Mode">Please select a Mode</option>
+                  <option value="simulation">Simulation</option>
+                  <option value="optimization">Optimization</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="tracking" class="label">Tracking:</label>
+                <div class="toggle-container">
+                  <input type="checkbox" id="tracking" class="toggle-input" />
+                  <label for="tracking" class="toggle-slider"></label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="mission-date" class="label">Date:</label>
+                <input type="date" id="mission-date" class="input-field" />
+              </div>
+
+              <div class="form-group">
+                <label for="mission-time" class="label">Time (HH:MM:SS):</label>
+                <input
+                  type="time"
+                  id="mission-time"
+                  class="input-field"
+                  step="1"
+                />
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <button id="save-mission" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Mission form ends -->
+
+        <!-- Environment Form -->
+        <form id="enviro-form" class="hidden-form">
+          <div class="form-container">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="planets" class="label">Planet:</label>
+                <select id="planets" class="input-field">
+                  <option value="Environment">Choose a Planet</option>
+                  <option value="earth">Earth</option>
+                  <option value="mars">Mars</option>
+                  <option value="moon">Moon</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="atmos-model" class="label"
+                  >Atmospheric Models:</label
+                >
+                <select id="atmos-model" class="input-field">
+                  <option value="Environment">Choose a Model</option>
+                  <option value="atmos_76">atmos_76</option>
+                  <option value="NRLMSISE-00">NRLMSISE-00</option>
+                  <option value="JB2008">JB2008</option>
+                  <option value="ISA">ISA</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <span class="or-text">OR</span>
+              </div>
+
+              <div class="form-group">
+                <div class="upload-data">
+                  <label for="csv-upload" class="upload-label"
+                    >Upload Model CSV:</label
+                  >
+                  <input
+                    type="file"
+                    id="csv-upload"
+                    accept=".csv"
+                    style="display: none"
+                  />
+                  <div class="upload-controls">
+                    <button class="upload" id="csv-upload-btn">
+                      <svg
+                        aria-hidden="true"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          stroke-width="2"
+                          stroke="#ffffff"
+                          d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                          stroke-linejoin="round"
+                          stroke-linecap="round"
+                        ></path>
+                        <path
+                          stroke-linejoin="round"
+                          stroke-linecap="round"
+                          stroke-width="2"
+                          stroke="#ffffff"
+                          d="M17 15V18M17 21V18M17 18H14M17 18H20"
+                        ></path>
+                      </svg>
+                      <span>ADD FILE</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="clear-upload"
+                      id="clear-csv-btn"
+                      style="display: none"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    id="csv-filename"
+                    class="filename"
+                    readonly
+                    placeholder="No file chosen"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Wind Data Upload Section -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wind-data-input" class="label">Wind Data:</label>
+                <div class="upload-data">
+                  <input
+                    type="file"
+                    id="wind-data-input"
+                    accept=".csv"
+                    style="display: none"
+                  />
+                  <div class="upload-controls">
+                    <button type="button" class="upload" id="wind-data-upload">
+                      <svg
+                        aria-hidden="true"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          stroke-width="2"
+                          stroke="#ffffff"
+                          d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                          stroke-linejoin="round"
+                          stroke-linecap="round"
+                        ></path>
+                        <path
+                          stroke-linejoin="round"
+                          stroke-linecap="round"
+                          stroke-width="2"
+                          stroke="#ffffff"
+                          d="M17 15V18M17 21V18M17 18H14M17 18H20"
+                        ></path>
+                      </svg>
+                      <span>ADD FILE</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="clear-upload"
+                      id="clear-wind-btn"
+                      style="display: none"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    id="wind-data-filename"
+                    class="filename"
+                    readonly
+                    placeholder="No file chosen"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="order" class="label"
+                  >Gravity Parameter (Order):</label
+                >
+                <input
+                  type="number"
+                  id="order"
+                  class="input-field"
+                  placeholder="Order"
+                />
+              </div>
+              <div class="form-group">
+                <label for="degree" class="label"
+                  >Gravity Parameter (Degree):</label
+                >
+                <input
+                  type="number"
+                  id="degree"
+                  class="input-field"
+                  placeholder="Degree"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="core" class="label">COE Info:</label>
+              <select id="core" class="input-field">
+                <option value="choose_core">Please select a model</option>
+                <option value="PERIGEE_GC_LATITUDE">PERIGEE_GC_LATITUDE</option>
+                <option value="RE">RE</option>
+                <option value="MSL">MSL</option>
+              </select>
+            </div>
+
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <button type="submit" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Vehicle Form -->
+        <form id="vehicle-form" class="hidden-form">
+          <div class="form-container">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="vehicle-name" class="label">Vehicle Name:</label>
+                <input
+                  type="text"
+                  id="vehicle-name"
+                  class="input-field"
+                  placeholder="Enter vehicle name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="vehicle-type" class="label">Vehicle Type:</label>
+                <select id="vehicle-type" class="input-field">
+                  <option value="">Please select a Vehicle Type</option>
+                  <option value="ascend">ASCEND</option>
+                  <option value="orbital">ORBITAL</option>
+                  <option value="projectile">PROJECTILE</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Data Options (initially hidden) -->
+            <div id="data-options" class="hidden">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label">Choose Data Input Method:</label>
+                  <div class="radio-group">
+                    <input
+                      type="radio"
+                      id="state-data"
+                      name="data-method"
+                      value="states"
+                    />
+                    <label for="state-data">States</label>
+                    <input
+                      type="radio"
+                      id="launch-point"
+                      name="data-method"
+                      value="launch"
+                    />
+                    <label for="launch-point">Launch Point Data</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- State Fields -->
+              <div id="state-fields" class="hidden">
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">State Data:</label>
+                    <div class="grid-container">
+                      <input
+                        type="number"
+                        step="any"
+                        id="X"
+                        class="input-field"
+                        placeholder="X"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="Y"
+                        class="input-field"
+                        placeholder="Y"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="Z"
+                        class="input-field"
+                        placeholder="Z"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="U"
+                        class="input-field"
+                        placeholder="U"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="V"
+                        class="input-field"
+                        placeholder="V"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="W"
+                        class="input-field"
+                        placeholder="W"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                    <div class="grid-container">
+                      <input
+                        type="number"
+                        step="any"
+                        id="q0"
+                        class="input-field"
+                        placeholder="q0"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="q1"
+                        class="input-field"
+                        placeholder="q1"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="q2"
+                        class="input-field"
+                        placeholder="q2"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="q3"
+                        class="input-field"
+                        placeholder="q3"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Launch Point Fields -->
+              <div id="launch-fields-ascend" class="hidden">
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">Launch Point Data:</label>
+                    <div class="grid-container">
+                      <input
+                        type="number"
+                        step="any"
+                        id="lat"
+                        class="input-field"
+                        placeholder="Latitude"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="long"
+                        class="input-field"
+                        placeholder="Longitude"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="azimuth"
+                        class="input-field"
+                        placeholder="Azimuth"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="msl"
+                        class="input-field"
+                        placeholder="MSL"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="lp-height"
+                        class="input-field"
+                        placeholder="LP Height"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="launch-angle"
+                        class="input-field"
+                        placeholder="Launch Set Angle"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="roll"
+                        class="input-field"
+                        placeholder="Initial Roll"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="pitch"
+                        class="input-field"
+                        placeholder="Initial Pitch"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="yaw"
+                        class="input-field"
+                        placeholder="Initial Yaw"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="launch-fields-projectile" class="hidden">
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">Launch Point Data (PROJECTILE):</label>
+                    <div class="grid-container">
+                      <input
+                        type="number"
+                        step="any"
+                        id="lat-proj"
+                        class="input-field"
+                        placeholder="Latitude"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="long-proj"
+                        class="input-field"
+                        placeholder="Longitude"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="msl-proj"
+                        class="input-field"
+                        placeholder="MSL"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="azimuth-proj"
+                        class="input-field"
+                        placeholder="Azimuth"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="elevation"
+                        class="input-field"
+                        placeholder="Elevation"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="launch-angle-proj"
+                        class="input-field"
+                        placeholder="Launch Set Angle"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="initial-velocity"
+                        class="input-field"
+                        placeholder="Initial Velocity"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Orbital Options -->
+            <div id="orbital-options" class="hidden">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label">Choose Orbital Data Type:</label>
+                  <div class="radio-group">
+                    <input
+                      type="radio"
+                      id="state-orbital"
+                      name="orbital-method"
+                      value="state"
+                    />
+                    <label for="state-orbital">State</label>
+                    <input
+                      type="radio"
+                      id="tle-orbital"
+                      name="orbital-method"
+                      value="tle"
+                    />
+                    <label for="tle-orbital">TLE</label>
+                    <input
+                      type="radio"
+                      id="elements-orbital"
+                      name="orbital-method"
+                      value="elements"
+                    />
+                    <label for="elements-orbital">Orbital Elements</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- State Fields for Orbital -->
+              <div id="state-fields-orbital" class="hidden">
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">State Data:</label>
+                    <div class="grid-container">
+                      <input
+                        type="number"
+                        step="any"
+                        id="X-orbital"
+                        class="input-field"
+                        placeholder="X"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="Y-orbital"
+                        class="input-field"
+                        placeholder="Y"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="Z-orbital"
+                        class="input-field"
+                        placeholder="Z"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="U-orbital"
+                        class="input-field"
+                        placeholder="U"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="V-orbital"
+                        class="input-field"
+                        placeholder="V"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="W-orbital"
+                        class="input-field"
+                        placeholder="W"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                    <div class="grid-container">
+                      <input
+                        type="number"
+                        step="any"
+                        id="q0-orbital"
+                        class="input-field"
+                        placeholder="q0"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="q1-orbital"
+                        class="input-field"
+                        placeholder="q1"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="q2-orbital"
+                        class="input-field"
+                        placeholder="q2"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="q3-orbital"
+                        class="input-field"
+                        placeholder="q3"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TLE Fields -->
+              <div id="tle-fields" class="hidden">
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">TLE Data:</label>
+                    <div class="grid-container">
+                      <input
+                        type="text"
+                        id="line1"
+                        class="input-field"
+                        placeholder="Line 1"
+                      />
+                      <input
+                        type="text"
+                        id="line2"
+                        class="input-field"
+                        placeholder="Line 2"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="start-time"
+                        class="input-field"
+                        placeholder="Start Time"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="stop-time"
+                        class="input-field"
+                        placeholder="Stop Time"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="step-time"
+                        class="input-field"
+                        placeholder="Step Time"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Orbital Elements Fields -->
+              <div id="elements-fields" class="hidden">
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label">Orbital Elements:</label>
+                    <div class="grid-container">
+                      <input
+                        type="number"
+                        step="any"
+                        id="semi-major-axis"
+                        class="input-field"
+                        placeholder="Semi Major Axis"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="eccentricity"
+                        class="input-field"
+                        placeholder="Eccentricity"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="inclination"
+                        class="input-field"
+                        placeholder="Inclination"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="argument-perigee"
+                        class="input-field"
+                        placeholder="Argument of Perigee"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="raan"
+                        class="input-field"
+                        placeholder="RAAN"
+                      />
+                      <input
+                        type="number"
+                        step="any"
+                        id="true-anomaly"
+                        class="input-field"
+                        placeholder="True Anomaly"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payload Section -->
+            <div id="payload-section">
+              <h3 class="section-title">Payload Details</h3>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="payload-name" class="label">Payload Name:</label>
+                  <input
+                    type="text"
+                    id="payload-name"
+                    class="input-field"
+                    value="James Webb"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="payload-mass" class="label"
+                    >Payload Mass (kg):</label
+                  >
+                  <input
+                    type="number"
+                    step="any"
+                    id="payload-mass"
+                    class="input-field"
+                    placeholder="Enter payload mass"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="plf-name" class="label">PLF Name:</label>
+                  <input
+                    type="text"
+                    id="plf-name"
+                    class="input-field"
+                    value="Heat Shield"
+                    readonly
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="plf-mass" class="label">PLF Mass (kg):</label>
+                  <input
+                    type="number"
+                    step="any"
+                    id="plf-mass"
+                    class="input-field"
+                    placeholder="Enter PLF mass"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label">PLF Separation Condition:</label>
+                  <div class="radio-group">
+                    <input
+                      type="radio"
+                      id="plf-time"
+                      name="plf-separation"
+                      value="time"
+                      checked
+                    />
+                    <label for="plf-time">Time</label>
+                    <input
+                      type="radio"
+                      id="plf-altitude"
+                      name="plf-separation"
+                      value="altitude"
+                    />
+                    <label for="plf-altitude">Altitude</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="plf-sep-value" class="label">Value:</label>
+                  <input
+                    type="number"
+                    step="any"
+                    id="plf-sep-value"
+                    class="input-field"
+                    placeholder="Enter Time (s) or Altitude (m)"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="hss-flag" class="label">Separation Flag:</label>
+                  <input
+                    type="text"
+                    id="hss-flag"
+                    class="input-field"
+                    value="HSS_Flag"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="integration-method" class="label"
+                  >Integration Method:</label
+                >
+                <select id="integration-method" class="input-field">
+                  <option value="">Please select an Integration Method</option>
+                  <option value="EULER">EULER</option>
+                  <option value="RK4">RK4</option>
+                  <option value="RKDP">RKDP</option>
+                  <option value="SGP4">SGP4</option>
+                  <option value="RK-GILL">rkGill</option>
+                  <option value="RK-F78">rkf78</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="time-step" class="label">Time Step:</label>
+                <input
+                  type="number"
+                  step="any"
+                  id="time-step"
+                  class="input-field"
+                  placeholder="Enter Time Step in Seconds"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="effective-alt" class="label"
+                  >Effective Altitude:</label
+                >
+                <input
+                  type="number"
+                  step="any"
+                  id="effective-alt"
+                  class="input-field"
+                  placeholder="Enter Effective Altitude"
+                />
+              </div>
+            </div>
+
+            <!-- Added DCISS Toggle Button -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="vehicle-dciss" class="label">DCISS:</label>
+                <div class="toggle-container">
+                  <input
+                    type="checkbox"
+                    id="vehicle-dciss"
+                    class="toggle-input"
+                  />
+                  <label for="vehicle-dciss" class="toggle-slider"></label>
+                </div>
+              </div>
+              <div class="form-group" style="visibility: hidden">
+                <!-- Placeholder for alignment -->
+              </div>
+            </div>
+            <!-- End DCISS Toggle Button -->
+
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <button type="submit" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Sequence Form -->
+        <form id="sequence-form" class="hidden">
+          <div class="form-container">
+            <h2 class="section-title">Sequence Configuration</h2>
+
+            <!-- Event Type Tabs -->
+            <div class="sequence-tabs">
+              <button
+                type="button"
+                class="sequence-tab active"
+                data-tab="stage-start"
+              >
+                Stage Start
+              </button>
+              <button
+                type="button"
+                class="sequence-tab"
+                data-tab="motor-ignition"
+              >
+                Motor Ignition
+              </button>
+              <button
+                type="button"
+                class="sequence-tab"
+                data-tab="motor-termination"
+              >
+                Motor Termination
+              </button>
+              <button
+                type="button"
+                class="sequence-tab"
+                data-tab="stage-separation"
+              >
+                Stage Separation
+              </button>
+              <button
+                type="button"
+                class="sequence-tab"
+                data-tab="heat-shield-separation"
+              >
+                Heat Shield Separation
+              </button>
+            </div>
+
+            <div class="sequence-tab-contents">
+              <div class="form-fields">
+                <!-- Hidden Event Type Field -->
+                <input type="hidden" id="event-type" value="stage-start" />
+
+                <!-- Common Fields for All Event Types -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label">Event Flag:</label>
+                    <select class="input-field" id="event-flag">
+                      <option value="" disabled selected>
+                        Select Event Flag
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label">Trigger Type:</label>
+                    <select class="input-field" id="trigger-type">
+                      <option value="" disabled selected>
+                        Select Trigger Type
+                      </option>
+                      <option value="mission-time">Mission Time</option>
+                      <option value="phase-time">Phase Time</option>
+                      <option value="altitude">Altitude</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="label">Trigger Value:</label>
+                    <input
+                      type="number"
+                      class="input-field"
+                      id="trigger-value"
+                      placeholder="Enter trigger value"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label">Reference Flag:</label>
+                    <select class="input-field" id="dependent-event">
+                      <option value="" disabled selected>
+                        Select Reference Flag
+                      </option>
+                      <option value="none">None</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="label">Comment:</label>
+                    <input
+                      type="text"
+                      class="input-field"
+                      id="event-comment"
+                      placeholder="Enter comment"
+                    />
+                  </div>
+                </div>
+
+                <!-- Add Event Button -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <button type="button" class="add-stg" id="add-event-btn">
+                      Add Event
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Event List - Now on the right side -->
+              <div class="event-list-container">
+                <div class="form-group full-width">
+                  <label class="label">Event Sequence:</label>
+                  <div id="event-list" class="event-list">
+                    <!-- Events will be listed here dynamically -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <button
+                type="submit"
+                class="next-btn"
+                onclick="saveSequenceConfiguration()"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Steering Form -->
+        <form id="steering-form" class="hidden">
+          <div class="form-container steering-layout">
+            <h2 class="section-title">Steering Configuration</h2>
+
+            <!-- Top: Sequence Selection -->
+            <div class="form-row">
+              <div class="form-group sequence-selector-group">
+                <label for="sequence" class="label">Sequence:</label>
+                <select id="sequence" class="input-field" required>
+                  <option value="">Select Sequence</option>
+                  <option value="123">123</option>
+                  <option value="231">231</option>
+                  <option value="312">312</option>
+                  <option value="132">132</option>
+                  <option value="321">321</option>
+                  <option value="213">213</option>
+                  <option value="121">121</option>
+                  <option value="232">232</option>
+                  <option value="313">313</option>
+                  <option value="131">131</option>
+                  <option value="323">323</option>
+                  <option value="212">212</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Main Layout: Left Panel (Component Selection) + Right Panel (Configuration) -->
+            <div class="steering-main-content">
+              <!-- Left Panel: Component Selection/Management -->
+              <aside class="steering-component-panel">
+                <h3 class="panel-title">Available Components</h3>
+                <ul id="available-components-list" class="component-list">
+                  <li data-type="verticalAscend">
+                    <span>Vertical Ascend</span>
+                    <button
+                      type="button"
+                      class="add-component-btn"
+                      data-type="verticalAscend"
+                      title="Add Vertical Ascend"
+                    >
+                      +
+                    </button>
+                  </li>
+                  <li data-type="pitchHold">
+                    <span>Pitch Hold</span>
+                    <button
+                      type="button"
+                      class="add-component-btn"
+                      data-type="pitchHold"
+                      title="Add Pitch Hold"
+                    >
+                      +
+                    </button>
+                  </li>
+                  <li data-type="constantPitch">
+                    <span>Constant Pitch Rate</span>
+                    <button
+                      type="button"
+                      class="add-component-btn"
+                      data-type="constantPitch"
+                      title="Add Constant Pitch Rate"
+                    >
+                      +
+                    </button>
+                  </li>
+                  <li data-type="gravityTurn">
+                    <span>Gravity Turn</span>
+                    <button
+                      type="button"
+                      class="add-component-btn"
+                      data-type="gravityTurn"
+                      title="Add Gravity Turn"
+                    >
+                      +
+                    </button>
+                  </li>
+                </ul>
+                <div class="dynamic-component-adders">
+                  <button
+                    id="add-profile-component-btn"
+                    type="button"
+                    class="secondary-button add-dynamic-btn"
+                  >
+                    Add Profile
+                  </button>
+                  <button
+                    id="add-coasting-component-btn"
+                    type="button"
+                    class="secondary-button add-dynamic-btn"
+                  >
+                    Add Coasting
+                  </button>
+                </div>
+                <h3 class="panel-title">Active Components</h3>
+                <ul
+                  id="active-components-list"
+                  class="component-list active-list"
+                >
+                  <!-- Active components will be added here dynamically by JS -->
+                  <!-- Example: <li class="active-component-item selected" data-component-id="profile_1"><span>Profile 1</span> <button class="remove-component-btn" title="Remove">×</button></li> -->
+                </ul>
+              </aside>
+
+              <!-- Right Panel: Configuration Area -->
+              <section class="steering-config-area">
+                <div
+                  id="steering-config-placeholder"
+                  class="config-placeholder"
+                >
+                  <p>
+                    Select or add a component from the left panel to configure
+                    it.
+                  </p>
+                </div>
+                <div id="steering-config-content" class="hidden">
+                  <h2 id="current-config-title" class="config-area-title">
+                    Configuring: <span></span>
+                  </h2>
+
+                  <!-- Tabs for Start/Stop/Steering -->
+                  <div class="config-tabs">
+                    <button
+                      type="button"
+                      class="config-tab active"
+                      data-tab="start"
+                    >
+                      Start
+                    </button>
+                    <button type="button" class="config-tab" data-tab="stop">
+                      Stop
+                    </button>
+                    <button
+                      type="button"
+                      class="config-tab"
+                      data-tab="steering"
+                    >
+                      Steering
+                    </button>
+                  </div>
+
+                  <div class="config-tab-content">
+                    <!-- Start Configuration Section -->
+                    <div id="config-tab-start" class="tab-pane active">
+                      <h4 class="tab-pane-title">Start Conditions</h4>
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="label">Event Flag:</label>
+                          <input
+                            type="text"
+                            class="input-field"
+                            data-field="start_identity"
+                            readonly
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="label">Trigger Type:</label>
+                          <select
+                            class="input-field"
+                            data-field="start_trigger_type"
+                            required
+                          >
+                            <option value="">Select Type</option>
+                            <option value="time">Phase Time</option>
+                            <option value="missiontime">Mission Time</option>
+                            <option value="profiletime">Profile Time</option>
+                            <option value="altitude">Altitude</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="label">Trigger Value:</label>
+                          <input
+                            type="number"
+                            step="any"
+                            class="input-field"
+                            data-field="start_trigger_value"
+                            required
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="label">Reference Flag:</label>
+                          <select
+                            class="input-field"
+                            data-field="start_reference"
+                          >
+                            <option value="none">None</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group full-width">
+                          <label class="label">Comment:</label>
+                          <input
+                            type="text"
+                            class="input-field"
+                            data-field="start_comment"
+                            placeholder="Enter comment"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div class="section-status">
+                        <span class="status-indicator" id="start-config-status"
+                          >⚪</span
+                        >
+                        <button
+                          type="button"
+                          class="save-config-btn"
+                          id="save-start-config"
+                        >
+                          Save Start Configuration
+                        </button>
+                      </div>
+                    </div>
+                    <!-- Stop Configuration Section -->
+                    <div id="config-tab-stop" class="tab-pane hidden">
+                      <h4 class="tab-pane-title">Stop Conditions</h4>
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="label">Event Flag:</label>
+                          <input
+                            type="text"
+                            class="input-field"
+                            data-field="stop_identity"
+                            readonly
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="label">Trigger Type:</label>
+                          <select
+                            class="input-field"
+                            data-field="stop_trigger_type"
+                            required
+                          >
+                            <option value="">Select Type</option>
+                            <option value="time">Phase Time</option>
+                            <option value="missiontime">Mission Time</option>
+                            <option value="profiletime">Profile Time</option>
+                            <option value="altitude">Altitude</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="label">Trigger Value:</label>
+                          <input
+                            type="number"
+                            step="any"
+                            class="input-field"
+                            data-field="stop_trigger_value"
+                            required
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="label">Reference Flag:</label>
+                          <select
+                            class="input-field"
+                            data-field="stop_reference"
+                          >
+                            <option value="none">None</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group full-width">
+                          <label class="label">Comment:</label>
+                          <input
+                            type="text"
+                            class="input-field"
+                            data-field="stop_comment"
+                            placeholder="Enter comment"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div class="section-status">
+                        <span class="status-indicator" id="stop-config-status"
+                          >⚪</span
+                        >
+                        <button
+                          type="button"
+                          class="save-config-btn"
+                          id="save-stop-config"
+                        >
+                          Save Stop Configuration
+                        </button>
+                      </div>
+                    </div>
+                    <!-- Steering Configuration Section -->
+                    <div id="config-tab-steering" class="tab-pane hidden">
+                      <h4 class="tab-pane-title">Steering Parameters</h4>
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="label">Steering Type:</label>
+                          <select
+                            class="input-field"
+                            data-field="steering_type"
+                            required
+                          >
+                            <option value="">Select Type</option>
+                            <option value="zeroRate">Zero Rate</option>
+                            <option value="constantBodyRate">
+                              Constant Body Rate
+                            </option>
+                            <option value="clg">CLG</option>
+                            <option value="profile">Profile</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="dynamic-steering-fields">
+                        <!-- Dynamic fields will be added here based on steering type -->
+
+                        <!-- Constant Body Rate Fields -->
+                        <div
+                          class="steering-params"
+                          data-steering-type="constantBodyRate"
+                          style="display: none"
+                        >
+                          <div class="form-row">
+                            <div class="form-group">
+                              <label class="label">Axis:</label>
+                              <select
+                                name="axis"
+                                class="input-field"
+                                data-param="axis"
+                              >
+                                <option value="">Select Axis</option>
+                                <option value="roll">Roll</option>
+                                <option value="pitch">Pitch</option>
+                                <option value="yaw">Yaw</option>
+                              </select>
+                            </div>
+                            <div class="form-group">
+                              <label class="label">Value (deg/s):</label>
+                              <input
+                                type="number"
+                                step="any"
+                                name="value"
+                                class="input-field numeric-input"
+                                data-param="value"
+                                placeholder="Enter rate value"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- CLG Fields -->
+                        <div
+                          class="steering-params"
+                          data-steering-type="clg"
+                          style="display: none"
+                        >
+                          <div class="form-row">
+                            <div class="form-group">
+                              <label class="label">Algorithm:</label>
+                              <select
+                                name="algorithm"
+                                class="input-field clg-algorithm"
+                                data-param="algorithm"
+                              >
+                                <option value="">Select Algorithm</option>
+                                <option value="aoa">
+                                  AOA (Angle of Attack)
+                                </option>
+                                <option value="fpa">
+                                  FPA (Flight Path Angle)
+                                </option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="clg-dynamic-fields">
+                            <!-- AOA Sub-fields -->
+                            <div
+                              class="steering-params-clg-sub"
+                              data-clg-algorithm="aoa"
+                              style="display: none"
+                            >
+                              <div class="form-row">
+                                <div class="form-group">
+                                  <label class="label">Max QAOA:</label>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    name="max_qaoa"
+                                    class="input-field numeric-input"
+                                    data-param="max_qaoa"
+                                    placeholder="Enter Max QAOA"
+                                  />
+                                </div>
+                                <div class="form-group">
+                                  <label class="label">Alpha Time:</label>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    name="alpha_time"
+                                    class="input-field numeric-input"
+                                    data-param="alpha_time"
+                                    placeholder="Enter Alpha Time"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <!-- FPA Sub-fields -->
+                            <div
+                              class="steering-params-clg-sub"
+                              data-clg-algorithm="fpa"
+                              style="display: none"
+                            >
+                              <div class="form-row">
+                                <div class="form-group">
+                                  <label class="label">Pitch Gain:</label>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    name="pitch_gain"
+                                    class="input-field numeric-input"
+                                    data-param="pitch_gain"
+                                    placeholder="Enter Pitch Gain"
+                                  />
+                                </div>
+                                <div class="form-group">
+                                  <label class="label">Yaw Gain:</label>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    name="yaw_gain"
+                                    class="input-field numeric-input"
+                                    data-param="yaw_gain"
+                                    placeholder="Enter Yaw Gain"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Profile Fields -->
+                        <div
+                          class="steering-params"
+                          data-steering-type="profile"
+                          style="display: none"
+                        >
+                          <div class="form-row">
+                            <div class="form-group">
+                              <label class="label">Mode:</label>
+                              <select
+                                name="mode"
+                                class="input-field"
+                                data-param="mode"
+                              >
+                                <option value="">Select Mode</option>
+                                <option value="normal">Normal</option>
+                                <option value="step">Step</option>
+                              </select>
+                            </div>
+                            <div class="form-group">
+                              <label class="label">Quantity:</label>
+                              <select
+                                name="quantity"
+                                class="input-field"
+                                data-param="quantity"
+                              >
+                                <option value="">Select Quantity</option>
+                                <option value="eulerRate">Euler Rate</option>
+                                <option value="bodyRate">Body Rate</option>
+                                <option value="quaternion">Quaternion</option>
+                                <option value="eulerAngle">Euler Angle</option>
+                                <option value="bodyAngle">Body Angle</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="form-row">
+                            <div class="form-group">
+                              <label class="label">Independent Variable:</label>
+                              <select
+                                name="independentVar"
+                                class="input-field"
+                                data-param="independentVar"
+                              >
+                                <option value="">Select Variable</option>
+                                <option value="phaseTime">Phase Time</option>
+                                <option value="profileTime">
+                                  Profile Time
+                                </option>
+                                <option value="missionTime">
+                                  Mission Time
+                                </option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="form-row">
+                            <div class="form-group upload-data">
+                              <label
+                                for="profile-csv-upload"
+                                class="upload-label"
+                                >Upload Profile CSV:</label
+                              >
+                              <input
+                                type="file"
+                                id="profile-csv-upload"
+                                accept=".csv"
+                                style="display: none"
+                                data-param="profile_csv"
+                              />
+                              <div class="upload-controls">
+                                <button
+                                  type="button"
+                                  class="upload"
+                                  id="profile-csv-upload-btn"
+                                >
+                                  ADD FILE
+                                </button>
+                                <button
+                                  type="button"
+                                  class="clear-upload"
+                                  id="profile-csv-clear-btn"
+                                  style="display: none"
+                                >
+                                  &times;
+                                </button>
+                              </div>
+                              <input
+                                type="text"
+                                id="profile-csv-filename"
+                                class="filename"
+                                readonly
+                                placeholder="No file chosen"
+                                data-param="profile_csv_filename"
+                              />
+                            </div>
+                            <div class="form-group">
+                              <button
+                                type="button"
+                                class="secondary-button"
+                                id="download-profile-template"
+                                style="margin-top: 20px"
+                                onclick="downloadProfileTemplate()"
+                              >
+                                Download Template
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group full-width">
+                          <label class="label">Comment:</label>
+                          <input
+                            type="text"
+                            class="input-field"
+                            data-field="steering_comment"
+                            placeholder="Enter comment"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div class="section-status">
+                        <span
+                          class="status-indicator"
+                          id="steering-config-status"
+                          >⚪</span
+                        >
+                        <button
+                          type="button"
+                          class="save-config-btn"
+                          id="save-steering-config"
+                        >
+                          Save Steering Configuration
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- END config-tab-content -->
+                </div>
+                <!-- END steering-config-content -->
+              </section>
+              <!-- END steering-config-area -->
+            </div>
+            <!-- END steering-main-content -->
+
+            <!-- Bottom Actions -->
+            <div class="button-group steering-actions">
+              <button id="previewConfig" type="button" class="secondary-button">
+                Preview Configuration
+              </button>
+              <button id="saveConfig" type="submit" class="next-btn">
+                Save Steering Configuration
+              </button>
+            </div>
+          </div>
+          <!-- END form-container -->
+        </form>
+
+        <!-- Stopping Condition Form -->
+        <form id="stopping-form" class="hidden-form">
+          <div class="form-container">
+            <h2 class="section-title">Stopping Condition Configuration</h2>
+            <div class="form-fields" style="min-height: 150px">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label">Stopping Criteria:</label>
+                  <div class="radio-group">
+                    <input
+                      type="radio"
+                      id="stop-flag"
+                      name="stopping-criteria"
+                      value="flag"
+                      checked
+                    />
+                    <label for="stop-flag">Flag</label>
+                    <input
+                      type="radio"
+                      id="stop-time"
+                      name="stopping-criteria"
+                      value="time"
+                    />
+                    <label for="stop-time">Time</label>
+                    <input
+                      type="radio"
+                      id="stop-altitude"
+                      name="stopping-criteria"
+                      value="altitude"
+                    />
+                    <label for="stop-altitude">Altitude</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Flag Fields (initially shown) -->
+              <div
+                id="flag-fields"
+                class="form-row"
+                style="
+                  width: 100%;
+                  display: flex;
+                  justify-content: space-between;
+                "
+              >
+                <div class="form-group" style="flex: 1; margin-right: 10px">
+                  <label for="flag-name" class="label">Flag Name:</label>
+                  <select
+                    id="flag-name"
+                    class="input-field"
+                    placeholder="Select a flag"
+                  >
+                    <option value="" disabled selected>
+                      Select a stopping flag
+                    </option>
+                    <!-- Options will be populated dynamically -->
+                  </select>
+                </div>
+
+                <div class="form-group" style="flex: 1">
+                  <label for="flag-condition" class="label">Condition:</label>
+                  <select id="flag-condition" class="input-field">
+                    <option value="eq">EQ</option>
+                    <option value="lt">LT</option>
+                    <option value="gt">GT</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1; margin-right: 10px">
+                  <label for="flag-value" class="label">Value:</label>
+                  <input
+                    type="number"
+                    id="flag-value"
+                    class="input-field"
+                    placeholder="Enter Value"
+                  />
+                </div>
+              </div>
+
+              <!-- Time Fields (initially hidden) -->
+              <div
+                id="time-fields"
+                class="hidden form-row"
+                style="
+                  width: 100%;
+                  display: flex;
+                  justify-content: space-between;
+                "
+              >
+                <div class="form-group" style="flex: 1; margin-right: 10px">
+                  <label for="time-value" class="label">Value:</label>
+                  <input
+                    type="number"
+                    id="time-value"
+                    class="input-field"
+                    placeholder="Time in Seconds"
+                  />
+                </div>
+                <div class="form-group" style="flex: 1">
+                  <label for="time-condition" class="label">Condition:</label>
+                  <select id="time-condition" class="input-field">
+                    <option value="eq">EQ</option>
+                    <option value="lt">LT</option>
+                    <option value="gt">GT</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1; visibility: hidden">
+                  <!-- Placeholder to maintain width -->
+                </div>
+              </div>
+
+              <!-- Altitude Fields (initially hidden) -->
+              <div
+                id="altitude-fields"
+                class="hidden form-row"
+                style="
+                  width: 100%;
+                  display: flex;
+                  justify-content: space-between;
+                "
+              >
+                <div class="form-group" style="flex: 1; margin-right: 10px">
+                  <label for="altitude-value" class="label">Value:</label>
+                  <input
+                    type="number"
+                    id="altitude-value"
+                    class="input-field"
+                    placeholder="Altitude in Meters"
+                  />
+                </div>
+                <div class="form-group" style="flex: 1">
+                  <label for="altitude-condition" class="label"
+                    >Condition:</label
+                  >
+                  <select id="altitude-condition" class="input-field">
+                    <option value="eq">EQ</option>
+                    <option value="lt">LT</option>
+                    <option value="gt">GT</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1; visibility: hidden">
+                  <!-- Placeholder to maintain width -->
+                </div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <button type="submit" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Objective Function Form -->
+        <form id="objective-function-form" class="hidden-form">
+          <div class="form-container">
+            <h2 class="section-title">Objective Function Configuration</h2>
+            <div id="objective-function-container">
+              <!-- Objective function forms will be added here dynamically -->
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <button type="button" class="add-stg" id="add-objective-btn">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Objective Function (Max 4)
+                </button>
+              </div>
+            </div>
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <!-- Might need specific clear logic -->
+              <button type="submit" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Constraints Form -->
+        <form id="constraints-form" class="hidden-form">
+          <div class="form-container">
+            <h2 class="section-title">Constraints Configuration</h2>
+
+            <!-- Container for dynamic constraints -->
+            <div id="constraints-container">
+              <!-- Constraint instances will be added here -->
+            </div>
+
+            <!-- Template for a single constraint instance (Hidden) -->
+            <div
+              id="constraint-template"
+              class="hidden-template optimization-instance"
+              style="
+                margin-bottom: 20px;
+                padding: 15px;
+                border: 1px dashed rgba(255, 255, 255, 0.2);
+                border-radius: 5px;
+                position: relative;
+              "
+            >
+              <button type="button" class="delete-instance-btn remove-btn">
+                &times;
+              </button>
+              <h4
+                class="instance-title"
+                style="
+                  margin-top: 0;
+                  margin-bottom: 15px;
+                  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                  padding-bottom: 5px;
+                "
+              >
+                Constraint <span>#</span>
+              </h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label constraint-name-label">Name:</label>
+                  <select class="input-field constraint-name">
+                    <option value="" disabled selected>
+                      Select Constraint
+                    </option>
+                    <!-- Options will be populated by JS -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="label constraint-value-label">Value:</label>
+                  <input
+                    type="number"
+                    step="any"
+                    class="input-field constraint-value"
+                    placeholder="Enter numeric value"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label constraint-type-label">Type:</label>
+                  <select class="input-field constraint-type">
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="EQUALITY">EQUALITY</option>
+                    <option value="INEQUALITY">INEQUALITY</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="label constraint-condition-label"
+                    >Condition:</label
+                  >
+                  <select class="input-field constraint-condition">
+                    <option value="" disabled selected>Select Condition</option>
+                    <option value="GREATER_THAN">GREATER_THAN</option>
+                    <option value="LESS_THAN">LESS_THAN</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="flex: 0.7">
+                  <label class="label constraint-flag-label">Flag:</label>
+                  <select
+                    class="input-field constraint-flag reference-dropdown"
+                  >
+                    <!-- Added reference-dropdown class -->
+                    <option value="" disabled selected>Select Flag</option>
+                    <!-- Options populated by JS from flagRegistry -->
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 0.3">
+                  <label class="label">Enable:</label>
+                  <div
+                    class="toggle-container"
+                    style="display: flex; align-items: center; height: 38px"
+                  >
+                    <input
+                      type="checkbox"
+                      id="constraint-enable"
+                      class="toggle-input constraint-enable"
+                      checked
+                    />
+                    <label
+                      for="constraint-enable"
+                      class="toggle-slider"
+                    ></label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <!-- <label
+                    class="label constraint-factor-label"
+                    for="constraint-factor"
+                    >Factor:</label
+                  > -->
+                  <input
+                    type="number"
+                    id="constraint-factor"
+                    class="input-field constraint-factor"
+                    value="1"
+                    readonly
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label
+                    class="label constraint-tolerance-label"
+                    for="constraint-tolerance"
+                    >Tolerance:</label
+                  >
+                  <input
+                    type="number"
+                    step="any"
+                    id="constraint-tolerance"
+                    class="input-field constraint-tolerance"
+                    placeholder="Enter tolerance"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- End Template -->
+
+            <!-- Add Constraint Button -->
+            <div class="form-row">
+              <div class="form-group">
+                <button type="button" class="add-stg" id="add-constraint-btn">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Constraint (Max 10)
+                </button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <button type="submit" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Mode Form -->
+        <form id="mode-form" class="hidden-form">
+          <div class="form-container">
+            <h2 class="section-title">Optimization Mode Configuration</h2>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label">Choose Mode:</label>
+                <div class="radio-group">
+                  <input
+                    type="radio"
+                    id="mode-normal"
+                    name="optimization-mode"
+                    value="normal"
+                    checked
+                  />
+                  <label for="mode-normal">Normal</label>
+                  <input
+                    type="radio"
+                    id="mode-archipelago"
+                    name="optimization-mode"
+                    value="archipelago"
+                  />
+                  <label for="mode-archipelago">Archipelago</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Normal Mode Fields -->
+            <div id="normal-mode-fields" class="optimization-mode-section">
+              <h3 class="subsection-title">Normal Mode Settings</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="normal-algorithm" class="label"
+                    >Optimizer Algorithm:</label
+                  >
+                  <select id="normal-algorithm" class="input-field">
+                    <option value="" disabled selected>Select Algorithm</option>
+                    <option value="SGA">SGA</option>
+                    <option value="DE">DE</option>
+                    <option value="PSO">PSO</option>
+                    <option value="IPOT">IPOPT</option>
+                    <option value="CS">NLOPT</option>
+                    <option value="GAGGS">GAGGS</option>
+                    <option value="MBH">MBH</option>
+                    <option value="CSTRS">CSTRS</option>
+                    <option value="GWO">GWO</option>
+                    <option value="IHS">IHS</option>
+                    <option value="AC">AC</option>
+                    <option value="ABC">ABC</option>
+                    <option value="CMAES">CMAES</option>
+                    <option value="XNES">XNES</option>
+                    <option value="NSGA2">NSGA2</option>
+                    <option value="SADE">SADE</option>
+                    <!-- Add more as needed -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="label">Map:</label>
+                  <div class="input-group">
+                    <input
+                      type="number"
+                      step="any"
+                      id="normal-lower-bound"
+                      class="input-field"
+                      placeholder="Lower"
+                      value="0"
+                    />
+                    <input
+                      type="number"
+                      step="any"
+                      id="normal-upper-bound"
+                      class="input-field"
+                      placeholder="Upper"
+                      value="1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="normal-population" class="label"
+                    >Population:</label
+                  >
+                  <input
+                    type="number"
+                    id="normal-population"
+                    class="input-field"
+                    placeholder="Enter population size"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="normal-set-population" class="label"
+                    >Set Population:</label
+                  >
+                  <div class="toggle-container">
+                    <input
+                      type="checkbox"
+                      id="normal-set-population"
+                      class="toggle-input"
+                      checked
+                    />
+                    <label
+                      for="normal-set-population"
+                      class="toggle-slider"
+                    ></label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row" id="normal-upload-row">
+                <div class="form-group upload-data">
+                  <label for="normal-csv-upload" class="upload-label"
+                    >Upload Initial Control Variable CSV:</label
+                  >
+                  <input
+                    type="file"
+                    id="normal-csv-upload"
+                    accept=".csv"
+                    style="display: none"
+                  />
+                  <div class="upload-controls">
+                    <button
+                      type="button"
+                      class="upload"
+                      id="normal-csv-upload-btn"
+                    >
+                      ADD FILE
+                    </button>
+                    <button
+                      type="button"
+                      class="clear-upload"
+                      id="normal-csv-clear-btn"
+                      style="display: none"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    id="normal-csv-filename"
+                    class="filename"
+                    readonly
+                    placeholder="No file chosen"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="normal-problem-strategy" class="label"
+                    >Problem Strategy:</label
+                  >
+                  <select id="normal-problem-strategy" class="input-field">
+                    <option value="" disabled selected>
+                      Select Problem Strategy
+                    </option>
+                    <option value="IGNORE">ignore - o</option>
+                    <option value="KURI">KURI</option>
+                    <option value="death penalty">death penalty</option>
+                    <option value="WEIGHTED">Weighted</option>
+                    <option value="IGNORE_C">ignore_c</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Archipelago Mode Fields (Initially Hidden) -->
+            <div
+              id="archipelago-mode-fields"
+              class="optimization-mode-section"
+              style="display: none !important"
+            >
+              <h3 class="subsection-title">Archipelago Mode Settings</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="archipelago-algorithm" class="label"
+                    >Algorithms:</label
+                  >
+                  <div
+                    class="selected-algorithms-container"
+                    id="selected-algorithms-container"
+                  >
+                    <!-- Selected algorithms will appear here as chips/tags -->
+                    <div class="algorithms-counter" id="algorithms-counter">
+                      0/3 selected
+                    </div>
+                  </div>
+                  <div class="algorithm-selector-row">
+                    <select
+                      id="archipelago-algorithm"
+                      class="input-field algorithm-selector"
+                    >
+                      <option value="" disabled selected>
+                        Select Algorithm
+                      </option>
+                      <option value="SGA">SGA</option>
+                      <option value="DE">DE</option>
+                      <option value="PSO">PSO</option>
+                      <option value="IPOT">IPOPT</option>
+                      <option value="CS">NLOPT</option>
+                      <option value="GAGGS">GAGGS</option>
+                      <option value="MBH">MBH</option>
+                      <option value="CSTRS">CSTRS</option>
+                      <option value="GWO">GWO</option>
+                      <option value="IHS">IHS</option>
+                      <option value="AC">AC</option>
+                      <option value="ABC">ABC</option>
+                      <option value="CMAES">CMAES</option>
+                      <option value="XNES">XNES</option>
+                      <option value="NSGA2">NSGA2</option>
+                      <option value="SADE">SADE</option>
+                    </select>
+                    <button
+                      type="button"
+                      id="add-algorithm-btn"
+                      class="add-algorithm-btn"
+                      onclick="if(window.optimizationHandler && window.optimizationHandler.setupAddAlgorithmButton) window.optimizationHandler.setupAddAlgorithmButton(); return false;"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      Add
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="archipelago-topology" class="label"
+                    >Topology:</label
+                  >
+                  <select id="archipelago-topology" class="input-field">
+                    <option value="Fully Connected">Fully Connected</option>
+                    <option value="Ring">Ring</option>
+                    <option value="Unconnected">Unconnected</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="archipelago-migration-type" class="label"
+                    >Migration Type:</label
+                  >
+                  <select id="archipelago-migration-type" class="input-field">
+                    <option value="Broadcast">Broadcast</option>
+                    <option value="P2P">P2P</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="archipelago-migration-handling" class="label"
+                    >Migration Handling:</label
+                  >
+                  <select
+                    id="archipelago-migration-handling"
+                    class="input-field"
+                  >
+                    <option value="Evict">Evict</option>
+                    <option value="Pressure">Preserve</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label">Map:</label>
+                  <div class="input-group">
+                    <input
+                      type="number"
+                      step="any"
+                      id="archipelago-lower-bound"
+                      class="input-field"
+                      placeholder="Lower"
+                      value="0"
+                    />
+                    <input
+                      type="number"
+                      step="any"
+                      id="archipelago-upper-bound"
+                      class="input-field"
+                      placeholder="Upper"
+                      value="1"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="archipelago-population" class="label"
+                    >Population:</label
+                  >
+                  <input
+                    type="number"
+                    id="archipelago-population"
+                    class="input-field"
+                    placeholder="Enter population size"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="archipelago-set-population" class="label"
+                    >Set Population:</label
+                  >
+                  <div class="toggle-container">
+                    <input
+                      type="checkbox"
+                      id="archipelago-set-population"
+                      class="toggle-input"
+                      checked
+                    />
+                    <label
+                      for="archipelago-set-population"
+                      class="toggle-slider"
+                    ></label>
+                  </div>
+                </div>
+                <div
+                  class="form-group upload-data"
+                  id="archipelago-upload-group"
+                >
+                  <label for="archipelago-csv-upload" class="upload-label"
+                    >Upload Initial Control Variable CSV:</label
+                  >
+                  <input
+                    type="file"
+                    id="archipelago-csv-upload"
+                    accept=".csv"
+                    style="display: none"
+                  />
+                  <div class="upload-controls">
+                    <button
+                      type="button"
+                      class="upload"
+                      id="archipelago-csv-upload-btn"
+                    >
+                      ADD FILE
+                    </button>
+                    <button
+                      type="button"
+                      class="clear-upload"
+                      id="archipelago-csv-clear-btn"
+                      style="display: none"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    id="archipelago-csv-filename"
+                    class="filename"
+                    readonly
+                    placeholder="No file chosen"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="reset" class="clear-btn">Clear</button>
+              <button type="submit" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Design Variables Form -->
+        <form id="design-variables-form" class="hidden-form">
+          <div class="form-container">
+            <h2 class="section-title">Design Variables</h2>
+
+            <!-- Container for dynamic design variable instances -->
+            <div id="design-variables-container"></div>
+
+            <!-- Template for a single design variable instance (Hidden) -->
+            <div
+              id="design-variable-template"
+              class="hidden-template optimization-instance"
+              style="
+                margin-bottom: 20px;
+                padding: 15px;
+                border: 1px dashed rgba(255, 255, 255, 0.2);
+                border-radius: 5px;
+                position: relative;
+              "
+            >
+              <button
+                type="button"
+                class="delete-instance-btn remove-btn"
+                title="Remove Design Variable"
+              >
+                &times;
+              </button>
+              <h4
+                class="instance-title"
+                style="
+                  margin-top: 0;
+                  margin-bottom: 15px;
+                  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                  padding-bottom: 5px;
+                "
+              >
+                Design Variable <span>#</span>
+              </h4>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="label dv-category-label">Category:</label>
+                  <select class="input-field dv-category">
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="CUT_OFF">Cut Off</option>
+                    <option value="PAYLOAD">Payload</option>
+                    <option value="AZIMUTH">Azimuth</option>
+                    <option value="SEQUENCE">Sequence (e.g., Coasting)</option>
+                    <option value="PROPULSION">Propulsion</option>
+                    <option value="STEERING">Steering</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="label dv-name-label">Name:</label>
+                  <input
+                    type="text"
+                    class="input-field dv-name"
+                    placeholder="Enter variable name (e.g., opt_cutoff_1)"
+                  />
+                </div>
+              </div>
+
+              <!-- Dynamic fields container -->
+              <div class="dv-dynamic-fields">
+                <!-- Fields specific to the selected category will be added here -->
+              </div>
+            </div>
+            <!-- End Template -->
+
+            <!-- Add Design Variable Button -->
+            <div class="form-row">
+              <div class="form-group">
+                <button
+                  type="button"
+                  class="add-stg"
+                  id="add-design-variable-btn"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Design Variable (Max 10)
+                </button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button
+                type="reset"
+                class="clear-btn"
+                id="clear-design-variables-btn"
+              >
+                Clear
+              </button>
+              <button
+                type="submit"
+                class="next-btn"
+                id="save-design-variables-btn"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <!-- JavaScript Files that really needs-->
+    <script src="js/validation.js"></script>
+    <script src="js/ui-navigation.js"></script>
+    <script src="js/formHandler.js"></script>
+    <script src="js/missionDataHandler.js"></script>
+    <script src="js/optimization.js"></script>
+
+    <!-- Sweet Alert Pop Up. make it offline, now CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Steering Module -->
+    <script src="js/steering-module.js"></script>
+
+    <!-- Test related files -->
+    <link rel="stylesheet" href="css/test-ui.css" />
+    <script src="js/test-helpers.js"></script>
+    <script src="js/test-ui.js"></script>
+
+    <!-- Hidden Templates -->
+    <template id="design-variable-template-content">
+      <div
+        class="optimization-instance"
+        style="
+          margin-bottom: 20px;
+          padding: 15px;
+          border: 1px dashed rgba(255, 255, 255, 0.2);
+          border-radius: 5px;
+          position: relative;
+        "
+      >
+        <button
+          type="button"
+          class="delete-instance-btn remove-btn"
+          title="Remove Design Variable"
+        >
+          &times;
+        </button>
+        <h4
+          class="instance-title"
+          style="
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+          "
+        >
+          Design Variable <span>#</span>
+        </h4>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label dv-category-label">Category:</label>
+            <select class="input-field dv-category">
+              <option value="" disabled selected>Select Category</option>
+              <option value="CUT_OFF">Cut Off</option>
+              <option value="PAYLOAD">Payload</option>
+              <option value="AZIMUTH">Azimuth</option>
+              <option value="SEQUENCE">Sequence (e.g., Coasting)</option>
+              <option value="PROPULSION">Propulsion</option>
+              <option value="STEERING">Steering</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label dv-name-label">Name:</label>
+            <input
+              type="text"
+              class="input-field dv-name"
+              placeholder="Enter variable name (e.g., opt_cutoff_1)"
+            />
+          </div>
+        </div>
+
+        <!-- Dynamic fields container -->
+        <div
+          class="dv-dynamic-fields"
+          style="
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+          "
+        >
+          <!-- Fields specific to the selected category will be added here -->
+
+          <!-- CUT_OFF Fields -->
+          <div class="dv-category-fields hidden" data-category="CUT_OFF">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-flag-label">Flag:</label>
+                <select class="input-field dv-flag reference-dropdown">
+                  <option value="" disabled selected>Select Flag</option>
+                  <!-- Options populated by JS -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label dv-control-variable-label"
+                  >Control Variable:</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-control-variable"
+                  placeholder="e.g., TIME"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-lower-bound-label">Lower Bound:</label>
+                <input
+                  type="number"
+                  step="any"
+                  class="input-field dv-lower-bound"
+                  placeholder="Enter lower bound"
+                />
+              </div>
+              <div class="form-group">
+                <label class="label dv-upper-bound-label">Upper Bound:</label>
+                <input
+                  type="number"
+                  step="any"
+                  class="input-field dv-upper-bound"
+                  placeholder="Enter upper bound"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYLOAD Fields -->
+          <div class="dv-category-fields hidden" data-category="PAYLOAD">
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label class="label dv-control-variable-label"
+                  >Control Variable(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-control-variable"
+                  placeholder="e.g., MASS (comma-separated if multiple)"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-lower-bound-label"
+                  >Lower Bound(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-lower-bound"
+                  placeholder="e.g., 1000 (comma-separated)"
+                />
+              </div>
+              <div class="form-group">
+                <label class="label dv-upper-bound-label"
+                  >Upper Bound(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-upper-bound"
+                  placeholder="e.g., 5000 (comma-separated)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- AZIMUTH Fields -->
+          <div class="dv-category-fields hidden" data-category="AZIMUTH">
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label class="label dv-control-variable-label"
+                  >Control Variable(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-control-variable"
+                  placeholder="e.g., AZIMUTH_ANGLE (comma-separated)"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-lower-bound-label"
+                  >Lower Bound(s) (deg):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-lower-bound"
+                  placeholder="e.g., 0 (comma-separated)"
+                />
+              </div>
+              <div class="form-group">
+                <label class="label dv-upper-bound-label"
+                  >Upper Bound(s) (deg):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-upper-bound"
+                  placeholder="e.g., 360 (comma-separated)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- SEQUENCE Fields -->
+          <div class="dv-category-fields hidden" data-category="SEQUENCE">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-flag-label">Flag:</label>
+                <select class="input-field dv-flag reference-dropdown">
+                  <option value="" disabled selected>Select Flag</option>
+                  <!-- Options populated by JS -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label dv-control-variable-label"
+                  >Control Variable(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-control-variable"
+                  placeholder="e.g., DURATION (comma-separated)"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-lower-bound-label"
+                  >Lower Bound(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-lower-bound"
+                  placeholder="e.g., 10 (comma-separated)"
+                />
+              </div>
+              <div class="form-group">
+                <label class="label dv-upper-bound-label"
+                  >Upper Bound(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-upper-bound"
+                  placeholder="e.g., 100 (comma-separated)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- PROPULSION Fields -->
+          <div class="dv-category-fields hidden" data-category="PROPULSION">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-segment-label">Segment:</label>
+                <select class="input-field dv-segment reference-dropdown">
+                  <option value="" disabled selected>Select Segment</option>
+                  <!-- Options populated by JS (e.g., Stage names) -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label dv-control-variable-label"
+                  >Control Variable(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-control-variable"
+                  placeholder="e.g., THRUST_SCALE (comma-separated)"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-lower-bound-label"
+                  >Lower Bound(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-lower-bound"
+                  placeholder="e.g., 0.8 (comma-separated)"
+                />
+              </div>
+              <div class="form-group">
+                <label class="label dv-upper-bound-label"
+                  >Upper Bound(s):</label
+                >
+                <input
+                  type="text"
+                  class="input-field dv-upper-bound"
+                  placeholder="e.g., 1.2 (comma-separated)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- STEERING Fields -->
+          <div class="dv-category-fields hidden" data-category="STEERING">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="label dv-segment-label">Segment:</label>
+                <select class="input-field dv-segment reference-dropdown">
+                  <option value="" disabled selected>
+                    Select Steering Segment
+                  </option>
+                  <!-- Options populated by JS from active steering components -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label dv-segment-type-label">Segment Type:</label>
+                <select class="input-field dv-segment-type">
+                  <option value="" disabled selected>Select Type</option>
+                  <option value="CLG">CLG</option>
+                  <option value="ZERO_RATE">Zero Rate</option>
+                  <option value="CONST_BODYRATE">Constant Body Rate</option>
+                  <option value="PROFILE">Profile</option>
+                  <!-- Add other steering types if needed -->
+                </select>
+              </div>
+            </div>
+            <!-- Steering Sub-Type Dynamic Fields -->
+            <div class="dv-steering-sub-fields" style="margin-top: 10px">
+              <!-- Steering: CLG -->
+              <div
+                class="dv-steering-type-fields hidden"
+                data-segment-type="CLG"
+              >
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-axis-label">Axis:</label>
+                    <select class="input-field dv-axis">
+                      <option value="" disabled selected>Select Axis</option>
+                      <option value="pitch">Pitch</option>
+                      <option value="yaw">Yaw</option>
+                      <!-- Add other relevant axes -->
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-control-variable-label"
+                      >Control Variable:</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-control-variable"
+                      placeholder="e.g., GAIN"
+                    />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-lower-bound-label"
+                      >Lower Bound:</label
+                    >
+                    <input
+                      type="number"
+                      step="any"
+                      class="input-field dv-lower-bound"
+                      placeholder="Enter lower bound"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-upper-bound-label"
+                      >Upper Bound:</label
+                    >
+                    <input
+                      type="number"
+                      step="any"
+                      class="input-field dv-upper-bound"
+                      placeholder="Enter upper bound"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Steering: ZERO_RATE -->
+              <div
+                class="dv-steering-type-fields hidden"
+                data-segment-type="ZERO_RATE"
+              >
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label class="label dv-control-variable-label"
+                      >Control Variable(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-control-variable"
+                      placeholder="e.g., DURATION (comma-separated)"
+                    />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-lower-bound-label"
+                      >Lower Bound(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-lower-bound"
+                      placeholder="e.g., 0 (comma-separated)"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-upper-bound-label"
+                      >Upper Bound(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-upper-bound"
+                      placeholder="e.g., 10 (comma-separated)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Steering: CONST_BODYRATE -->
+              <div
+                class="dv-steering-type-fields hidden"
+                data-segment-type="CONST_BODYRATE"
+              >
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-control-variable-label"
+                      >Control Variable(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-control-variable"
+                      placeholder="e.g., RATE (comma-separated)"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-axis-label">Axis/Axes:</label>
+                    <input
+                      type="text"
+                      class="input-field dv-axis"
+                      placeholder="e.g., pitch,yaw (comma-separated)"
+                    />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-lower-bound-label"
+                      >Lower Bound(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-lower-bound"
+                      placeholder="e.g., -5,0 (comma-separated)"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-upper-bound-label"
+                      >Upper Bound(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-upper-bound"
+                      placeholder="e.g., 5,10 (comma-separated)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Steering: PROFILE -->
+              <div
+                class="dv-steering-type-fields hidden"
+                data-segment-type="PROFILE"
+              >
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-control-variable-label"
+                      >Control Variable:</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-control-variable"
+                      placeholder="e.g., PROFILE_VALUE"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-axis-label">Axis:</label>
+                    <select class="input-field dv-axis">
+                      <option value="" disabled selected>Select Axis</option>
+                      <option value="roll">Roll</option>
+                      <option value="pitch">Pitch</option>
+                      <option value="yaw">Yaw</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-ind-variable-label"
+                      >Independent Variable:</label
+                    >
+                    <select class="input-field dv-ind-variable">
+                      <option value="" disabled selected>Select Var</option>
+                      <option value="phaseTime">Phase Time</option>
+                      <option value="profileTime">Profile Time</option>
+                      <option value="missionTime">Mission Time</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-ind-vector-label"
+                      >Independent Vector Node(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-ind-vector"
+                      placeholder="Indices: e.g., 1,3,5"
+                    />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-lower-bound-label"
+                      >Lower Bound(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-lower-bound"
+                      placeholder="e.g., -10,-5,-2"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="label dv-upper-bound-label"
+                      >Upper Bound(s):</label
+                    >
+                    <input
+                      type="text"
+                      class="input-field dv-upper-bound"
+                      placeholder="e.g., 10,5,2"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+  </body>
+</html>

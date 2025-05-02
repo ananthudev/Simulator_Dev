@@ -1,0 +1,1500 @@
+/* Reset & Fonts */
+@import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  background-color: #141414; /* Slightly darker base */
+  color: #e0e0e0;
+  font-size: 13.5px; /* Slightly Reduced Base font size */
+  line-height: 1.55; /* Adjusted line height */
+}
+
+/* Generic Focus Style */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #5aaaff !important; /* Brighter focus */
+  outline-offset: 1px;
+}
+
+/* Accessibility */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Layout Helpers */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Navbar */
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e1e1e; /* Consistent dark theme */
+  padding: 0 25px; /* Adjusted padding */
+  color: #e0e0e0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 60px; /* Slightly reduced height */
+  border-bottom: 1px solid #303030; /* Softer border */
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  width: 150px; /* Adjusted logo size */
+  height: auto;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+}
+
+.main-nav ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  gap: 12px; /* Reduced gap */
+}
+
+.main-nav li {
+  display: flex;
+  align-items: center;
+}
+
+.main-nav a {
+  color: #cccccc; /* Slightly dimmer default */
+  text-decoration: none;
+  font-weight: 500; /* Regular weight */
+  font-size: 14px; /* Adjusted size */
+  transition: color 0.2s, background-color 0.2s;
+  padding: 7px 14px; /* Adjusted padding */
+  border-radius: 5px;
+}
+
+.main-nav a:hover {
+  color: #ffffff;
+  background: rgba(74, 144, 226, 0.15); /* Subtle hover */
+}
+
+/* Launch Button */
+.launch-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.launch-mission-btn {
+  background: linear-gradient(
+    90deg,
+    #e74c3c,
+    #f39c12
+  ); /* Red/Orange gradient */
+  color: white;
+  font-size: 15px; /* Adjusted size */
+  font-weight: 600;
+  padding: 9px 18px; /* Adjusted padding */
+  border: none;
+  border-radius: 5px; /* Consistent radius */
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Standard shadow */
+  transition: all 0.2s ease-in-out;
+}
+
+.launch-mission-btn:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Enhanced hover shadow */
+  background: linear-gradient(90deg, #f39c12, #e74c3c);
+  transform: translateY(-1px);
+}
+
+/* Mission Page Layout */
+.mission-page {
+  display: flex;
+  min-height: 100vh;
+  padding-top: 60px; /* Match navbar height */
+  background: #141414; /* Match body background */
+}
+
+.sidebar {
+  width: 240px; /* Reduced sidebar width */
+  background: #1e1e1e; /* Match navbar */
+  color: #cccccc;
+  padding: 20px 15px; /* Adjusted padding */
+  position: fixed;
+  height: calc(100vh - 60px); /* Match navbar height */
+  overflow-y: auto;
+  border-right: 1px solid #303030; /* Softer border */
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1e1e1e;
+}
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 3px;
+}
+
+.sidebar h1 {
+  font-size: 18px; /* Adjusted size */
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #383838;
+  color: #4a90e2;
+  font-weight: 600;
+  padding-left: 5px; /* Align with items */
+}
+
+.menu-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-tree li {
+  margin-bottom: 5px; /* Reduced margin */
+}
+
+.menu-tree a {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjusted gap */
+  padding: 9px 10px; /* Adjusted padding */
+  color: #cccccc;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: all 0.2s;
+  font-size: 14px; /* Adjusted menu item size */
+}
+
+.menu-tree a:hover {
+  background: rgba(74, 144, 226, 0.15);
+  color: #ffffff;
+}
+
+/* Style for the Add Stage button */
+.nav-add-stage {
+  color: #2ecc71 !important; /* Brighter green */
+  font-weight: 500;
+}
+
+.nav-add-stage:hover {
+  background: rgba(46, 204, 113, 0.15) !important;
+  color: #58d68d !important;
+}
+
+.nav-add-stage svg {
+  stroke: #2ecc71;
+  transition: stroke 0.2s;
+  width: 13px; /* Smaller icon */
+  height: 13px;
+}
+.nav-add-stage:hover svg {
+  stroke: #58d68d;
+}
+
+.submenu {
+  list-style: none;
+  padding-left: 20px; /* Adjusted indent */
+  margin-top: 6px;
+  margin-left: 5px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 4px;
+}
+
+.submenu li {
+  margin-bottom: 3px;
+}
+
+.submenu a {
+  font-size: 13px; /* Smaller */
+  padding: 5px 8px; /* Reduced padding */
+  display: block;
+  color: #aaa; /* Dimmer submenu items */
+}
+.submenu a:hover {
+  color: #eee;
+  background: rgba(74, 144, 226, 0.1);
+}
+
+/* Main Content */
+.mission-content {
+  flex: 1;
+  margin-left: 240px; /* Match sidebar width */
+  padding: 25px 35px; /* Adjusted padding */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+  scrollbar-width: thin;
+  scrollbar-color: #444 #141414;
+}
+.mission-content::-webkit-scrollbar {
+  width: 8px;
+}
+.mission-content::-webkit-scrollbar-track {
+  background: #141414;
+}
+.mission-content::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 4px;
+}
+
+/* Welcome Screen */
+.welcome-container {
+  text-align: center;
+  max-width: 800px;
+  width: 100%;
+  margin: 20px auto 40px auto; /* Added bottom margin */
+  padding: 30px 25px;
+  background: #1e1e1e; /* Consistent dark theme */
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  border: 1px solid #303030;
+}
+
+#welcome-message {
+  font-size: 2.1rem; /* Adjusted size */
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#welcome-tutorial {
+  font-size: 1rem; /* Adjusted size */
+  line-height: 1.65;
+  color: #b0b0b0; /* Adjusted grey */
+  text-align: left;
+  padding: 20px 25px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  margin: 0 auto;
+  max-width: 650px;
+}
+
+#welcome-tutorial strong {
+  color: #6bbdff; /* Adjusted blue */
+  font-weight: 600;
+}
+
+/* Forms General Styling */
+.active-form,
+.hidden-form {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.hidden-form {
+  /* This class is likely toggled by JS to hide the form */
+  display: none;
+}
+.active-form {
+  /* This class makes the form visible */
+  display: flex; /* Use flex to center the .form-container */
+}
+
+.form-container {
+  width: 100%;
+  max-width: 900px; /* Adjusted max-width */
+  background: #1e1e1e; /* Consistent dark theme */
+  border-radius: 8px;
+  padding: 25px 30px 30px 30px; /* Adjusted padding */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  margin-bottom: 30px;
+  border: 1px solid #303030;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Adjusted gap */
+  margin-bottom: 18px; /* Consistent margin */
+}
+
+.form-group {
+  flex: 1;
+  min-width: 200px; /* Adjusted min-width */
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* Gap between label and input */
+}
+
+.form-group.full-width {
+  flex-basis: 100%;
+  min-width: 100%;
+}
+
+.label {
+  font-size: 13px; /* Reduced label size */
+  font-weight: 500; /* Regular weight */
+  color: #ffffff; /* Adjusted grey */
+  margin-bottom: 0; /* Removed bottom margin, use gap in form-group */
+  display: block;
+}
+
+/* Input Fields (text, number, date, time, select) */
+.input-field {
+  width: 100%;
+  padding: 9px 12px; /* Adjusted padding */
+  border: 1px solid #383838; /* Adjusted border */
+  border-radius: 5px; /* Consistent radius */
+  background: #282828; /* Adjusted input background */
+  color: #e0e0e0;
+  font-size: 13.5px; /* Match base */
+  transition: all 0.2s;
+  line-height: 1.5;
+}
+
+.input-field::placeholder {
+  color: #666;
+}
+
+.input-field:focus {
+  border-color: #4a90e2;
+  background: #303030;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.15);
+}
+
+/* Specific Input Type Styling */
+input[type="date"],
+input[type="time"] {
+  min-height: 37px; /* Match calculated input height */
+  color-scheme: dark; /* Improve date/time picker theme */
+}
+
+/* Select Dropdown Specifics */
+select.input-field {
+  cursor: pointer;
+  padding-right: 12px; /* Ensure space for native arrow */
+}
+
+select.input-field option {
+  background-color: #282828;
+  color: #e0e0e0;
+  padding: 8px 12px;
+}
+
+/* Radio and Checkbox Groups */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 4px 0; /* Adjusted margin */
+  align-items: center;
+  min-height: 37px; /* Align with inputs */
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: #b0b0b0;
+  padding: 4px 0;
+}
+
+.radio-group input[type="radio"] {
+  cursor: pointer;
+  accent-color: #4a90e2;
+  width: 15px;
+  height: 15px;
+}
+
+/* Grid Layout for Multi-Input Groups (e.g., State Data) */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(110px, 1fr)
+  ); /* Adjust minmax */
+  gap: 12px; /* Adjusted gap */
+  margin: 4px 0;
+}
+
+/* Toggle Switch */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  height: 37px; /* Match input height */
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  height: 22px; /* Adjusted size */
+  width: 42px; /* Adjusted size */
+  background-color: #444; /* Default off state */
+  border-radius: 11px;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s;
+  border: 1px solid #555;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background-color: #aaa; /* Knob color */
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s, background-color 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-input:checked + .toggle-slider {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+.toggle-input:checked + .toggle-slider::before {
+  transform: translate(20px, -50%);
+  background-color: #fff;
+}
+
+/* OR Separator */
+.or-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-weight: 500;
+  font-size: 12px;
+  margin: 5px 0;
+  height: 37px;
+}
+
+/* Upload Section */
+.upload-data {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upload-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #b0b0b0;
+  margin-bottom: 0;
+}
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload,
+.clear-upload {
+  padding: 7px 14px; /* Adjusted padding */
+  border: none;
+  border-radius: 5px;
+  font-size: 12.5px; /* Adjusted size */
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.upload {
+  background-color: #4a90e2; /* Use theme blue */
+  color: #ffffff;
+  border: 1px solid #4a90e2;
+}
+.upload:hover {
+  background-color: #3a7bd5;
+  border-color: #3a7bd5;
+}
+.upload svg {
+  width: 14px;
+  height: 14px;
+}
+
+.clear-upload {
+  background-color: rgba(255, 100, 100, 0.15);
+  color: #ffaaaa;
+  padding: 5px 7px;
+  border: 1px solid rgba(255, 100, 100, 0.3);
+}
+.clear-upload:hover {
+  background-color: rgba(255, 100, 100, 0.3);
+  color: #ff6464;
+}
+.clear-upload svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+}
+
+.filename {
+  background: #282828;
+  border: 1px solid #383838;
+  color: #888;
+  padding: 7px 10px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  width: 100%;
+  text-align: left;
+  cursor: default;
+  min-height: 33px; /* Match button height */
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* Buttons */
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px; /* Reduced gap */
+  margin-top: 25px;
+  padding-top: 18px;
+  border-top: 1px solid #303030;
+  width: 100%;
+}
+
+.clear-btn,
+.next-btn,
+.add-stg,
+.secondary-button,
+.save-config-btn {
+  padding: 8px 18px; /* Adjusted padding */
+  border: 1px solid transparent; /* Base border */
+  border-radius: 5px;
+  font-size: 13px; /* Adjusted size */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.clear-btn {
+  background: rgba(220, 53, 69, 0.2); /* Bootstrap danger-ish */
+  color: #f8d7da;
+  border-color: rgba(220, 53, 69, 0.4);
+}
+.clear-btn:hover {
+  background: rgba(220, 53, 69, 0.4);
+  color: #ffffff;
+  border-color: rgba(220, 53, 69, 0.6);
+}
+
+.next-btn {
+  /* Primary action */
+  background: #007bff; /* Bootstrap primary */
+  color: white;
+  border-color: #007bff;
+}
+.next-btn:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
+.add-stg {
+  /* Add Event / Add Stage */
+  background-color: #28a745; /* Bootstrap success */
+  color: white;
+  padding: 8px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 0;
+  border-color: #28a745;
+}
+.add-stg:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.secondary-button {
+  background-color: #6c757d; /* Bootstrap secondary */
+  color: #fff;
+  border-color: #6c757d;
+}
+.secondary-button:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+/* Sections */
+.section-title {
+  color: #e0e0e0;
+  font-size: 16px; /* Adjusted size */
+  font-weight: 500;
+  margin: 25px 0 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #383838;
+}
+
+h3.section-title {
+  /* For payload etc. */
+  font-size: 15px;
+  margin: 20px 0 12px;
+  color: #c0c0c0;
+}
+
+/* Specific Form Adjustments */
+
+/* Environment Form */
+#enviro-form .or-text {
+  min-width: 30px;
+  flex-grow: 0;
+}
+
+/* Vehicle Form */
+#data-options,
+#orbital-options,
+#payload-section {
+  width: 100%;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px dashed #383838; /* Adjusted border */
+}
+
+#state-fields .grid-container,
+#launch-fields-ascend .grid-container,
+#launch-fields-projectile .grid-container,
+#state-fields-orbital .grid-container,
+#tle-fields .grid-container,
+#elements-fields .grid-container {
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(100px, 1fr)
+  ); /* Fine-tune grid */
+}
+
+/* Sequence Form & Steering Form Common */
+.sequence-tabs,
+.steering-tabs {
+  display: flex;
+  margin-bottom: 0;
+  border-bottom: 2px solid #383838; /* Adjusted border */
+  width: 100%;
+  background: #2a2a2a;
+  border-radius: 5px 5px 0 0;
+}
+
+.sequence-tab,
+.steering-tab {
+  padding: 10px 15px; /* Adjusted padding */
+  background: transparent;
+  border: none;
+  color: #999; /* Dimmer default tab color */
+  font-size: 13px; /* Adjusted size */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  text-align: center;
+  border-right: 1px solid #383838; /* Adjusted Separator */
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sequence-tab:last-child,
+.steering-tab:last-child {
+  border-right: none;
+}
+.sequence-tab:hover,
+.steering-tab:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: #eee;
+}
+.sequence-tab.active,
+.steering-tab.active {
+  background: #1e1e1e; /* Match form bg */
+  color: #4a90e2;
+  font-weight: 600;
+}
+.sequence-tab.active::after,
+.steering-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #4a90e2;
+}
+
+.sequence-tab-contents {
+  background: #1e1e1e; /* Match form bg */
+  border-radius: 0 0 5px 5px;
+  padding: 20px 25px; /* Adjusted padding */
+  border: 1px solid #383838; /* Adjusted border */
+  border-top: none;
+  display: flex;
+  gap: 25px; /* Adjusted Space between form fields and event list */
+}
+
+.form-fields {
+  /* Left side of sequence/steering */
+  display: flex;
+  flex-direction: column;
+  width: 40%; /* Adjusted width distribution */
+  min-width: 300px; /* Adjusted min width */
+  gap: 12px; /* Adjusted Space between elements inside */
+}
+.form-fields .form-row {
+  margin-bottom: 0;
+}
+
+.event-list-container {
+  /* Right side of sequence/steering */
+  width: 60%; /* Adjusted width distribution */
+  display: flex;
+  flex-direction: column;
+}
+
+.event-list-container > .label {
+  /* Label for the list */
+  margin-bottom: 8px;
+}
+
+.event-list {
+  flex-grow: 1;
+  max-height: 450px; /* Adjusted max-height */
+  min-height: 250px; /* Adjusted minimum height */
+  overflow-y: auto;
+  background: #282828; /* List background */
+  border-radius: 5px;
+  padding: 12px;
+  border: 1px solid #383838;
+  scrollbar-width: thin;
+  scrollbar-color: #555 #282828;
+}
+.event-list::-webkit-scrollbar {
+  width: 7px;
+}
+.event-list::-webkit-scrollbar-track {
+  background: #282828;
+  border-radius: 4px;
+}
+.event-list::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 4px;
+}
+.event-list::-webkit-scrollbar-thumb:hover {
+  background-color: #666;
+}
+
+.event-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px; /* Adjusted padding */
+  margin-bottom: 8px; /* Adjusted spacing */
+  background: #303030; /* Event item background */
+  border: 1px solid #404040;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+.event-item:hover {
+  background: #383838;
+  border-color: #505050;
+}
+
+.event-content {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1.5fr; /* Adjusted columns slightly */
+  gap: 8px 12px; /* Adjusted Row and column gap */
+  flex-grow: 1;
+  margin-right: 10px;
+  align-items: center; /* Vertically align items */
+}
+.event-content span {
+  font-size: 12.5px; /* Smaller text */
+  color: #ccc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.event-content .event-flag {
+  color: #6bbdff;
+  font-weight: 500;
+}
+.event-content .trigger-type {
+  color: #a18dff;
+}
+.event-content .trigger-value {
+  color: #61e282;
+  font-family: monospace;
+}
+.event-content .reference-flag {
+  color: #ffb86c;
+}
+.event-content .event-comment {
+  color: #888;
+  font-style: italic;
+  grid-column: 1 / -1;
+  background: none;
+  padding: 4px 0 0 0;
+  white-space: normal;
+  font-size: 12px; /* Smaller comment */
+  line-height: 1.3;
+}
+
+.event-actions {
+  display: flex;
+  align-items: center;
+}
+
+.delete-event {
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  color: #888; /* Dimmer delete icon */
+  border-radius: 4px;
+  display: flex;
+  transition: all 0.15s ease;
+}
+.delete-event:hover {
+  background: rgba(255, 59, 48, 0.15);
+  color: #ff8a8a;
+}
+.delete-event svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+/* Sequence Form Specific */
+#sequence-form .form-container {
+  margin: 0 auto;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+#sequence-form .button-group {
+  margin-top: 20px;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Steering Form Specific Layout - Two Panel */
+#steering-form .form-container {
+  margin: 0 auto;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sequence-selector-group {
+  /* Used in Steering */
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  background: #1e1e1e;
+  border-radius: 6px;
+  padding: 18px 20px;
+  border: 1px solid #303030;
+}
+
+.steering-main-content {
+  display: flex;
+  flex-direction: row;
+  gap: 20px; /* Adjusted gap */
+  width: 100%;
+  min-height: 500px; /* Adjusted min-height */
+}
+
+.steering-component-panel {
+  /* Left Panel */
+  width: 280px; /* Adjusted width */
+  flex-shrink: 0;
+  background: #1e1e1e;
+  border-radius: 6px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: fit-content;
+  border: 1px solid #303030;
+}
+.steering-component-panel .panel-title {
+  color: #4a90e2;
+  font-size: 15px; /* Adjusted size */
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #383838;
+}
+
+.component-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.component-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  background: #2a2a2a;
+  border-radius: 4px;
+  font-size: 13px;
+  border: 1px solid #383838;
+}
+.component-list li span {
+  flex-grow: 1;
+  margin-right: 8px;
+  color: #ffffff;
+}
+
+.add-component-btn,
+.remove-component-btn {
+  background: none;
+  border: none;
+  font-size: 18px; /* Adjusted icons */
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+.add-component-btn {
+  color: #2ecc71; /* Green add */
+}
+.add-component-btn:hover {
+  background: rgba(46, 204, 113, 0.15);
+  color: #58d68d;
+}
+.remove-component-btn {
+  color: #e74c3c; /* Red remove */
+}
+.remove-component-btn:hover {
+  background: rgba(231, 76, 60, 0.15);
+  color: #f1948a;
+}
+
+.dynamic-component-adders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #383838;
+}
+.secondary-button.add-dynamic-btn {
+  text-align: center;
+  padding: 7px 12px; /* Adjusted padding */
+  font-size: 12.5px;
+}
+
+.active-list li {
+  cursor: pointer;
+  border: 1px solid #383838;
+  transition: background 0.15s, border-color 0.15s;
+}
+.active-list li:hover {
+  background: #303030;
+}
+.active-list li.selected {
+  background: rgba(74, 144, 226, 0.1);
+  border-color: #4a90e2;
+  font-weight: 500;
+}
+.active-list li.selected span {
+  color: #e0e0e0;
+}
+
+.steering-config-area {
+  /* Right Panel */
+  flex: 1;
+  background: #1e1e1e;
+  border-radius: 6px;
+  padding: 20px 25px;
+  border: 1px solid #303030;
+  min-height: 500px; /* Match container min-height */
+  display: flex;
+  flex-direction: column;
+}
+
+.config-placeholder {
+  text-align: center;
+  color: #777; /* Dimmer placeholder text */
+  font-size: 14px; /* Smaller placeholder text */
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  border: 1.5px dashed #383838;
+  border-radius: 5px;
+}
+
+.config-area-title {
+  color: #e0e0e0;
+  font-size: 16px; /* Adjusted size */
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+.config-area-title span {
+  color: #4a90e2;
+  font-weight: 600;
+}
+
+/* Config Tabs (Start/Stop/Steering) */
+.config-tabs {
+  display: flex;
+  margin-bottom: 18px;
+  border-bottom: 2px solid #383838;
+}
+.config-tab {
+  padding: 10px 18px; /* Adjusted padding */
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #999;
+  font-size: 14px; /* Adjusted size */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -2px;
+}
+.config-tab:hover {
+  color: #eee;
+}
+.config-tab.active {
+  color: #4a90e2;
+  font-weight: 600;
+  border-bottom-color: #4a90e2;
+}
+
+.config-tab-content {
+  /* Wrapper for tab panes */
+}
+.tab-pane {
+  /* Start/Stop/Steering content */
+  background: #282828; /* Pane background */
+  border-radius: 5px;
+  padding: 20px;
+  border: 1px solid #383838;
+}
+.tab-pane.hidden {
+  display: none !important;
+} /* Ensure !important if needed */
+.tab-pane.active {
+  display: block;
+}
+
+.tab-pane-title {
+  color: #ccc;
+  font-size: 14.5px; /* Adjusted size */
+  font-weight: 500;
+  margin: -20px -20px 18px -20px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #383838;
+  background: #303030;
+  border-radius: 5px 5px 0 0;
+}
+.tab-pane .form-row {
+  margin-bottom: 12px;
+  gap: 15px;
+} /* Adjust spacing inside */
+
+.section-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #383838;
+}
+.status-indicator {
+  margin-right: 12px;
+  font-size: 18px; /* Adjusted indicator */
+  line-height: 1;
+}
+#start-config-status,
+#stop-config-status,
+#steering-config-status {
+  color: #555; /* Default/incomplete state */
+}
+.save-config-btn {
+  /* Using standard button styles (.next-btn like) */
+  background-color: #007bff;
+  border-color: #007bff;
+  padding: 7px 15px; /* Adjust padding */
+}
+.save-config-btn:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+.save-config-btn.saved {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+/* Dynamic Fields Area within Steering Tab */
+.dynamic-steering-fields {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 15px;
+  margin: 12px 0;
+  border: 1px dashed #444;
+  min-height: 80px; /* Adjusted placeholder height */
+}
+.steering-params {
+  display: none;
+}
+.steering-params[style*="display: block;"],
+.steering-params[style*="display: flex;"] {
+  display: block;
+}
+.steering-params-clg-sub {
+  display: none;
+}
+
+/* Profile download template button */
+#download-profile-template {
+  margin-top: 8px;
+  padding: 7px 15px; /* Match other secondary buttons */
+}
+
+/* Steering Actions (Bottom Buttons) */
+.steering-actions {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #303030;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Stopping Condition Form */
+#stopping-form .form-container {
+  max-width: 750px; /* Adjusted size */
+}
+#stopping-form .form-fields {
+  min-height: auto;
+}
+#stopping-form .form-row {
+  align-items: flex-end;
+}
+#flag-fields,
+#time-fields,
+#altitude-fields {
+  gap: 18px;
+}
+#time-fields .form-group:last-child,
+#altitude-fields .form-group:last-child {
+  display: none;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 220px;
+  }
+  .mission-content {
+    margin-left: 220px;
+    padding: 20px 25px;
+  }
+  .form-container {
+    max-width: 95%;
+    padding: 20px 25px;
+  }
+
+  .sequence-tab-contents,
+  .steering-main-content {
+    flex-direction: column;
+  }
+
+  .form-fields,
+  .event-list-container,
+  .steering-component-panel,
+  .steering-config-area {
+    width: 100%;
+    min-width: auto;
+    max-width: 100%;
+  }
+
+  .event-list-container {
+    margin-top: 20px;
+  }
+  .steering-config-area {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 992px) {
+  html,
+  body {
+    font-size: 13px;
+  } /* Further reduce base font on smaller screens */
+  .nav-bar {
+    padding: 0 15px;
+    height: 55px;
+  }
+  .launch-container {
+    display: none;
+  }
+  .logo-img {
+    width: 130px;
+  }
+  .main-nav a {
+    font-size: 13.5px;
+    padding: 6px 9px;
+  }
+
+  .sidebar {
+    width: 200px;
+  }
+  .mission-content {
+    margin-left: 200px;
+    padding: 15px 20px;
+  }
+  .mission-page {
+    padding-top: 55px;
+  }
+  .sidebar {
+    height: calc(100vh - 55px);
+  }
+  .mission-content {
+    height: calc(100vh - 55px);
+  }
+
+  .welcome-container {
+    padding: 20px 15px;
+  }
+  #welcome-message {
+    font-size: 1.8rem;
+  }
+  #welcome-tutorial {
+    font-size: 0.95rem;
+    padding: 15px;
+  }
+
+  .form-row {
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  .form-group {
+    min-width: 160px;
+  }
+  .grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  .button-group {
+    margin-top: 18px;
+    padding-top: 15px;
+  }
+  .clear-btn,
+  .next-btn,
+  .add-stg,
+  .secondary-button,
+  .save-config-btn {
+    padding: 8px 16px;
+    font-size: 12.5px;
+  }
+
+  .sequence-tab,
+  .steering-tab {
+    font-size: 12.5px;
+    padding: 9px 10px;
+  }
+  .sequence-tab-contents {
+    padding: 18px 20px;
+    gap: 18px;
+  }
+  .event-list {
+    max-height: 350px;
+  }
+
+  .steering-component-panel {
+    width: 100%;
+    margin-bottom: 18px;
+  }
+  .steering-config-area {
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -220px; /* Hide off-screen */
+    width: 220px; /* Fixed width when open */
+    z-index: 1100;
+    transition: left 0.25s ease-in-out;
+  }
+  .mission-content {
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .nav-bar {
+    flex-wrap: wrap;
+    height: auto;
+    padding-bottom: 8px;
+  }
+  .main-nav {
+    order: 3;
+    width: 100%;
+    margin-top: 8px;
+    justify-content: center;
+    gap: 5px;
+  }
+  .launch-container {
+    position: static;
+    transform: none;
+    order: 2;
+    margin: 8px 0;
+  }
+  .logo {
+    order: 1;
+  }
+
+  .form-container {
+    padding: 15px;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-group {
+    min-width: 100%;
+  }
+  .grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  }
+
+  .sequence-tab,
+  .steering-tab {
+    font-size: 12px;
+    padding: 7px 8px;
+    white-space: normal;
+  }
+  .sequence-tab-contents {
+    padding: 12px 15px;
+  }
+  .event-content {
+    grid-template-columns: 1fr 1fr;
+  }
+  .event-content .event-comment {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Fixes for styles possibly copied from other files */
+.next-stage-btn,
+.next-motor-btn,
+.next-nozzle-btn {
+  /* Consolidate with .next-btn if possible */
+}
+
+/* Stage heading with delete button */
+.stage-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #383838;
+}
+.stage-heading h2,
+.stage-heading h3 {
+  margin: 0;
+  font-size: 1.2em; /* Adjusted size */
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.delete-stage-btn {
+  background-color: rgba(231, 76, 60, 0.15); /* Use theme red */
+  color: #f1948a;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+.delete-stage-btn:hover {
+  background-color: rgba(231, 76, 60, 0.3);
+  color: #fff;
+}
+
+/* Ensure hidden class works reliably */
+.hidden {
+  display: none !important;
+}
+
+/* Stopping Criteria Header Style */
+.stop-header {
+  color: #8fa7c6;
+  display: block;
+  padding: 5px 0;
+  cursor: default;
+  font-weight: 500;
+  margin-top: 5px;
+}

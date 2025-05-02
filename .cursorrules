@@ -1,0 +1,12 @@
+# Astra GUI Development Rules
+
+1. DO NOT break existing functionality when implementing new features
+2. Maintain backward compatibility with existing code
+3. Follow established coding patterns and conventions in the project
+4. dont break the codebase
+5. Document new functions and features
+6. Only implement best coding practises,UI/UX practises, for the smooth optimal functionality of the project
+7. When implementing the new optimization module:
+   - Build incrementally
+   - Validate each step works with existing components
+   - Keep code modular and maintainable 

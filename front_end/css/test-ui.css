@@ -1,0 +1,50 @@
+.test-button {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.test-button:hover {
+  opacity: 0.9;
+}
+
+.test-button.main {
+  background-color: #4caf50;
+}
+
+.test-button.secondary {
+  background-color: #2196f3;
+  padding: 5px 10px;
+}
+
+.test-button.stage {
+  background-color: #ff9800; /* Orange */
+  padding: 5px 10px;
+}
+
+.test-button.motor {
+  background-color: #9c27b0; /* Purple */
+  padding: 5px 10px;
+}
+
+.test-container {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.main-test-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}

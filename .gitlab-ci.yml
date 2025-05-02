@@ -1,0 +1,22 @@
+# .gitlab-ci.yml
+
+# Use a Node.js image
+default:
+  image: node:18 # Or your project's Node.js version
+
+stages:
+  - install
+  - quality
+  - test
+  - build
+  - release # Add the release stage here
+  # .post stage is implicitly available
+# Cache node_modules
+# ... existing code ...
+stages:
+  - dummy
+
+dummy-job:
+  stage: dummy
+  script:
+    - echo "This is a placeholder pipeline. No build, test, or deploy steps yet."
