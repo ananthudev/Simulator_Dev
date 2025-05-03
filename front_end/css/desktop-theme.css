@@ -1554,3 +1554,116 @@ h3.section-title {
   font-weight: 500;
   margin-top: 5px;
 }
+
+/* Map Component Styles - Added for Leaflet integration */
+.map-interface {
+  margin-top: 15px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-top: 15px;
+}
+
+.map-container {
+  width: 100%;
+  height: 400px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.constraint-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Override default leaflet styles for dark theme */
+.leaflet-container {
+  background: #1a1a1a;
+}
+
+.leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.leaflet-control-attribution a {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Coordinates Table Styles */
+.coordinates-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  color: #e0e0e0;
+}
+
+.coordinates-table th {
+  background-color: rgba(30, 30, 30, 0.5);
+  padding: 10px;
+  text-align: left;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.coordinates-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.coordinates-table tr:hover {
+  background-color: rgba(40, 40, 40, 0.5);
+}
+
+.coord-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.coord-btn {
+  background: none;
+  border: none;
+  color: #4a90e2;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.coord-btn:hover {
+  color: #5eaaf5;
+}
+
+.coord-btn.delete {
+  color: #e74c3c;
+}
+
+.coord-btn.delete:hover {
+  color: #ff6b6b;
+}
+
+/* Add Coordinate Controls */
+.add-coordinate-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  align-items: flex-end;
+}
+
+.add-coordinate-controls .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.add-coordinate-btn {
+  height: 38px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0 15px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.add-coordinate-btn:hover {
+  background-color: #3a80d2;
+}

@@ -789,13 +789,32 @@ document.addEventListener("DOMContentLoaded", function () {
             </select>
           </div>
         </div>
+        
         <div class="form-row">
           <div class="form-group">
-            <label class="label">Position:</label>
-            <input type="text" class="input-field constraint-position" placeholder="Enter position">
+            <label class="label">Constraint Type:</label>
+            <select class="input-field constraint-dciss-type">
+              <option value="" disabled selected>Select Constraint Type</option>
+              <option value="Line">Line</option>
+              <option value="Ellipse">Ellipse</option>
+              <option value="Box">Box</option>
+            </select>
           </div>
         </div>
+        <div class="dciss-parameters-container">
+          <!-- Constraint type specific fields will be added here -->
+        </div>
       `;
+
+      // Add listener for Constraint type changes (just like in DCISS_IMPACT)
+      const dcissTypeSelect = additionalFieldsContainer.querySelector(
+        ".constraint-dciss-type"
+      );
+      if (dcissTypeSelect) {
+        dcissTypeSelect.addEventListener("change", (e) =>
+          handleDcissTypeChange(e, instance)
+        );
+      }
     } else if (constraintType === "DCISS_IMPACT") {
       additionalFieldsContainer.innerHTML = `
         <div class="form-row">
@@ -919,12 +938,8 @@ document.addEventListener("DOMContentLoaded", function () {
             </select>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="label">Line Bounds:</label>
-            <textarea class="input-field constraint-dciss-line-bounds" placeholder="Enter line bounds in format [[lat1,lon1],[lat2,lon2]]" rows="3"></textarea>
-          </div>
-        </div>
+        <input type="hidden" class="constraint-dciss-line-bounds">
+        <div class="map-placeholder"><small>A map will appear here to select coordinates</small></div>
       `;
     } else if (dcissType === "Ellipse") {
       parametersContainer.innerHTML = `
@@ -932,27 +947,26 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="form-group">
             <label class="label">Semi Major:</label>
             <input type="number" step="any" class="input-field constraint-dciss-semi-major" placeholder="Enter semi major">
+            <small class="input-help">The semi-major axis of the ellipse (in meters)</small>
           </div>
           <div class="form-group">
             <label class="label">Semi Minor:</label>
             <input type="number" step="any" class="input-field constraint-dciss-semi-minor" placeholder="Enter semi minor">
+            <small class="input-help">The semi-minor axis of the ellipse (in meters)</small>
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group">
+          <div class="form-group full-width">
             <label class="label">Center:</label>
-            <input type="text" class="input-field constraint-dciss-center" placeholder="Enter center coordinates [lat,lon]">
+            <input type="text" class="input-field constraint-dciss-center" placeholder="Enter center coordinates as latitude, longitude">
+            <small class="input-help">Simply enter values separated by comma - Example: 28.574, 77.312</small>
           </div>
         </div>
       `;
     } else if (dcissType === "Box") {
       parametersContainer.innerHTML = `
-        <div class="form-row">
-          <div class="form-group">
-            <label class="label">Line Bound:</label>
-            <textarea class="input-field constraint-dciss-line-bound" placeholder="Enter line bound coordinates" rows="3"></textarea>
-          </div>
-        </div>
+        <input type="hidden" class="constraint-dciss-line-bound">
+        <div class="map-placeholder"><small>A map will appear here to select coordinates</small></div>
       `;
     }
   }
@@ -1283,6 +1297,9 @@ document.addEventListener("DOMContentLoaded", function () {
             ".constraint-custom-input"
           );
           const positionInput = instance.querySelector(".constraint-position");
+          const dcissTypeSelect = instance.querySelector(
+            ".constraint-dciss-type"
+          );
 
           if (tiInput) constraint.ti = parseFloat(tiInput.value);
           if (tfInput) constraint.tf = parseFloat(tfInput.value);
@@ -1290,6 +1307,129 @@ document.addEventListener("DOMContentLoaded", function () {
             constraint.time_point = parseFloat(timePointInput.value);
           if (inputSelect) constraint.input = inputSelect.value;
           if (positionInput) constraint.Position = positionInput.value;
+
+          // Handle Constraint Type parameters (similar to DCISS_IMPACT)
+          if (dcissTypeSelect && dcissTypeSelect.value) {
+            // Add Parameters if they don't exist yet
+            if (!constraint.Parameters) {
+              constraint.Parameters = {};
+            }
+
+            // Set constraint type
+            constraint.Parameters.constraint = dcissTypeSelect.value;
+
+            if (dcissTypeSelect.value === "Line") {
+              const positionInput = instance.querySelector(
+                ".constraint-dciss-position"
+              );
+              const lineBoundsInput = instance.querySelector(
+                ".constraint-dciss-line-bounds"
+              );
+
+              if (positionInput)
+                constraint.Parameters.Position = positionInput.value;
+              if (lineBoundsInput) {
+                try {
+                  // Try to parse as JSON first
+                  const lineBoundsText = lineBoundsInput.value.trim();
+
+                  // Format expected: [[lat1,lon1],[lat2,lon2]]
+                  if (
+                    lineBoundsText.startsWith("[") &&
+                    lineBoundsText.endsWith("]")
+                  ) {
+                    constraint.Parameters.line_bounds = {
+                      l1: JSON.parse(lineBoundsText),
+                    };
+                  } else {
+                    constraint.Parameters.line_bounds = {
+                      l1: lineBoundsText,
+                    };
+                  }
+                } catch (e) {
+                  console.warn("Could not parse line bounds as JSON:", e);
+                  constraint.Parameters.line_bounds = {
+                    l1: lineBoundsInput.value,
+                  };
+                }
+              }
+            } else if (dcissTypeSelect.value === "Ellipse") {
+              const semiMajorInput = instance.querySelector(
+                ".constraint-dciss-semi-major"
+              );
+              const semiMinorInput = instance.querySelector(
+                ".constraint-dciss-semi-minor"
+              );
+              const centerInput = instance.querySelector(
+                ".constraint-dciss-center"
+              );
+
+              if (semiMajorInput)
+                constraint.Parameters.SemiMajor = parseFloat(
+                  semiMajorInput.value
+                );
+              if (semiMinorInput)
+                constraint.Parameters.SemiMinor = parseFloat(
+                  semiMinorInput.value
+                );
+              if (centerInput && centerInput.value.trim()) {
+                try {
+                  const centerText = centerInput.value.trim();
+
+                  // Check if it's already in array format
+                  if (centerText.startsWith("[") && centerText.endsWith("]")) {
+                    constraint.Parameters.Center = JSON.parse(centerText);
+                  } else {
+                    // Parse comma-separated values
+                    const parts = centerText
+                      .split(",")
+                      .map((part) => parseFloat(part.trim()));
+
+                    // If we have two valid numbers, use them as coordinates
+                    if (
+                      parts.length === 2 &&
+                      !isNaN(parts[0]) &&
+                      !isNaN(parts[1])
+                    ) {
+                      constraint.Parameters.Center = parts;
+                    } else {
+                      // Fall back to original text if parsing fails
+                      console.warn(
+                        "Could not parse center coordinates from:",
+                        centerText
+                      );
+                      constraint.Parameters.Center = centerText;
+                    }
+                  }
+                } catch (e) {
+                  console.warn("Error parsing center coordinates:", e);
+                  constraint.Parameters.Center = centerInput.value;
+                }
+              }
+            } else if (dcissTypeSelect.value === "Box") {
+              const lineBoundInput = instance.querySelector(
+                ".constraint-dciss-line-bound"
+              );
+              if (lineBoundInput) {
+                try {
+                  // Try to parse as JSON array
+                  const lineBoundText = lineBoundInput.value.trim();
+                  if (
+                    lineBoundText.startsWith("[") &&
+                    lineBoundText.endsWith("]")
+                  ) {
+                    constraint.Parameters.Line_Bound =
+                      JSON.parse(lineBoundText);
+                  } else {
+                    constraint.Parameters.Line_Bound = lineBoundText;
+                  }
+                } catch (e) {
+                  console.warn("Could not parse line bound as JSON:", e);
+                  constraint.Parameters.Line_Bound = lineBoundInput.value;
+                }
+              }
+            }
+          }
         } else if (constraintType === "DCISS_IMPACT") {
           const dcissTypeSelect = instance.querySelector(
             ".constraint-dciss-type"
@@ -1353,17 +1493,37 @@ document.addEventListener("DOMContentLoaded", function () {
                 constraint.Parameters.SemiMinor = parseFloat(
                   semiMinorInput.value
                 );
-              if (centerInput) {
+              if (centerInput && centerInput.value.trim()) {
                 try {
-                  // Try to parse as array [lat,lon]
                   const centerText = centerInput.value.trim();
+
+                  // Check if it's already in array format
                   if (centerText.startsWith("[") && centerText.endsWith("]")) {
                     constraint.Parameters.Center = JSON.parse(centerText);
                   } else {
-                    constraint.Parameters.Center = centerText;
+                    // Parse comma-separated values
+                    const parts = centerText
+                      .split(",")
+                      .map((part) => parseFloat(part.trim()));
+
+                    // If we have two valid numbers, use them as coordinates
+                    if (
+                      parts.length === 2 &&
+                      !isNaN(parts[0]) &&
+                      !isNaN(parts[1])
+                    ) {
+                      constraint.Parameters.Center = parts;
+                    } else {
+                      // Fall back to original text if parsing fails
+                      console.warn(
+                        "Could not parse center coordinates from:",
+                        centerText
+                      );
+                      constraint.Parameters.Center = centerText;
+                    }
                   }
                 } catch (e) {
-                  console.warn("Could not parse center as JSON:", e);
+                  console.warn("Error parsing center coordinates:", e);
                   constraint.Parameters.Center = centerInput.value;
                 }
               }
@@ -1402,7 +1562,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================
-  // DESIGN VARIABLE FUNCTIONS
+  // DESIGN VARIABLE ELEMENTS
   // =========================================
 
   // Function to populate relevant dropdowns in design variables

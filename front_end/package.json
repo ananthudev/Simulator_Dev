@@ -54,6 +54,7 @@
     }
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "my-electron-app": "file:"
   }
 }
