@@ -78,6 +78,18 @@
 - [ ] Custom atmosphere model support
 - [ ] Batch simulation capability
 
+### Steering Module Updates
+
+- [ ] Update basic steering components to allow multiple instances (up to 9 per type)
+  - Remove singleton behavior from verticalAscend, pitchHold, constantPitch, and gravityTurn
+  - Add instance numbering to component names (e.g., "Vertical Ascend 1", "Vertical Ascend 2")
+  - Implement limit of 9 instances per basic component type
+  - Add unique identifiers for instances
+- [ ] Expose steering component names to optimization section
+  - Create data access interface between steering module and optimization module
+  - Add steering component selection options in design variables section
+  - Ensure component references update when components are renamed or deleted
+
 ### Documentation
 
 - [ ] User manual creation

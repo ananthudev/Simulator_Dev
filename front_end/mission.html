@@ -1155,7 +1155,7 @@
               <button
                 type="submit"
                 class="next-btn"
-                onclick="saveSequenceConfiguration()"
+                onclick="saveSequenceConfiguration(); return false;"
               >
                 Save
               </button>
@@ -1169,31 +1169,44 @@
             <h2 class="section-title">Steering Configuration</h2>
 
             <!-- Top: Sequence Selection -->
-            <div class="form-row">
-              <div class="form-group sequence-selector-group">
-                <label for="sequence" class="label">Sequence:</label>
-                <select id="sequence" class="input-field" required>
-                  <option value="">Select Sequence</option>
-                  <option value="123">123</option>
-                  <option value="231">231</option>
-                  <option value="312">312</option>
-                  <option value="132">132</option>
-                  <option value="321">321</option>
-                  <option value="213">213</option>
-                  <option value="121">121</option>
-                  <option value="232">232</option>
-                  <option value="313">313</option>
-                  <option value="131">131</option>
-                  <option value="323">323</option>
-                  <option value="212">212</option>
-                </select>
+            <div class="steering-panel steering-header-panel">
+              <h3 class="panel-title">Sequence Selection</h3>
+              <p class="panel-description">
+                Select a sequence to define the order of body rotation axes
+                (1=Roll, 2=Pitch, 3=Yaw)
+              </p>
+              <div class="sequence-selector-container">
+                <div class="form-group">
+                  <label for="sequence" class="label">Sequence:</label>
+                  <select id="sequence" class="input-field" required>
+                    <option value="">Select Sequence</option>
+                    <option value="123">123 (Roll → Pitch → Yaw)</option>
+                    <option value="231">231 (Pitch → Yaw → Roll)</option>
+                    <option value="312">312 (Yaw → Roll → Pitch)</option>
+                    <option value="132">132 (Roll → Yaw → Pitch)</option>
+                    <option value="321">321 (Yaw → Pitch → Roll)</option>
+                    <option value="213">213 (Pitch → Roll → Yaw)</option>
+                    <option value="121">121 (Roll → Pitch → Roll)</option>
+                    <option value="232">232 (Pitch → Yaw → Pitch)</option>
+                    <option value="313">313 (Yaw → Roll → Yaw)</option>
+                    <option value="131">131 (Roll → Yaw → Roll)</option>
+                    <option value="323">323 (Yaw → Pitch → Yaw)</option>
+                    <option value="212">212 (Pitch → Roll → Pitch)</option>
+                  </select>
+                </div>
+                <div
+                  class="sequence-help-icon"
+                  title="The sequence defines the rotation order of your vehicle's body axes"
+                >
+                  ?
+                </div>
               </div>
             </div>
 
             <!-- Main Layout: Left Panel (Component Selection) + Right Panel (Configuration) -->
             <div class="steering-main-content">
               <!-- Left Panel: Component Selection/Management -->
-              <aside class="steering-component-panel">
+              <aside class="steering-component-panel steering-panel">
                 <h3 class="panel-title">Available Components</h3>
                 <ul id="available-components-list" class="component-list">
                   <li data-type="verticalAscend">
@@ -1240,23 +1253,29 @@
                       +
                     </button>
                   </li>
+                  <li data-type="profile">
+                    <span>Profile</span>
+                    <button
+                      type="button"
+                      class="add-component-btn"
+                      data-type="profile"
+                      title="Add Profile"
+                    >
+                      +
+                    </button>
+                  </li>
+                  <li data-type="coasting">
+                    <span>Coasting</span>
+                    <button
+                      type="button"
+                      class="add-component-btn"
+                      data-type="coasting"
+                      title="Add Coasting"
+                    >
+                      +
+                    </button>
+                  </li>
                 </ul>
-                <div class="dynamic-component-adders">
-                  <button
-                    id="add-profile-component-btn"
-                    type="button"
-                    class="secondary-button add-dynamic-btn"
-                  >
-                    Add Profile
-                  </button>
-                  <button
-                    id="add-coasting-component-btn"
-                    type="button"
-                    class="secondary-button add-dynamic-btn"
-                  >
-                    Add Coasting
-                  </button>
-                </div>
                 <h3 class="panel-title">Active Components</h3>
                 <ul
                   id="active-components-list"
@@ -1268,7 +1287,7 @@
               </aside>
 
               <!-- Right Panel: Configuration Area -->
-              <section class="steering-config-area">
+              <section class="steering-config-area steering-panel">
                 <div
                   id="steering-config-placeholder"
                   class="config-placeholder"
@@ -1746,7 +1765,7 @@
             <!-- END steering-main-content -->
 
             <!-- Bottom Actions -->
-            <div class="button-group steering-actions">
+            <div class="steering-panel steering-footer-panel">
               <button id="previewConfig" type="button" class="secondary-button">
                 Preview Configuration
               </button>

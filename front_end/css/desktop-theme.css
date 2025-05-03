@@ -940,15 +940,73 @@ h3.section-title {
   gap: 18px;
 }
 
-.sequence-selector-group {
-  /* Used in Steering */
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
+/* Steering Panel Structure - Unified Styling */
+.steering-panel {
   background: #1e1e1e;
   border-radius: 6px;
-  padding: 18px 20px;
   border: 1px solid #303030;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.steering-header-panel {
+  padding: 20px 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.steering-header-panel .panel-title {
+  color: #4a90e2;
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #383838;
+}
+
+.steering-header-panel .panel-description {
+  color: #aaa;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.steering-footer-panel {
+  padding: 18px 25px;
+  border-top: 1px solid #303030;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.sequence-selector-container {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.sequence-selector-container .form-group {
+  margin: 0;
+  flex: 1;
+  max-width: 300px;
+}
+
+.sequence-selector-container .sequence-help-icon {
+  color: #4a90e2;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  background: rgba(74, 144, 226, 0.1);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.sequence-selector-container .sequence-help-icon:hover {
+  background: rgba(74, 144, 226, 0.2);
 }
 
 .steering-main-content {
@@ -963,15 +1021,13 @@ h3.section-title {
   /* Left Panel */
   width: 280px; /* Adjusted width */
   flex-shrink: 0;
-  background: #1e1e1e;
-  border-radius: 6px;
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   height: fit-content;
-  border: 1px solid #303030;
 }
+
 .steering-component-panel .panel-title {
   color: #4a90e2;
   font-size: 15px; /* Adjusted size */

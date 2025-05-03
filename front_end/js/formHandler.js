@@ -2688,7 +2688,30 @@ function saveSteeringConfigToFinalData() {
       }
     };
 
-    const componentKey = config.start_identity; // Use start identity as the key
+    // Generate a readable component key based on the component type and flag number
+    let componentKey = "";
+    if (config.start_identity.startsWith("VA_")) {
+      const instanceNum = config.start_identity.split("_").pop(); // Get number from VA_START_1
+      componentKey = `Vertical_Ascend_${instanceNum}`;
+    } else if (config.start_identity.startsWith("PH_")) {
+      const instanceNum = config.start_identity.split("_").pop();
+      componentKey = `Pitch_Hold_${instanceNum}`;
+    } else if (config.start_identity.startsWith("CP_")) {
+      const instanceNum = config.start_identity.split("_").pop();
+      componentKey = `Constant_Pitch_${instanceNum}`;
+    } else if (config.start_identity.startsWith("GT_")) {
+      const instanceNum = config.start_identity.split("_").pop();
+      componentKey = `Gravity_Turn_${instanceNum}`;
+    } else if (config.start_identity.startsWith("PROFILE_")) {
+      const instanceNum = config.start_identity.split("_").pop();
+      componentKey = `Profile_${instanceNum}`;
+    } else if (config.start_identity.startsWith("COASTING_")) {
+      const instanceNum = config.start_identity.split("_").pop();
+      componentKey = `Coasting_${instanceNum}`;
+    } else {
+      // Fallback to original naming for unknown types
+      componentKey = config.start_identity;
+    }
     componentKeys.push(componentKey);
 
     steeringUpdate[componentKey] = {

@@ -23,27 +23,37 @@ function addSteeringComponent(type, baseDisplayName) {
     return;
   }
 
-  const maxProfiles = 6;
-  const maxCoasting = 4;
-  if (type === "profile") {
+  // Define component types and their limits
+  const basicComponentTypes = [
+    "verticalAscend",
+    "pitchHold",
+    "constantPitch",
+    "gravityTurn",
+    "profile",
+    "coasting",
+  ];
+
+  // Component limits
+  const componentLimits = {
+    verticalAscend: 5,
+    pitchHold: 5,
+    constantPitch: 5,
+    gravityTurn: 5,
+    profile: 8,
+    coasting: 6,
+  };
+
+  // Check type-specific limits
+  if (basicComponentTypes.includes(type)) {
     const currentCount = Object.values(
       window.steeringState.activeComponents
-    ).filter((c) => c.type === "profile").length;
-    if (currentCount >= maxProfiles) {
+    ).filter((c) => c.type === type).length;
+
+    const maxComponents = componentLimits[type] || 5;
+    if (currentCount >= maxComponents) {
       FormValidator.showGeneralError(
         "Limit Reached",
-        `Maximum ${maxProfiles} Profiles allowed.`
-      );
-      return;
-    }
-  } else if (type === "coasting") {
-    const currentCount = Object.values(
-      window.steeringState.activeComponents
-    ).filter((c) => c.type === "coasting").length;
-    if (currentCount >= maxCoasting) {
-      FormValidator.showGeneralError(
-        "Limit Reached",
-        `Maximum ${maxCoasting} Coasting phases allowed.`
+        `Maximum ${maxComponents} ${baseDisplayName} components allowed.`
       );
       return;
     }
@@ -51,35 +61,14 @@ function addSteeringComponent(type, baseDisplayName) {
 
   const componentId = generateComponentId(type);
   let finalDisplayName = baseDisplayName;
-  const singletonTypes = [
-    "verticalAscend",
-    "pitchHold",
-    "constantPitch",
-    "gravityTurn",
-  ];
-  if (!singletonTypes.includes(type)) {
-    const num = componentId.substring(type.length + 1);
+
+  // Always add instance number to the display name
+  if (componentId.includes("_")) {
+    const num = componentId.substring(componentId.lastIndexOf("_") + 1);
     finalDisplayName = `${baseDisplayName} ${num}`;
   }
 
-  if (
-    singletonTypes.includes(type) &&
-    window.steeringState.activeComponents[componentId]
-  ) {
-    console.warn(`Singleton component ${finalDisplayName} already exists.`);
-    selectSteeringComponent(componentId);
-    const addButton = availableComponentsList?.querySelector(
-      `.add-component-btn[data-type="${type}"]`
-    );
-    if (addButton && !addButton.disabled) {
-      addButton.innerHTML = "✓";
-      addButton.disabled = true;
-      addButton.classList.add("hidden");
-      addButton.title = "Already added";
-    }
-    return;
-  }
-
+  // Create list item for the component
   const li = document.createElement("li");
   li.classList.add("active-component-item");
   li.dataset.componentId = componentId;
@@ -100,15 +89,9 @@ function addSteeringComponent(type, baseDisplayName) {
   });
   activeComponentsList.appendChild(li);
 
-  if (singletonTypes.includes(type)) {
-    const addButton = availableComponentsList?.querySelector(
-      `.add-component-btn[data-type="${type}"]`
-    );
-    if (addButton) {
-      addButton.classList.add("hidden");
-      addButton.disabled = true;
-      addButton.title = "Already added";
-    }
+  // Update component counter display in the UI
+  if (basicComponentTypes.includes(type)) {
+    updateComponentCounter(type);
   }
 
   window.steeringState.activeComponents[componentId] = {
@@ -129,17 +112,70 @@ function addSteeringComponent(type, baseDisplayName) {
   selectSteeringComponent(componentId);
 }
 
-function generateComponentId(type) {
-  const singletonTypes = [
+// Update component counter in the UI
+function updateComponentCounter(type) {
+  const basicComponentTypes = [
     "verticalAscend",
     "pitchHold",
     "constantPitch",
     "gravityTurn",
+    "profile",
+    "coasting",
   ];
-  if (singletonTypes.includes(type)) {
-    return type;
+
+  if (!basicComponentTypes.includes(type)) return;
+
+  // Component limits
+  const componentLimits = {
+    verticalAscend: 5,
+    pitchHold: 5,
+    constantPitch: 5,
+    gravityTurn: 5,
+    profile: 8,
+    coasting: 6,
+  };
+
+  // Get the component count
+  const count = Object.values(window.steeringState.activeComponents).filter(
+    (c) => c.type === type
+  ).length;
+
+  // Get max allowed for this component type
+  const maxCount = componentLimits[type] || 5;
+
+  // Find the button for this component type
+  const addButton = document.querySelector(
+    `.add-component-btn[data-type="${type}"]`
+  );
+  if (!addButton) return;
+
+  // Create or update the counter element
+  let counter = addButton.parentElement.querySelector(".component-counter");
+  if (!counter) {
+    counter = document.createElement("span");
+    counter.className = "component-counter";
+    addButton.parentElement.insertBefore(counter, addButton);
   }
 
+  // Update the counter text and styling
+  counter.textContent = count > 0 ? `(${count}/${maxCount})` : "";
+  counter.style.marginRight = "5px";
+  counter.style.fontSize = "12px";
+  counter.style.color = count >= maxCount ? "#ff5252" : "#aaa";
+
+  // Update button state based on count
+  addButton.disabled = count >= maxCount;
+  if (count >= maxCount) {
+    addButton.classList.add("disabled");
+    addButton.title = "Maximum limit reached";
+  } else {
+    addButton.classList.remove("disabled");
+    addButton.title = `Add ${type.replace(/([A-Z])/g, " $1").trim()}`;
+  }
+}
+
+function generateComponentId(type) {
+  // Generate ID for any component type
   let currentMax = 0;
   const prefix = type + "_";
   Object.keys(window.steeringState.activeComponents).forEach((id) => {
@@ -154,6 +190,12 @@ function generateComponentId(type) {
 }
 
 function createDefaultConfig(componentId, type) {
+  // Extract instance number from componentId
+  let instanceNum = "1"; // Default to 1
+  if (componentId.includes("_")) {
+    instanceNum = componentId.substring(componentId.lastIndexOf("_") + 1);
+  }
+
   let flagPrefix;
   switch (type) {
     case "verticalAscend":
@@ -169,19 +211,18 @@ function createDefaultConfig(componentId, type) {
       flagPrefix = "GT";
       break;
     case "profile":
-      const profileNumber = parseInt(componentId.replace("profile_", "")) || 1;
-      flagPrefix = `PROFILE${profileNumber}`;
+      flagPrefix = "PROFILE";
       break;
     case "coasting":
-      const coastingNumber =
-        parseInt(componentId.replace("coasting_", "")) || 1;
-      flagPrefix = `COASTING${coastingNumber}`;
+      flagPrefix = "COASTING";
       break;
     default:
       flagPrefix = `ST_${type.toUpperCase()}`;
   }
-  const startFlag = `${flagPrefix}_START`;
-  const stopFlag = `${flagPrefix}_STOP`;
+
+  // Use the new flag format with instance number suffix (_1, _2, etc.)
+  const startFlag = `${flagPrefix}_START_${instanceNum}`;
+  const stopFlag = `${flagPrefix}_STOP_${instanceNum}`;
 
   return {
     start_identity: startFlag,
@@ -197,8 +238,6 @@ function createDefaultConfig(componentId, type) {
     steering_type: "",
     steering_params: {},
     steering_comment: "",
-    profile_csv: null,
-    profile_csv_filename: "",
     isDirty: false, // Initialize dirty/saved state
     isSaved: false,
   };
@@ -269,25 +308,18 @@ function removeSteeringComponent(componentId) {
     listItem.remove();
     delete window.steeringState.activeComponents[componentId];
 
-    const singletonTypes = [
+    // Update component counter when removing
+    const basicComponentTypes = [
       "verticalAscend",
       "pitchHold",
       "constantPitch",
       "gravityTurn",
+      "profile",
+      "coasting",
     ];
-    if (singletonTypes.includes(type)) {
-      const availableComponentsList = document.getElementById(
-        "available-components-list"
-      );
-      const addButton = availableComponentsList?.querySelector(
-        `.add-component-btn[data-type="${type}"]`
-      );
-      if (addButton) {
-        addButton.innerHTML = "+";
-        addButton.disabled = false;
-        addButton.classList.remove("hidden");
-        addButton.title = `Add ${type.replace(/([A-Z])/g, " $1").trim()}`;
-      }
+
+    if (basicComponentTypes.includes(type)) {
+      updateComponentCounter(type);
     }
 
     if (window.steeringState.selectedComponentId === componentId) {
@@ -1292,8 +1324,6 @@ document.addEventListener("DOMContentLoaded", () => {
     "steering-config-placeholder"
   );
   const configTabsContainer = document.querySelector(".config-tabs");
-  const addProfileBtn = document.getElementById("add-profile-component-btn");
-  const addCoastingBtn = document.getElementById("add-coasting-component-btn");
   const previewBtn = document.getElementById("previewConfig");
 
   if (
@@ -1321,6 +1351,22 @@ document.addEventListener("DOMContentLoaded", () => {
     activeTab: null,
   };
 
+  // Add CSS for component counters
+  const style = document.createElement("style");
+  style.textContent = `
+    .component-counter {
+      display: inline-block;
+      margin-right: 5px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    .add-component-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  `;
+  document.head.appendChild(style);
+
   // 4. Initialize Configuration Handler
   window.steeringConfigHandler = new SteeringConfigHandler();
 
@@ -1328,6 +1374,45 @@ document.addEventListener("DOMContentLoaded", () => {
   window.generateSteeringFields = generateSteeringFields;
 
   // 6. Attach Event Listeners
+
+  // Initialize counters for all component types
+  const basicComponentTypes = [
+    "verticalAscend",
+    "pitchHold",
+    "constantPitch",
+    "gravityTurn",
+    "profile",
+    "coasting",
+  ];
+
+  basicComponentTypes.forEach((type) => {
+    // Create counter elements
+    const addButton = availableComponentsList.querySelector(
+      `.add-component-btn[data-type="${type}"]`
+    );
+    if (
+      addButton &&
+      !addButton.parentElement.querySelector(".component-counter")
+    ) {
+      const counter = document.createElement("span");
+      counter.className = "component-counter";
+
+      // Different limits for different component types
+      const componentLimits = {
+        verticalAscend: 5,
+        pitchHold: 5,
+        constantPitch: 5,
+        gravityTurn: 5,
+        profile: 8,
+        coasting: 6,
+      };
+
+      const maxCount = componentLimits[type] || 5;
+      counter.textContent = `(0/${maxCount})`;
+      addButton.parentElement.insertBefore(counter, addButton);
+    }
+    updateComponentCounter(type);
+  });
 
   // Tab switching (ensure function is defined)
   if (configTabsContainer) {
@@ -1373,49 +1458,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Adding components from available list
   availableComponentsList.addEventListener("click", (event) => {
     const addButton = event.target.closest(".add-component-btn");
-    if (addButton) {
+    if (addButton && !addButton.disabled) {
       const type = addButton.dataset.type;
       const listItem = addButton.closest("li");
       const displayName = listItem?.querySelector("span")?.textContent || type;
       addSteeringComponent(type, displayName); // Call function defined earlier
     }
   });
-
-  // Adding Profile component
-  if (addProfileBtn) {
-    addProfileBtn.addEventListener("click", () => {
-      const maxProfiles = 6;
-      const currentProfileCount = Object.values(
-        window.steeringState.activeComponents
-      ).filter((c) => c.type === "profile").length;
-      if (currentProfileCount < maxProfiles) {
-        addSteeringComponent("profile", "Profile");
-      } else {
-        FormValidator.showGeneralError(
-          "Limit Reached",
-          `Maximum ${maxProfiles} profiles allowed.`
-        );
-      }
-    });
-  }
-
-  // Adding Coasting component
-  if (addCoastingBtn) {
-    addCoastingBtn.addEventListener("click", () => {
-      const maxCoasting = 4;
-      const currentCoastingCount = Object.values(
-        window.steeringState.activeComponents
-      ).filter((c) => c.type === "coasting").length;
-      if (currentCoastingCount < maxCoasting) {
-        addSteeringComponent("coasting", "Coasting");
-      } else {
-        FormValidator.showGeneralError(
-          "Limit Reached",
-          `Maximum ${maxCoasting} coasting phases allowed.`
-        );
-      }
-    });
-  }
 
   // Form submission (calls function from steering-storage.js)
   steeringForm.addEventListener("submit", (e) => {

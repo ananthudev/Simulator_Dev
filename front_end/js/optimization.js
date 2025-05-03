@@ -21,6 +21,20 @@ document.addEventListener("DOMContentLoaded", function () {
   const modeForm = document.getElementById("mode-form");
   const designVariablesForm = document.getElementById("design-variables-form");
 
+  // Set default population values
+  const normalPopulation = document.getElementById("normal-population");
+  const archipelagoPopulation = document.getElementById(
+    "archipelago-population"
+  );
+
+  if (normalPopulation && normalPopulation.value === "") {
+    normalPopulation.value = "1";
+  }
+
+  if (archipelagoPopulation && archipelagoPopulation.value === "") {
+    archipelagoPopulation.value = "1";
+  }
+
   // Function to toggle CSV upload visibility based on toggle state
   function toggleCsvUploadVisibility(mode) {
     const toggleElement = document.getElementById(`${mode}-set-population`);
@@ -185,6 +199,8 @@ document.addEventListener("DOMContentLoaded", function () {
     AOP: "Argument of Perigee",
     PERIGEE_GC_LATITUDE: "Perigee geocentric latitude",
     APOGEE_GC: "Apogee geocentric altitude",
+    APOGEE_ALTITUDE: "Apogee Altitude",
+    PERIGEE_ALTITUDE: "Perigee Altitude",
     PERIGEE_GC: "Perigee geocentric altitude",
     TOTAL_ENERGY: "Total Energy",
     QAOA: "Q Angle of Attack",
@@ -256,39 +272,197 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Clear existing options except placeholder
-    const currentValue = selectElement.value; // Preserve selection if possible
-    while (selectElement.options.length > 1) {
-      selectElement.remove(1);
-    }
+    // Save current selection if any
+    const currentValue = selectElement.value;
+
+    // Completely clear the dropdown
+    selectElement.innerHTML = "";
+
+    // Add back the placeholder option
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = "Select Flag";
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    selectElement.appendChild(placeholderOption);
 
     try {
-      let allFlags = [];
+      // Get all sequence flags
+      let sequenceFlags = [];
       if (typeof getAllSequenceFlags === "function") {
-        allFlags = getAllSequenceFlags();
+        sequenceFlags = getAllSequenceFlags();
       } else if (
         window.formHandler &&
         typeof window.formHandler.getAllSequenceFlags === "function"
       ) {
-        allFlags = window.formHandler.getAllSequenceFlags();
+        sequenceFlags = window.formHandler.getAllSequenceFlags();
       } else {
         console.warn(
           `getAllSequenceFlags function not found. Cannot populate flags for ${context}.`
         );
         // Add some placeholder flags for testing
-        allFlags = ["FLAG_1", "FLAG_2", "FLAG_3", "MECO", "SECO", "TOUCHDOWN"];
+        sequenceFlags = [
+          "FLAG_1",
+          "FLAG_2",
+          "FLAG_3",
+          "MECO",
+          "SECO",
+          "TOUCHDOWN",
+        ];
       }
 
-      allFlags.forEach((flag) => {
-        if (flag) {
+      // Create map of category types to their labels
+      const categoryLabels = {
+        initialization: "Stage Initialization",
+        separation: "Stage Separation",
+        ignition: "Motor Ignition",
+        burnout: "Motor Burnout",
+        heatShield: "Heat Shield",
+        other: "Other Flags",
+      };
+
+      // Create a mapping to hold all flags by category
+      const categoryFlags = {
+        initialization: new Set(),
+        separation: new Set(),
+        ignition: new Set(),
+        burnout: new Set(),
+        heatShield: new Set(),
+        other: new Set(),
+      };
+
+      // Process all flags from sequence and categorize them
+      sequenceFlags.forEach((flag) => {
+        if (flag.match(/ST_\d+_INI$/)) {
+          categoryFlags.initialization.add(flag);
+        } else if (flag.match(/ST_\d+_SEP$/)) {
+          categoryFlags.separation.add(flag);
+        } else if (flag.match(/S\d+_M\d+_IGN$/)) {
+          categoryFlags.ignition.add(flag);
+        } else if (flag.match(/S\d+_M\d+_Burnout$/)) {
+          categoryFlags.burnout.add(flag);
+        } else if (flag === "HSS_Flag") {
+          categoryFlags.heatShield.add(flag);
+        } else {
+          categoryFlags.other.add(flag);
+        }
+      });
+
+      // Process registry flags as well
+      if (window.flagRegistry) {
+        // Add stage initialization flags
+        if (window.flagRegistry.stages?.initializationFlags) {
+          window.flagRegistry.stages.initializationFlags.forEach((entry) => {
+            if (entry?.flag) categoryFlags.initialization.add(entry.flag);
+          });
+        }
+
+        // Add stage separation flags
+        if (window.flagRegistry.stages?.separationFlags) {
+          window.flagRegistry.stages.separationFlags.forEach((entry) => {
+            if (entry?.flag) categoryFlags.separation.add(entry.flag);
+          });
+        }
+
+        // Add motor ignition and burnout flags
+        if (
+          window.flagRegistry.motors &&
+          Array.isArray(window.flagRegistry.motors)
+        ) {
+          window.flagRegistry.motors.forEach((motor) => {
+            if (motor?.flags?.ignition) {
+              categoryFlags.ignition.add(motor.flags.ignition);
+            }
+            if (motor?.flags?.burnout) {
+              categoryFlags.burnout.add(motor.flags.burnout);
+            }
+          });
+        }
+
+        // Add heat shield flags
+        if (
+          window.flagRegistry.heatShieldFlags &&
+          Array.isArray(window.flagRegistry.heatShieldFlags)
+        ) {
+          window.flagRegistry.heatShieldFlags.forEach((entry) => {
+            if (entry?.flag) categoryFlags.heatShield.add(entry.flag);
+          });
+        }
+      }
+
+      // Add HSS_Flag if it appears in the sequence
+      if (sequenceFlags.includes("HSS_Flag")) {
+        categoryFlags.heatShield.add("HSS_Flag");
+      }
+
+      // The categories in the order we want to add them
+      const categoryOrder = [
+        "initialization",
+        "separation",
+        "ignition",
+        "burnout",
+        "heatShield",
+        "other",
+      ];
+
+      // Track actual categories added
+      const addedCategories = [];
+
+      // Create and append optgroups
+      categoryOrder.forEach((category) => {
+        const flags = categoryFlags[category];
+
+        // Skip categories with no flags
+        if (!flags || flags.size === 0) return;
+
+        // Create optgroup
+        const optgroup = document.createElement("optgroup");
+        optgroup.label = categoryLabels[category];
+        optgroup.dataset.groupType = category;
+
+        // Sort flags
+        const sortedFlags = Array.from(flags).sort((a, b) => {
+          // Extract numbers if they exist
+          const aNumbers = a.match(/\d+/g)?.map(Number) || [];
+          const bNumbers = b.match(/\d+/g)?.map(Number) || [];
+
+          // If both have stage numbers, compare them
+          if (aNumbers.length > 0 && bNumbers.length > 0) {
+            // Compare stage numbers first
+            if (aNumbers[0] !== bNumbers[0]) {
+              return aNumbers[0] - bNumbers[0];
+            }
+            // If stage numbers are same, compare motor numbers (if they exist)
+            return (aNumbers[1] || 0) - (bNumbers[1] || 0);
+          }
+
+          // Fallback to string comparison if no numbers
+          return a.localeCompare(b);
+        });
+
+        // Add options to group
+        sortedFlags.forEach((flag) => {
           const option = document.createElement("option");
           option.value = flag;
           option.textContent = flag;
-          selectElement.appendChild(option);
-        }
+          optgroup.appendChild(option);
+        });
+
+        // Add the optgroup to the dropdown
+        selectElement.appendChild(optgroup);
+        addedCategories.push(categoryLabels[category]);
       });
-      // Restore selection
-      selectElement.value = currentValue;
+
+      // Restore previous selection if possible
+      if (currentValue) {
+        selectElement.value = currentValue;
+      }
+
+      console.log(
+        `Populated flag dropdown for ${context} with ${
+          addedCategories.length
+        } categories: ${addedCategories.join(", ")}`
+      );
     } catch (error) {
       console.error(`Error populating flag dropdown for ${context}:`, error);
     }
@@ -2949,6 +3123,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize the mode form
   function initModeForm() {
+    // Set default population values if not already set
+    const normalPopulationField = document.getElementById("normal-population");
+    const archipelagoPopulationField = document.getElementById(
+      "archipelago-population"
+    );
+
+    if (normalPopulationField && normalPopulationField.value === "") {
+      normalPopulationField.value = "1";
+    }
+
+    if (archipelagoPopulationField && archipelagoPopulationField.value === "") {
+      archipelagoPopulationField.value = "1";
+    }
+
     // Set up mode switching with a more direct approach
     const modeRadios = document.querySelectorAll(
       'input[name="optimization-mode"]'
@@ -3149,120 +3337,153 @@ document.addEventListener("DOMContentLoaded", function () {
       const missionData = JSON.parse(localStorage.getItem("missionData")) || {};
       const modeData = missionData.optimization?.mode || null;
 
-      if (modeData) {
-        // Set the mode radio button
-        if (modeData.mode === "normal" && modeNormalRadio) {
-          modeNormalRadio.checked = true;
-        } else if (modeData.mode === "archipelago" && modeArchipelagoRadio) {
-          modeArchipelagoRadio.checked = true;
+      // Set default population values if no data exists
+      if (!modeData) {
+        const normalPopulationField =
+          document.getElementById("normal-population");
+        const archipelagoPopulationField = document.getElementById(
+          "archipelago-population"
+        );
+
+        if (normalPopulationField && normalPopulationField.value === "") {
+          normalPopulationField.value = "1";
         }
 
-        // Apply the mode toggle
-        toggleModeFields();
+        if (
+          archipelagoPopulationField &&
+          archipelagoPopulationField.value === ""
+        ) {
+          archipelagoPopulationField.value = "1";
+        }
+        return;
+      }
 
-        if (modeData.mode === "normal") {
-          // Set normal mode fields
-          document.getElementById("normal-algorithm").value =
-            modeData.algorithm || "";
+      // Set the mode radio button
+      if (modeData.mode === "normal" && modeNormalRadio) {
+        modeNormalRadio.checked = true;
+      } else if (modeData.mode === "archipelago" && modeArchipelagoRadio) {
+        modeArchipelagoRadio.checked = true;
+      }
 
-          if (modeData.map) {
-            document.getElementById("normal-lower-bound").value =
-              modeData.map.lower || 0;
-            document.getElementById("normal-upper-bound").value =
-              modeData.map.upper || 1;
-          }
+      // Apply the mode toggle
+      toggleModeFields();
 
-          document.getElementById("normal-population").value =
-            modeData.population || "";
-          document.getElementById("normal-set-population").checked =
-            modeData.setPopulation !== undefined
-              ? modeData.setPopulation
-              : true;
-          document.getElementById("normal-csv-filename").value =
-            modeData.csvFilename || "";
-          document.getElementById("normal-problem-strategy").value =
-            modeData.problemStrategy || "IGNORE";
+      if (modeData.mode === "normal") {
+        // Set normal mode fields
+        document.getElementById("normal-algorithm").value =
+          modeData.algorithm || "";
 
-          // Show/hide clear button based on whether a file is selected
-          if (modeData.csvFilename && normalCsvClearBtn) {
-            normalCsvClearBtn.style.display = "block";
-          }
+        if (modeData.map) {
+          document.getElementById("normal-lower-bound").value =
+            modeData.map.lower || 0;
+          document.getElementById("normal-upper-bound").value =
+            modeData.map.upper || 1;
+        }
 
-          // Update CSV upload visibility based on toggle state
-          toggleCsvUploadVisibility("normal");
-        } else if (modeData.mode === "archipelago") {
-          // Set archipelago mode fields
-          document.getElementById("archipelago-topology").value =
-            modeData.topology || "Fully Connected";
-          document.getElementById("archipelago-migration-type").value =
-            modeData.migrationType || "Broadcast";
-          document.getElementById("archipelago-migration-handling").value =
-            modeData.migrationHandling || "Evict";
+        document.getElementById("normal-population").value =
+          modeData.population || "";
+        document.getElementById("normal-set-population").checked =
+          modeData.setPopulation !== undefined ? modeData.setPopulation : true;
+        document.getElementById("normal-csv-filename").value =
+          modeData.csvFilename || "";
+        document.getElementById("normal-problem-strategy").value =
+          modeData.problemStrategy || "IGNORE";
 
-          if (modeData.map) {
-            document.getElementById("archipelago-lower-bound").value =
-              modeData.map.lower || 0;
-            document.getElementById("archipelago-upper-bound").value =
-              modeData.map.upper || 1;
-          }
+        // Show/hide clear button based on whether a file is selected
+        if (modeData.csvFilename && normalCsvClearBtn) {
+          normalCsvClearBtn.style.display = "block";
+        }
 
-          document.getElementById("archipelago-population").value =
-            modeData.population || "";
-          document.getElementById("archipelago-set-population").checked =
-            modeData.setPopulation !== undefined
-              ? modeData.setPopulation
-              : true;
-          document.getElementById("archipelago-csv-filename").value =
-            modeData.csvFilename || "";
+        // Update CSV upload visibility based on toggle state
+        toggleCsvUploadVisibility("normal");
+      } else if (modeData.mode === "archipelago") {
+        // Set archipelago mode fields
+        document.getElementById("archipelago-topology").value =
+          modeData.topology || "Fully Connected";
+        document.getElementById("archipelago-migration-type").value =
+          modeData.migrationType || "Broadcast";
+        document.getElementById("archipelago-migration-handling").value =
+          modeData.migrationHandling || "Evict";
 
-          // Show/hide clear button based on whether a file is selected
-          if (modeData.csvFilename && archipelagoCsvClearBtn) {
-            archipelagoCsvClearBtn.style.display = "block";
-          }
+        if (modeData.map) {
+          document.getElementById("archipelago-lower-bound").value =
+            modeData.map.lower || 0;
+          document.getElementById("archipelago-upper-bound").value =
+            modeData.map.upper || 1;
+        }
 
-          // Update CSV upload visibility based on toggle state
-          toggleCsvUploadVisibility("archipelago");
+        document.getElementById("archipelago-population").value =
+          modeData.population || "";
+        document.getElementById("archipelago-set-population").checked =
+          modeData.setPopulation !== undefined ? modeData.setPopulation : true;
+        document.getElementById("archipelago-csv-filename").value =
+          modeData.csvFilename || "";
 
-          // Add selected algorithms
-          if (modeData.algorithms && Array.isArray(modeData.algorithms)) {
-            // Clear existing algorithms
-            selectedAlgorithms = [];
+        // Show/hide clear button based on whether a file is selected
+        if (modeData.csvFilename && archipelagoCsvClearBtn) {
+          archipelagoCsvClearBtn.style.display = "block";
+        }
 
-            // Remove any existing algorithm tags
-            const existingTags =
-              selectedAlgorithmsContainer.querySelectorAll(".algorithm-tag");
-            existingTags.forEach((tag) => tag.remove());
+        // Update CSV upload visibility based on toggle state
+        toggleCsvUploadVisibility("archipelago");
 
-            // Add each algorithm
-            modeData.algorithms.forEach((algorithm) => {
-              // Add to selected algorithms array
-              if (!selectedAlgorithms.includes(algorithm)) {
-                selectedAlgorithms.push(algorithm);
+        // Add selected algorithms
+        if (modeData.algorithms && Array.isArray(modeData.algorithms)) {
+          // Clear existing algorithms
+          selectedAlgorithms = [];
 
-                // Create and append tag
-                const algorithmTag = createAlgorithmTag(algorithm);
-                selectedAlgorithmsContainer.insertBefore(
-                  algorithmTag,
-                  algorithmsCounter
-                );
+          // Remove any existing algorithm tags
+          const existingTags =
+            selectedAlgorithmsContainer.querySelectorAll(".algorithm-tag");
+          existingTags.forEach((tag) => tag.remove());
 
-                // Remove from dropdown
-                for (let i = 0; i < archipelagoAlgorithm.options.length; i++) {
-                  if (archipelagoAlgorithm.options[i].value === algorithm) {
-                    archipelagoAlgorithm.remove(i);
-                    break;
-                  }
+          // Add each algorithm
+          modeData.algorithms.forEach((algorithm) => {
+            // Add to selected algorithms array
+            if (!selectedAlgorithms.includes(algorithm)) {
+              selectedAlgorithms.push(algorithm);
+
+              // Create and append tag
+              const algorithmTag = createAlgorithmTag(algorithm);
+              selectedAlgorithmsContainer.insertBefore(
+                algorithmTag,
+                algorithmsCounter
+              );
+
+              // Remove from dropdown
+              for (let i = 0; i < archipelagoAlgorithm.options.length; i++) {
+                if (archipelagoAlgorithm.options[i].value === algorithm) {
+                  archipelagoAlgorithm.remove(i);
+                  break;
                 }
               }
-            });
+            }
+          });
 
-            // Update counter
-            updateAlgorithmsCounter();
-          }
+          // Update counter
+          updateAlgorithmsCounter();
         }
       }
     } catch (error) {
       console.error("Error initializing existing mode data:", error);
+
+      // Set default values even on error
+      const normalPopulationField =
+        document.getElementById("normal-population");
+      const archipelagoPopulationField = document.getElementById(
+        "archipelago-population"
+      );
+
+      if (normalPopulationField && normalPopulationField.value === "") {
+        normalPopulationField.value = "1";
+      }
+
+      if (
+        archipelagoPopulationField &&
+        archipelagoPopulationField.value === ""
+      ) {
+        archipelagoPopulationField.value = "1";
+      }
     }
   }
 
@@ -3684,5 +3905,27 @@ document.addEventListener("DOMContentLoaded", function () {
     setupAddAlgorithmButton();
   }, 1000); // Slightly longer timeout to ensure all elements are loaded
 
-  // Export functions to make them available to other modules
+  // Listen for sequence updates to refresh all flag dropdowns
+  document.addEventListener("sequenceUpdated", function () {
+    console.log(
+      "Sequence updated, refreshing all flag dropdowns in optimization module"
+    );
+
+    // Refresh objective flags
+    document
+      .querySelectorAll(".objective-flag-select")
+      .forEach((dropdown, index) => {
+        populateFlagDropdown(dropdown, `Objective ${index + 1}`);
+      });
+
+    // Refresh constraint flags
+    document.querySelectorAll(".constraint-flag").forEach((dropdown, index) => {
+      populateFlagDropdown(dropdown, `Constraint ${index + 1}`);
+    });
+
+    // Refresh design variable flags
+    document.querySelectorAll(".dv-flag").forEach((dropdown, index) => {
+      populateFlagDropdown(dropdown, `Design Variable ${index + 1}`);
+    });
+  });
 });

@@ -180,37 +180,197 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Clear existing options except placeholder
-    const currentValue = selectElement.value; // Preserve selection if possible
-    while (selectElement.options.length > 1) {
-      selectElement.remove(1);
+    // Completely clear existing options including placeholder
+    while (selectElement.options.length > 0) {
+      selectElement.remove(0);
     }
 
+    // Add back the placeholder option
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = "Select Flag";
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    selectElement.appendChild(placeholderOption);
+
+    // Track the current value to restore it if possible
+    const currentValue = selectElement.value;
+
     try {
-      let allFlags = [];
+      // Get all sequence flags
+      let sequenceFlags = [];
       if (typeof getAllSequenceFlags === "function") {
-        allFlags = getAllSequenceFlags();
+        sequenceFlags = getAllSequenceFlags();
       } else if (
         window.formHandler &&
         typeof window.formHandler.getAllSequenceFlags === "function"
       ) {
-        allFlags = window.formHandler.getAllSequenceFlags();
+        sequenceFlags = window.formHandler.getAllSequenceFlags();
       } else {
         console.warn(
           `getAllSequenceFlags function not found. Cannot populate flags for ${context}.`
         );
+        // Add some placeholder flags for testing
+        sequenceFlags = [
+          "FLAG_1",
+          "FLAG_2",
+          "FLAG_3",
+          "MECO",
+          "SECO",
+          "TOUCHDOWN",
+        ];
       }
 
-      allFlags.forEach((flag) => {
-        if (flag) {
-          const option = document.createElement("option");
-          option.value = flag;
-          option.textContent = flag;
-          selectElement.appendChild(option);
+      // Create flag groups
+      const flagGroups = {
+        initialization: { label: "Stage Initialization", flags: new Set() },
+        separation: { label: "Stage Separation", flags: new Set() },
+        ignition: { label: "Motor Ignition", flags: new Set() },
+        burnout: { label: "Motor Burnout", flags: new Set() },
+        heatShield: { label: "Heat Shield", flags: new Set() },
+        other: { label: "Other Flags", flags: new Set() },
+      };
+
+      // Categorize all flags from sequence
+      sequenceFlags.forEach((flag) => {
+        if (flag.match(/ST_\d+_INI$/)) {
+          flagGroups.initialization.flags.add(flag);
+        } else if (flag.match(/ST_\d+_SEP$/)) {
+          flagGroups.separation.flags.add(flag);
+        } else if (flag.match(/S\d+_M\d+_IGN$/)) {
+          flagGroups.ignition.flags.add(flag);
+        } else if (flag.match(/S\d+_M\d+_Burnout$/)) {
+          flagGroups.burnout.flags.add(flag);
+        } else if (flag === "HSS_Flag") {
+          flagGroups.heatShield.flags.add(flag);
+        } else {
+          flagGroups.other.flags.add(flag);
         }
       });
-      // Restore selection
-      selectElement.value = currentValue;
+
+      // Also add flags from registry if available
+      let hasHeatShieldFlag = false;
+      if (window.flagRegistry) {
+        // Add stage flags from registry
+        if (
+          window.flagRegistry.stages &&
+          window.flagRegistry.stages.initializationFlags
+        ) {
+          window.flagRegistry.stages.initializationFlags.forEach((entry) => {
+            if (entry && entry.flag) {
+              flagGroups.initialization.flags.add(entry.flag);
+            }
+          });
+        }
+
+        if (
+          window.flagRegistry.stages &&
+          window.flagRegistry.stages.separationFlags
+        ) {
+          window.flagRegistry.stages.separationFlags.forEach((entry) => {
+            if (entry && entry.flag) {
+              flagGroups.separation.flags.add(entry.flag);
+            }
+          });
+        }
+
+        // Add motor flags from registry
+        if (
+          window.flagRegistry.motors &&
+          window.flagRegistry.motors.length > 0
+        ) {
+          window.flagRegistry.motors.forEach((motor) => {
+            if (motor && motor.flags) {
+              if (motor.flags.ignition) {
+                flagGroups.ignition.flags.add(motor.flags.ignition);
+              }
+              if (motor.flags.burnout) {
+                flagGroups.burnout.flags.add(motor.flags.burnout);
+              }
+            }
+          });
+        }
+
+        // Add heat shield flag if available in registry
+        if (
+          window.flagRegistry.heatShieldFlags &&
+          window.flagRegistry.heatShieldFlags.length > 0
+        ) {
+          window.flagRegistry.heatShieldFlags.forEach((entry) => {
+            if (entry && entry.flag) {
+              flagGroups.heatShield.flags.add(entry.flag);
+              hasHeatShieldFlag = true;
+            }
+          });
+        }
+      }
+
+      // Only add HSS_Flag if it's in the sequence or we found heat shield flags in registry
+      if (sequenceFlags.includes("HSS_Flag") || hasHeatShieldFlag) {
+        flagGroups.heatShield.flags.add("HSS_Flag");
+      }
+
+      // Keep track of what headers we've already added to prevent duplicates
+      const addedHeaders = new Set();
+
+      // Create and append option groups
+      Object.entries(flagGroups).forEach(([groupKey, group]) => {
+        if (group.flags.size > 0) {
+          // Skip if we've already added this header
+          if (addedHeaders.has(group.label)) {
+            console.warn(`Skipping duplicate header: ${group.label}`);
+            return;
+          }
+
+          // Create optgroup
+          const optgroup = document.createElement("optgroup");
+          optgroup.label = group.label;
+          optgroup.dataset.groupType = groupKey;
+
+          // Sort and add flags to group
+          const sortedFlags = Array.from(group.flags).sort((a, b) => {
+            // Extract numbers if they exist
+            const aNumbers = a.match(/\d+/g)?.map(Number) || [];
+            const bNumbers = b.match(/\d+/g)?.map(Number) || [];
+
+            // If both have stage numbers, compare them
+            if (aNumbers.length > 0 && bNumbers.length > 0) {
+              // Compare stage numbers first
+              if (aNumbers[0] !== bNumbers[0]) {
+                return aNumbers[0] - bNumbers[0];
+              }
+              // If stage numbers are same, compare motor numbers (if they exist)
+              return (aNumbers[1] || 0) - (bNumbers[1] || 0);
+            }
+            // Fallback to string comparison if no numbers
+            return a.localeCompare(b);
+          });
+
+          // Add options to group
+          sortedFlags.forEach((flag) => {
+            const option = document.createElement("option");
+            option.value = flag;
+            option.textContent = flag;
+            optgroup.appendChild(option);
+          });
+
+          // Append the group to dropdown only if it has any options
+          if (optgroup.children.length > 0) {
+            selectElement.appendChild(optgroup);
+            // Mark this header as added
+            addedHeaders.add(group.label);
+          }
+        }
+      });
+
+      // Restore previous selection if possible
+      if (currentValue) {
+        selectElement.value = currentValue;
+      }
+
+      console.log(
+        `Populated flag dropdown for ${context} with ${addedHeaders.size} categories`
+      );
     } catch (error) {
       console.error(`Error populating flag dropdown for ${context}:`, error);
     }
