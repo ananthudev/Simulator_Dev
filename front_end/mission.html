@@ -1955,7 +1955,7 @@
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  Add Objective Function (Max 4)
+                  Add Objective Function (Max 2)
                 </button>
               </div>
             </div>
@@ -2171,27 +2171,38 @@
                   <label for="normal-algorithm" class="label"
                     >Optimizer Algorithm:</label
                   >
-                  <select id="normal-algorithm" class="input-field">
-                    <option value="" disabled selected>Select Algorithm</option>
-                    <option value="ABC">ABC</option>
-                    <option value="AC">AC</option>
-                    <option value="CMAES">CMAES</option>
-                    <option value="CS">CS</option>
-                    <option value="CSTRS">CSTRS</option>
-                    <option value="DE">DE</option>
-                    <option value="GAGGS">GAGGS</option>
-                    <option value="GWO">GWO</option>
-                    <option value="IHS">IHS</option>
-                    <option value="IPOPT">IPOPT</option>
-                    <option value="MBH">MBH</option>
-                    <option value="NLOPT">NLOPT</option>
-                    <option value="NSGA2">NSGA2</option>
-                    <option value="PSO">PSO</option>
-                    <option value="SADE">SADE</option>
-                    <option value="SGA">SGA</option>
-                    <option value="XNES">XNES</option>
-                    <!-- Add more as needed -->
-                  </select>
+                  <div style="display: flex; align-items: center">
+                    <select id="normal-algorithm" class="input-field">
+                      <option value="" disabled selected>
+                        Select Algorithm
+                      </option>
+                      <option value="ABC">ABC</option>
+                      <option value="AC">AC</option>
+                      <option value="CMAES">CMAES</option>
+                      <option value="CS">CS</option>
+                      <option value="CSTRS">CSTRS</option>
+                      <option value="DE">DE</option>
+                      <option value="GAGGS">GAGGS</option>
+                      <option value="GWO">GWO</option>
+                      <option value="IHS">IHS</option>
+                      <option value="IPOPT">IPOPT</option>
+                      <option value="MBH">MBH</option>
+                      <option value="NLOPT">NLOPT</option>
+                      <option value="NSGA2">NSGA2</option>
+                      <option value="PSO">PSO</option>
+                      <option value="SADE">SADE</option>
+                      <option value="SGA">SGA</option>
+                      <option value="XNES">XNES</option>
+                      <!-- Add more as needed -->
+                    </select>
+                    <div
+                      class="sequence-help-icon"
+                      style="margin-left: 8px"
+                      title="Select an algorithm and configure its parameters below. Parameter fields will appear automatically when you select an algorithm."
+                    >
+                      ?
+                    </div>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label class="label">Map:</label>
@@ -2215,6 +2226,13 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Add algorithm parameters container right after algorithm select -->
+              <div
+                id="normal-algorithm-params"
+                class="algorithm-parameters-container"
+              ></div>
+
               <div class="form-row">
                 <div class="form-group">
                   <label for="normal-population" class="label"
@@ -2311,7 +2329,16 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="archipelago-algorithm" class="label"
-                    >Algorithms:</label
+                    >Algorithms:<span
+                      class="sequence-help-icon"
+                      style="
+                        display: inline-block;
+                        margin-left: 8px;
+                        vertical-align: middle;
+                      "
+                      title="Select algorithms to add to your archipelago. Click on algorithm tags to configure their specific parameters."
+                      >?</span
+                    ></label
                   >
                   <div
                     class="selected-algorithms-container"
@@ -2553,7 +2580,7 @@
                     <option value="CUT_OFF">Cut Off</option>
                     <option value="PAYLOAD">Payload</option>
                     <option value="AZIMUTH">Azimuth</option>
-                    <option value="SEQUENCE">Sequence (e.g., Coasting)</option>
+                    <option value="SEQUENCE">Coasting</option>
                     <option value="PROPULSION">Propulsion</option>
                     <option value="STEERING">Steering</option>
                   </select>
@@ -2682,7 +2709,7 @@
               <option value="CUT_OFF">Cut Off</option>
               <option value="PAYLOAD">Payload</option>
               <option value="AZIMUTH">Azimuth</option>
-              <option value="SEQUENCE">Sequence (e.g., Coasting)</option>
+              <option value="SEQUENCE">Coasting</option>
               <option value="PROPULSION">Propulsion</option>
               <option value="STEERING">Steering</option>
             </select>
@@ -3162,5 +3189,20 @@
         </div>
       </div>
     </template>
+
+    <!-- Algorithm Parameters Modal -->
+    <div id="algorithm-params-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 id="modal-algorithm-title">Algorithm Parameters</h3>
+        <div id="modal-algorithm-params"></div>
+        <div class="modal-footer">
+          <button id="save-algorithm-params" class="btn btn-primary">
+            Save
+          </button>
+          <button id="reset-algorithm-params" class="btn">Reset</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

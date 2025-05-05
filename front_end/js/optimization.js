@@ -1,4 +1,1044 @@
 // Optimization Module for Astra GUI
+
+// Algorithm parameters definition for optimization
+const algorithmParameters = {
+  SGA: {
+    generation: {
+      type: "number",
+      default: 5,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations (integer)",
+    },
+    crossover_prob: {
+      type: "number",
+      default: 0.75,
+      label: "Crossover Probability",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Probability of crossover (0 to 1)",
+    },
+    eta_c: {
+      type: "number",
+      default: 1.0,
+      label: "Eta C",
+      min: 0,
+      step: 0.1,
+      help: "Distribution index for crossover (positive)",
+    },
+    mutation_prob: {
+      type: "number",
+      default: 0.85,
+      label: "Mutation Probability",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Probability of mutation (0 to 1)",
+    },
+    param_m: {
+      type: "number",
+      default: 1.0,
+      label: "Param M",
+      min: 0,
+      step: 0.1,
+      help: "Distribution index for mutation (positive)",
+    },
+    param_s: {
+      type: "number",
+      default: 2,
+      label: "Param S",
+      min: 0,
+      step: 1,
+      help: "Parameter for selection (positive)",
+    },
+    crossover: {
+      type: "select",
+      default: "exponential",
+      label: "Crossover Method",
+      options: ["exponential", "polynomial"],
+      help: "Type of crossover operation",
+    },
+    mutation: {
+      type: "select",
+      default: "gaussian",
+      label: "Mutation Method",
+      options: ["gaussian", "polynomial", "uniform"],
+      help: "Type of mutation operation",
+    },
+    selection: {
+      type: "select",
+      default: "tournament",
+      label: "Selection Method",
+      options: ["tournament", "truncated"],
+      help: "Method for selecting individuals",
+    },
+    seed: {
+      type: "number",
+      default: 600,
+      label: "Seed",
+      step: 1,
+      help: "Random seed (integer)",
+    },
+  },
+  DE: {
+    // Also covers SADE, pDE
+    generation: {
+      type: "number",
+      default: 100,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    variant_adptv: {
+      type: "select",
+      default: 1,
+      label: "Adaptive Variant",
+      options: [1, 2],
+      help: "Adaptive variant setting (1 or 2)",
+    },
+    memory: {
+      type: "select",
+      default: false,
+      label: "Memory",
+      options: [true, false],
+      help: "Enable memory feature (true/false)",
+    },
+    F: {
+      type: "number",
+      default: 0.8,
+      label: "Weight Coefficient (F)",
+      min: 0,
+      step: 0.01,
+      help: "Differential weight (positive)",
+    },
+    CR: {
+      type: "number",
+      default: 0.9,
+      label: "Crossover Rate (CR)",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Crossover probability (0 to 1)",
+    },
+    variant: {
+      type: "select",
+      default: 2,
+      label: "Variant",
+      options: [1, 2],
+      help: "DE variant setting (1 or 2)",
+    },
+    ftol: {
+      type: "number",
+      default: 1e-6,
+      label: "Function Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Tolerance for function value change",
+    },
+    xtol: {
+      type: "number",
+      default: 1e-6,
+      label: "Variable Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Tolerance for variable change",
+    },
+    seed: {
+      type: "number",
+      default: 9,
+      label: "Seed",
+      step: 1,
+      help: "Random seed (integer)",
+    },
+  },
+  SADE: {
+    // Shares DE parameters, can add specific ones if needed
+    generation: {
+      type: "number",
+      default: 100,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    variant_adptv: {
+      type: "select",
+      default: 1,
+      label: "Adaptive Variant",
+      options: [1, 2],
+      help: "Adaptive variant setting (1 or 2)",
+    },
+    memory: {
+      type: "select",
+      default: false,
+      label: "Memory",
+      options: [true, false],
+      help: "Enable memory feature (true/false)",
+    },
+    F: {
+      type: "number",
+      default: 0.8,
+      label: "Weight Coefficient (F)",
+      min: 0,
+      step: 0.01,
+      help: "Differential weight (positive)",
+    },
+    CR: {
+      type: "number",
+      default: 0.9,
+      label: "Crossover Rate (CR)",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Crossover probability (0 to 1)",
+    },
+    variant: {
+      type: "select",
+      default: 2,
+      label: "Variant",
+      options: [1, 2],
+      help: "DE variant setting (1 or 2)",
+    },
+    ftol: {
+      type: "number",
+      default: 1e-6,
+      label: "Function Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Tolerance for function value change",
+    },
+    xtol: {
+      type: "number",
+      default: 1e-6,
+      label: "Variable Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Tolerance for variable change",
+    },
+    seed: {
+      type: "number",
+      default: 9,
+      label: "Seed",
+      step: 1,
+      help: "Random seed (integer)",
+    },
+  },
+  pDE: {
+    // Shares DE parameters, can add specific ones if needed
+    generation: {
+      type: "number",
+      default: 100,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    variant_adptv: {
+      type: "select",
+      default: 1,
+      label: "Adaptive Variant",
+      options: [1, 2],
+      help: "Adaptive variant setting (1 or 2)",
+    },
+    memory: {
+      type: "select",
+      default: false,
+      label: "Memory",
+      options: [true, false],
+      help: "Enable memory feature (true/false)",
+    },
+    F: {
+      type: "number",
+      default: 0.8,
+      label: "Scale Factor (F)",
+      min: 0,
+      step: 0.01,
+      help: "Differential weight (positive)",
+    },
+    CR: {
+      type: "number",
+      default: 0.9,
+      label: "Crossover Rate (CR)",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Crossover probability (0 to 1)",
+    },
+    variant: {
+      type: "select",
+      default: 2,
+      label: "Variant",
+      options: [1, 2],
+      help: "DE variant setting (1 or 2)",
+    },
+    ftol: {
+      type: "number",
+      default: 1e-6,
+      label: "Function Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Tolerance for function value change",
+    },
+    xtol: {
+      type: "number",
+      default: 1e-6,
+      label: "Variable Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Tolerance for variable change",
+    },
+    seed: {
+      type: "number",
+      default: 9,
+      label: "Seed",
+      step: 1,
+      help: "Random seed (integer)",
+    },
+  },
+  PSO: {
+    generation: {
+      type: "number",
+      default: 100,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations (integer)",
+    },
+    omega: {
+      type: "number",
+      default: 0.8,
+      label: "Inertia Weight (Omega)",
+      max: 1,
+      step: 0.01,
+      help: "Inertia weight (<1)",
+    },
+    eta1: {
+      type: "number",
+      default: 2.05,
+      label: "Eta1",
+      min: 0,
+      step: 0.01,
+      help: "Magnitude of force",
+    },
+    eta2: {
+      type: "number",
+      default: 2.05,
+      label: "Eta2",
+      min: 0,
+      step: 0.01,
+      help: "Magnitude of force",
+    },
+    max_vel: {
+      type: "number",
+      default: 0.6,
+      label: "Max Velocity",
+      min: 0,
+      step: 0.01,
+      help: "Maximum particle velocity (positive)",
+    },
+    variant: {
+      type: "select",
+      default: 5,
+      label: "Variant",
+      options: [1, 2, 3, 4, 5, 6],
+      help: "PSO variant type (1-6)",
+    },
+    neighb_type: {
+      type: "select",
+      default: 2,
+      label: "Neighborhood Type",
+      options: [1, 2, 3, 4],
+      help: "Neighborhood topology (1-4)",
+    },
+    neighb_param: {
+      type: "number",
+      default: 4,
+      label: "Neighborhood Param",
+      min: 0,
+      step: 1,
+      help: "Neighborhood parameter (positive)",
+    },
+    memory: {
+      type: "select",
+      default: false, // Assuming 0 means false
+      label: "Memory",
+      options: [true, false],
+      help: "Enable memory feature (true/false)",
+    },
+    seed: {
+      type: "number",
+      default: 9,
+      label: "Seed",
+      step: 1,
+      help: "Random seed (integer)",
+    },
+  },
+  IPOPT: {
+    tol: {
+      type: "number",
+      default: 100,
+      label: "Tolerance",
+      min: 0,
+      step: 1,
+      help: "Overall convergence tolerance",
+    },
+    linear_solver: {
+      type: "select",
+      default: "mumps",
+      label: "Linear Solver",
+      options: [
+        "ma27",
+        "ma57",
+        "ma77",
+        "ma86",
+        "ma97",
+        "pardiso",
+        "pardisomkl",
+        "spral",
+        "wsmp",
+        "mumps",
+      ],
+      help: "Linear system solver",
+    },
+    dual_inf_tol: {
+      type: "number",
+      default: 1,
+      label: "Dual Inf Tol",
+      min: 0,
+      step: 0.1,
+      help: "Dual infeasibility tolerance (>0)",
+    },
+    constr_viol_tol: {
+      type: "number",
+      default: 0.0001,
+      label: "Constr Viol Tol",
+      min: 0,
+      step: 1e-5,
+      help: "Constraint violation tolerance (>0)",
+    },
+    compl_inf_tol: {
+      type: "number",
+      default: 0.0001,
+      label: "Compl Inf Tol",
+      min: 0,
+      step: 1e-5,
+      help: "Complementarity infeasibility tolerance (>0)",
+    },
+    bound_relax_factor: {
+      type: "number",
+      default: 1e-8,
+      label: "Bound Relax Factor",
+      min: 0,
+      step: 1e-9,
+      help: "Bound relaxation factor (>0)",
+    },
+    acceptable_tol: {
+      type: "number",
+      default: 1e-6,
+      label: "Acceptable Tol",
+      min: 0,
+      step: 1e-7,
+      help: "Acceptable convergence tolerance (>0)",
+    },
+    acceptable_iter: {
+      type: "number",
+      default: 15,
+      label: "Acceptable Iter",
+      min: 0,
+      step: 1,
+      help: "Acceptable iteration limit (>=0)",
+    },
+    gradient_approximation: {
+      type: "select",
+      default: "exact",
+      label: "Gradient Approximation",
+      options: ["exact", "finite-difference-values"],
+      help: "Method for gradient calculation",
+    },
+  },
+  CS: {
+    max_feval: {
+      type: "number",
+      default: 500,
+      label: "Max Function Evals",
+      min: 1,
+      step: 1,
+      help: "Maximum number of function evaluations",
+    },
+    start_range: {
+      type: "number",
+      default: 0.1,
+      label: "Start Range",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Initial search range (0 to 1)",
+    },
+    stop_range: {
+      type: "number",
+      default: 0.0001,
+      label: "Stop Range",
+      min: 0,
+      max: 1,
+      step: 1e-5,
+      help: "Stopping search range (0 to 1)",
+    },
+    reduction_coeff: {
+      type: "number",
+      default: 0.5,
+      label: "Reduction Coeff",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Range reduction coefficient (0 to 1)",
+    },
+  },
+  NLOPT: {
+    solver: {
+      type: "select",
+      default: "slsqp",
+      label: "Solver",
+      options: ["slsqp", "mma", "ccsaq", "cobyla", "auglag"],
+      help: "Internal NLOPT solver",
+    },
+    stop_val: {
+      type: "number",
+      default: null,
+      label: "Stop Value",
+      step: "any",
+      nullable: true,
+      help: "Stop when function value reaches this (null to disable)",
+    },
+    ftol_rel: {
+      type: "number",
+      default: 0,
+      label: "Func Tol Relative",
+      min: 0,
+      step: 1e-7,
+      help: "Relative function tolerance (positive)",
+    },
+    ftol_abs: {
+      type: "number",
+      default: 0,
+      label: "Func Tol Absolute",
+      min: 0,
+      step: 1e-7,
+      help: "Absolute function tolerance (positive)",
+    },
+    xtol_rel: {
+      type: "number",
+      default: 0,
+      label: "Var Tol Relative",
+      min: 0,
+      step: 1e-7,
+      help: "Relative variable tolerance (positive)",
+    },
+    xtol_abs: {
+      type: "number",
+      default: 1e-6,
+      label: "Var Tol Absolute",
+      min: 0,
+      step: 1e-7,
+      help: "Absolute variable tolerance (positive)",
+    },
+    maxeval: {
+      type: "number",
+      default: 0,
+      label: "Max Evaluations",
+      min: 0,
+      step: 1,
+      help: "Max function evaluations (0 for none)",
+    },
+    maxtime: {
+      type: "number",
+      default: 0,
+      label: "Max Time",
+      min: 0,
+      step: 0.1,
+      help: "Max optimization time in seconds (0 for none)",
+    },
+  },
+  GAGGS: {
+    Algorithm_1: {
+      type: "select",
+      default: "PSO",
+      label: "Algorithm 1 (Global)",
+      options: [
+        "SGA",
+        "DE",
+        "SADE",
+        "pDE",
+        "PSO",
+        "CS",
+        "GAGGS",
+        "MBH",
+        "CSTRS",
+        "GWO",
+        "IHS",
+        "AC",
+        "ABC",
+        "CMAES",
+        "XNES",
+        "NSGA2",
+      ], // Excludes NLOPT, IPOPT
+      help: "First algorithm (global search)",
+    },
+    Algorithm_2: {
+      type: "select",
+      default: "NLOPT",
+      label: "Algorithm 2 (Local)",
+      options: ["NLOPT", "IPOPT"],
+      help: "Second algorithm (local search)",
+    },
+    Gaggs_generation: {
+      type: "number",
+      default: 5,
+      label: "GAGGS Generation",
+      min: 1,
+      step: 1,
+      help: "Number of GAGGS generations",
+    },
+    pop_GA: {
+      type: "number",
+      default: 5,
+      label: "Population GA",
+      min: 1,
+      step: 1,
+      help: "Population size for Algorithm 1",
+    },
+  },
+  MBH: {
+    innerr_algorithm: {
+      type: "select",
+      default: "CS",
+      label: "Inner Algorithm",
+      options: [
+        "SGA",
+        "DE",
+        "SADE",
+        "pDE",
+        "PSO",
+        "CS",
+        "GAGGS",
+        "MBH",
+        "CSTRS",
+        "GWO",
+        "IHS",
+        "AC",
+        "ABC",
+        "CMAES",
+        "XNES",
+        "NSGA2",
+        "NLOPT",
+        "IPOPT",
+      ],
+      help: "Algorithm used in the inner loop",
+    },
+    runs: {
+      type: "number",
+      default: 100,
+      label: "Runs",
+      min: 1,
+      step: 1,
+      help: "Number of inner algorithm runs",
+    },
+    perturb: {
+      type: "number",
+      default: 1e-2,
+      label: "Perturbation",
+      min: 0,
+      step: 1e-3,
+      help: "Perturbation factor (positive)",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+  CSTRS: {
+    innerr_algorithm: {
+      type: "select",
+      default: "DE",
+      label: "Inner Algorithm",
+      options: [
+        "SGA",
+        "DE",
+        "SADE",
+        "pDE",
+        "PSO",
+        "CS",
+        "GAGGS",
+        "MBH",
+        "CSTRS",
+        "GWO",
+        "IHS",
+        "AC",
+        "ABC",
+        "CMAES",
+        "XNES",
+        "NSGA2",
+        "NLOPT",
+        "IPOPT",
+      ],
+      help: "Algorithm used in the inner loop",
+    },
+    iters: {
+      type: "number",
+      default: 1,
+      label: "Iterations",
+      min: 1,
+      step: 1,
+      help: "Number of iterations",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+  GWO: {
+    generation: {
+      type: "number",
+      default: 50,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+  IHS: {
+    phmcr: {
+      type: "number",
+      default: 0.85,
+      label: "PHMCR",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Harmony Memory Considering Rate (0-1)",
+    },
+    ppar_min: {
+      type: "number",
+      default: 0.35,
+      label: "Min PPAR",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Min Pitch Adjusting Rate (0-1)",
+    },
+    ppar_max: {
+      type: "number",
+      default: 0.99,
+      label: "Max PPAR",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Max Pitch Adjusting Rate (0-1)",
+    },
+    bw_min: {
+      type: "number",
+      default: 1e-5,
+      label: "Min BW",
+      min: 0,
+      step: 1e-6,
+      help: "Min Bandwidth (positive)",
+    },
+    bw_max: {
+      type: "number",
+      default: 1.0,
+      label: "Max BW",
+      min: 0,
+      step: 0.01,
+      help: "Max Bandwidth (positive)",
+    },
+  },
+  AC: {
+    generation: {
+      type: "number",
+      default: 1,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    ker: {
+      type: "number",
+      default: 63,
+      label: "Kernel Size",
+      min: 2,
+      step: 1,
+      help: "Kernel size (>=2)",
+    },
+    q: {
+      type: "number",
+      default: 1.0,
+      label: "Q Factor",
+      min: 0,
+      step: 0.1,
+      help: "Q parameter (>=0)",
+    },
+    oracle: {
+      type: "number",
+      default: 0.0,
+      label: "Oracle",
+      min: 0,
+      step: 0.1,
+      help: "Oracle value (positive)",
+    },
+    acc: {
+      type: "number",
+      default: 0.01,
+      label: "Accuracy",
+      min: 0,
+      step: 0.001,
+      help: "Accuracy parameter (>=0)",
+    },
+    threshold: {
+      type: "number",
+      default: 1,
+      label: "Threshold",
+      min: 1,
+      step: 1,
+      help: "Threshold value (>=1)",
+    },
+    n_gen_mark: {
+      type: "number",
+      default: 7,
+      label: "N Gen Mark",
+      min: 1,
+      step: 1,
+      help: "Generation mark (positive)",
+    },
+    impstop: {
+      type: "number",
+      default: 100000,
+      label: "Imp Stop",
+      min: 1,
+      step: 100,
+      help: "Improvement stop criterion",
+    },
+    evalstop: {
+      type: "number",
+      default: 100000,
+      label: "Eval Stop",
+      min: 1,
+      step: 100,
+      help: "Evaluation stop criterion",
+    },
+    focus: {
+      type: "number",
+      default: 0.0,
+      label: "Focus",
+      min: 0,
+      step: 0.1,
+      help: "Focus parameter (>=0)",
+    },
+    memory: {
+      type: "select",
+      default: false,
+      label: "Memory",
+      options: [true, false],
+      help: "Enable memory feature (true/false)",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+  ABC: {
+    generation: {
+      type: "number",
+      default: 1,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    limit: {
+      type: "number",
+      default: 20,
+      label: "Limit",
+      min: 1,
+      step: 1,
+      help: "Scout limit for bees",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+  CMAES: {
+    generation: {
+      type: "number",
+      default: 1,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    sigma0: {
+      type: "number",
+      default: 0.5,
+      label: "Initial Sigma",
+      min: 0,
+      step: 0.01,
+      help: "Initial standard deviation (positive)",
+    },
+    ftol: {
+      type: "number",
+      default: 1e-6,
+      label: "Function Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Function value tolerance (positive)",
+    },
+    xtol: {
+      type: "number",
+      default: 1e-6,
+      label: "Variable Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Variable value tolerance (positive)",
+    },
+    memory: {
+      type: "select",
+      default: false,
+      label: "Memory",
+      options: [true, false],
+      help: "Enable memory feature (true/false)",
+    },
+    force_bounds: {
+      type: "select",
+      default: false,
+      label: "Force Bounds",
+      options: [true, false],
+      help: "Force variables within bounds (true/false)",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+  XNES: {
+    generation: {
+      type: "number",
+      default: 1,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    ftol: {
+      type: "number",
+      default: 1e-6,
+      label: "Function Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Function value tolerance (positive)",
+    },
+    xtol: {
+      type: "number",
+      default: 1e-6,
+      label: "Variable Tolerance",
+      min: 0,
+      step: 1e-7,
+      help: "Variable value tolerance (positive)",
+    },
+    memory: {
+      type: "select",
+      default: false,
+      label: "Memory",
+      options: [true, false],
+      help: "Enable memory feature (true/false)",
+    },
+    force_bounds: {
+      type: "select",
+      default: false,
+      label: "Force Bounds",
+      options: [true, false],
+      help: "Force variables within bounds (true/false)",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+  NSGA2: {
+    generation: {
+      type: "number",
+      default: 1,
+      label: "Generation",
+      min: 1,
+      step: 1,
+      help: "Number of generations",
+    },
+    cr: {
+      type: "number",
+      default: 0.95,
+      label: "Crossover Rate",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      help: "Crossover probability (<1)",
+    },
+    eta_c: {
+      type: "number",
+      default: 10.0,
+      label: "Eta C (Crossover)",
+      min: 1,
+      max: 100,
+      step: 0.1,
+      help: "Distribution index for crossover (1-100)",
+    },
+    m: {
+      type: "number",
+      default: 0.01,
+      label: "Mutation Rate",
+      min: 0,
+      max: 1,
+      step: 0.001,
+      help: "Mutation probability (<1)",
+    },
+    eta_m: {
+      type: "number",
+      default: 50.0,
+      label: "Eta M (Mutation)",
+      min: 1,
+      max: 100,
+      step: 0.1,
+      help: "Distribution index for mutation (1-100)",
+    },
+    seed: {
+      type: "text",
+      default: "random",
+      label: "Seed",
+      help: "Random seed ('random' or integer)",
+    },
+  },
+};
+
+// Make algorithm parameters globally available
+window.algorithmParameters = algorithmParameters;
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Optimization module loaded");
 
@@ -10,7 +1050,7 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   const addObjectiveBtn = document.getElementById("add-objective-btn");
 
-  const MAX_OBJECTIVES = 4;
+  const MAX_OBJECTIVES = 2;
   let objectiveCount = 0;
 
   // Form references
@@ -1696,7 +2736,7 @@ document.addEventListener("DOMContentLoaded", function () {
         CUT_OFF: "opt_cut_off",
         PAYLOAD: "opt_payload",
         AZIMUTH: "opt_azimuth",
-        SEQUENCE: "opt_sequence",
+        SEQUENCE: "opt_coast_duration",
         PROPULSION: "opt_propulsion",
         STEERING: "opt_steering",
       };
@@ -3162,488 +4202,585 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to create an algorithm tag/chip
   function createAlgorithmTag(algorithm) {
+    // Generate a unique ID for this tag
+    const tagId = `algo-${algorithm.toLowerCase()}-${Date.now()}`;
+
+    // Create the tag
     const tag = document.createElement("div");
     tag.className = "algorithm-tag";
+    tag.id = tagId;
     tag.dataset.algorithm = algorithm;
 
-    // Add color class based on algorithm
-    const algorithmColors = {
-      SGA: "blue",
-      DE: "green",
-      PSO: "orange",
-      IPOT: "purple",
-      CS: "teal",
-      GAGGS: "red",
-      // Add more color mappings as needed
-    };
+    // Tag text
+    const tagText = document.createElement("span");
+    tagText.className = "algorithm-name";
+    tagText.textContent = algorithm;
 
-    const colorClass = algorithmColors[algorithm] || "default";
-    tag.classList.add(`algorithm-${colorClass}`);
+    // Tag remove button
+    const removeButton = document.createElement("button");
+    removeButton.className = "remove-algorithm";
+    removeButton.innerHTML = "&times;"; // × symbol
+    removeButton.title = "Remove this algorithm";
 
-    tag.innerHTML = `
-      <span class="algorithm-name">${algorithm}</span>
-      <button type="button" class="remove-algorithm" title="Remove algorithm">×</button>
-    `;
+    // Add parameter indicator
+    const paramIndicator = document.createElement("span");
+    paramIndicator.className = "params-indicator";
+    paramIndicator.innerHTML = "⚙️"; // Gear emoji
+    paramIndicator.title = "Click to edit parameters";
 
-    // Add remove button functionality
-    const removeBtn = tag.querySelector(".remove-algorithm");
-    if (removeBtn) {
-      removeBtn.addEventListener("click", () => {
-        // Remove from array
-        const index = selectedAlgorithms.indexOf(algorithm);
-        if (index !== -1) {
-          selectedAlgorithms.splice(index, 1);
-        }
+    // Add elements to tag
+    tag.appendChild(tagText);
+    tag.appendChild(paramIndicator);
+    tag.appendChild(removeButton);
 
-        // Remove the tag from UI
-        tag.remove();
+    // Add event listener for tag click to edit parameters
+    tag.addEventListener("click", (event) => {
+      // Don't trigger if the remove button was clicked
+      if (event.target.classList.contains("remove-algorithm")) {
+        return;
+      }
 
-        // Update counter
+      // Open parameters modal
+      openAlgorithmParamsModal(algorithm, tagId);
+    });
+
+    // Add event listener for remove button
+    removeButton.addEventListener("click", (event) => {
+      event.stopPropagation(); // Prevent tag click
+
+      // Remove the tag
+      tag.remove();
+
+      // Remove parameters from store
+      if (window.optimizationHandler.clearArchipelagoAlgorithmParams) {
+        window.optimizationHandler.clearArchipelagoAlgorithmParams(tagId);
+      }
+
+      // Update counter
+      if (window.optimizationHandler.updateAlgorithmsCounter) {
+        window.optimizationHandler.updateAlgorithmsCounter();
+      } else if (window.updateAlgorithmsCounter) {
         updateAlgorithmsCounter();
-
-        // Add the option back to the dropdown
-        const option = document.createElement("option");
-        option.value = algorithm;
-        option.textContent = algorithm;
-
-        // Try to find the position to insert alphabetically
-        const options = Array.from(archipelagoAlgorithm.options);
-        let inserted = false;
-
-        for (let i = 1; i < options.length; i++) {
-          if (options[i].textContent > algorithm) {
-            archipelagoAlgorithm.insertBefore(option, options[i]);
-            inserted = true;
-            break;
-          }
-        }
-
-        // If we couldn't find a position, add at the end
-        if (!inserted) {
-          archipelagoAlgorithm.appendChild(option);
-        }
-      });
-    }
+      }
+    });
 
     return tag;
   }
 
   // Function to get the mode data
   function getModeData() {
-    const isNormalMode = modeNormalRadio && modeNormalRadio.checked;
+    const modeData = {};
+    const isNormalMode = document.getElementById("mode-normal").checked;
+
+    modeData.type = isNormalMode ? "normal" : "archipelago";
 
     if (isNormalMode) {
-      // Get normal mode data
-      return {
-        mode: "normal",
-        algorithm: document.getElementById("normal-algorithm").value,
-        map: {
-          lower: parseFloat(
-            document.getElementById("normal-lower-bound").value
-          ),
-          upper: parseFloat(
-            document.getElementById("normal-upper-bound").value
-          ),
-        },
-        population:
-          parseInt(document.getElementById("normal-population").value) || 0,
-        setPopulation: document.getElementById("normal-set-population").checked,
-        csvFilename: document.getElementById("normal-csv-filename").value,
-        problemStrategy: document.getElementById("normal-problem-strategy")
-          .value,
+      // Get algorithm selection
+      const algorithm = document.getElementById("normal-algorithm").value;
+      const lowerBound = parseFloat(
+        document.getElementById("normal-lower-bound").value
+      );
+      const upperBound = parseFloat(
+        document.getElementById("normal-upper-bound").value
+      );
+      const population = parseInt(
+        document.getElementById("normal-population").value
+      );
+      const setPopulation = document.getElementById(
+        "normal-set-population"
+      ).checked;
+      const problemStrategy = document.getElementById(
+        "normal-problem-strategy"
+      ).value;
+
+      modeData.algorithm = algorithm;
+      modeData.map = {
+        lower: lowerBound,
+        upper: upperBound,
       };
+      modeData.population = population;
+      modeData.setPopulation = setPopulation;
+      modeData.problemStrategy = problemStrategy;
+
+      // Get file information if setPopulation is enabled
+      if (setPopulation && window.optimizationHandler.normalCsvFile) {
+        modeData.initialPopulationFile =
+          window.optimizationHandler.normalCsvFile.name;
+      }
+
+      // Collect algorithm parameters
+      const paramsContainer = document.getElementById(
+        "normal-algorithm-params"
+      );
+      const algoParams = {};
+
+      if (paramsContainer && algorithm) {
+        const paramInputs = paramsContainer.querySelectorAll(
+          ".algorithm-param-input"
+        );
+
+        paramInputs.forEach((input) => {
+          const paramKey = input.dataset.parameter;
+          let value;
+
+          // Handle different input types
+          if (input.type === "checkbox") {
+            value = input.checked;
+          } else if (input.type === "number") {
+            value = parseFloat(input.value);
+            if (isNaN(value)) value = null;
+          } else if (input.tagName === "SELECT") {
+            value = input.value;
+          } else {
+            value = input.value;
+          }
+
+          if (paramKey && value !== undefined) {
+            algoParams[paramKey] = value;
+          }
+        });
+
+        modeData.parameters = algoParams;
+      }
     } else {
-      // Get archipelago mode data
-      return {
-        mode: "archipelago",
-        algorithms: selectedAlgorithms,
-        topology: document.getElementById("archipelago-topology").value,
-        migrationType: document.getElementById("archipelago-migration-type")
-          .value,
-        migrationHandling: document.getElementById(
-          "archipelago-migration-handling"
-        ).value,
-        map: {
-          lower: parseFloat(
-            document.getElementById("archipelago-lower-bound").value
-          ),
-          upper: parseFloat(
-            document.getElementById("archipelago-upper-bound").value
-          ),
-        },
-        population:
-          parseInt(document.getElementById("archipelago-population").value) ||
-          0,
-        setPopulation: document.getElementById("archipelago-set-population")
-          .checked,
-        csvFilename: document.getElementById("archipelago-csv-filename").value,
+      // Archipelago mode data collection
+      const topology = document.getElementById("archipelago-topology").value;
+      const migrationType = document.getElementById(
+        "archipelago-migration-type"
+      ).value;
+      const migrationHandling = document.getElementById(
+        "archipelago-migration-handling"
+      ).value;
+      const lowerBound = parseFloat(
+        document.getElementById("archipelago-lower-bound").value
+      );
+      const upperBound = parseFloat(
+        document.getElementById("archipelago-upper-bound").value
+      );
+      const population = parseInt(
+        document.getElementById("archipelago-population").value
+      );
+      const setPopulation = document.getElementById(
+        "archipelago-set-population"
+      ).checked;
+
+      modeData.topology = topology;
+      modeData.migrationType = migrationType;
+      modeData.migrationHandling = migrationHandling;
+      modeData.map = {
+        lower: lowerBound,
+        upper: upperBound,
       };
+      modeData.population = population;
+      modeData.setPopulation = setPopulation;
+
+      // Get file information if setPopulation is enabled
+      if (setPopulation && window.optimizationHandler.archipelagoCsvFile) {
+        modeData.initialPopulationFile =
+          window.optimizationHandler.archipelagoCsvFile.name;
+      }
+
+      // Get selected algorithms with their parameters
+      const algorithmTags = document
+        .getElementById("selected-algorithms-container")
+        .querySelectorAll(".algorithm-tag");
+
+      const algorithms = [];
+
+      algorithmTags.forEach((tag) => {
+        const algo = {
+          name: tag.dataset.algorithm,
+        };
+
+        // Get parameters from parameter store if they exist
+        if (
+          window.optimizationHandler.archipelagoParamsStore &&
+          window.optimizationHandler.archipelagoParamsStore[tag.id]
+        ) {
+          algo.parameters =
+            window.optimizationHandler.archipelagoParamsStore[tag.id];
+        }
+
+        algorithms.push(algo);
+      });
+
+      modeData.algorithms = algorithms;
     }
+
+    return modeData;
   }
 
   // Initialize the mode form
   function initModeForm() {
-    // Set default population values if not already set
-    const normalPopulationField = document.getElementById("normal-population");
-    const archipelagoPopulationField = document.getElementById(
-      "archipelago-population"
-    );
+    try {
+      // Set up field visibility toggles
+      const normalModeRadio = document.getElementById("mode-normal");
+      const archipelagoModeRadio = document.getElementById("mode-archipelago");
+      const normalModeFields = document.getElementById("normal-mode-fields");
+      const archipelagoModeFields = document.getElementById(
+        "archipelago-mode-fields"
+      );
 
-    if (normalPopulationField && normalPopulationField.value === "") {
-      normalPopulationField.value = "1";
-    }
+      if (
+        normalModeRadio &&
+        archipelagoModeRadio &&
+        normalModeFields &&
+        archipelagoModeFields
+      ) {
+        // Initial visibility based on default selection
+        normalModeFields.style.display = normalModeRadio.checked
+          ? "block"
+          : "none";
+        archipelagoModeFields.style.display = archipelagoModeRadio.checked
+          ? "block"
+          : "none";
 
-    if (archipelagoPopulationField && archipelagoPopulationField.value === "") {
-      archipelagoPopulationField.value = "1";
-    }
+        // Event listeners for mode toggling
+        normalModeRadio.addEventListener("change", function () {
+          enhancedToggleMode();
+        });
 
-    // Set up mode switching with a more direct approach
-    const modeRadios = document.querySelectorAll(
-      'input[name="optimization-mode"]'
-    );
-    modeRadios.forEach((radio) => {
-      radio.addEventListener("change", function () {
-        const normalMode = document.getElementById("normal-mode-fields");
-        const archipelagoMode = document.getElementById(
-          "archipelago-mode-fields"
+        archipelagoModeRadio.addEventListener("change", function () {
+          enhancedToggleMode();
+        });
+      }
+
+      // Set up event listener for normal algorithm selection
+      const normalAlgorithmSelect = document.getElementById("normal-algorithm");
+      if (normalAlgorithmSelect) {
+        console.log("Adding change event listener to normal algorithm select");
+        // Remove any existing listeners to avoid duplicates
+        const newSelect = normalAlgorithmSelect.cloneNode(true);
+        normalAlgorithmSelect.parentNode.replaceChild(
+          newSelect,
+          normalAlgorithmSelect
         );
-        const isNormalChecked =
-          document.getElementById("mode-normal") &&
-          document.getElementById("mode-normal").checked;
 
-        if (normalMode && archipelagoMode) {
-          if (isNormalChecked) {
-            normalMode.style.display = "block";
-            archipelagoMode.style.display = "none";
-          } else {
-            normalMode.style.display = "none";
-            archipelagoMode.style.display = "block";
-          }
-        }
-      });
-    });
-
-    // Force initial display based on current selection
-    const isNormalChecked =
-      document.getElementById("mode-normal") &&
-      document.getElementById("mode-normal").checked;
-    const normalMode = document.getElementById("normal-mode-fields");
-    const archipelagoMode = document.getElementById("archipelago-mode-fields");
-
-    if (normalMode && archipelagoMode) {
-      if (isNormalChecked) {
-        normalMode.style.display = "block";
-        archipelagoMode.style.display = "none";
-      } else {
-        normalMode.style.display = "none";
-        archipelagoMode.style.display = "block";
-      }
-    }
-
-    // Set up file uploads
-    setupFileUpload(
-      normalCsvUploadBtn,
-      normalCsvClearBtn,
-      normalCsvUpload,
-      normalCsvFilename,
-      (fileData, fileName) => {
-        // Store file data in memory or localStorage if needed
-        console.log(`Normal mode CSV file ${fileName} selected`);
-      }
-    );
-
-    setupFileUpload(
-      archipelagoCsvUploadBtn,
-      archipelagoCsvClearBtn,
-      archipelagoCsvUpload,
-      archipelagoCsvFilename,
-      (fileData, fileName) => {
-        // Store file data in memory or localStorage if needed
-        console.log(`Archipelago mode CSV file ${fileName} selected`);
-      }
-    );
-
-    // Set up algorithm selection
-    if (
-      addAlgorithmBtn &&
-      archipelagoAlgorithm &&
-      selectedAlgorithmsContainer
-    ) {
-      addAlgorithmBtn.addEventListener("click", () => {
-        const selectedValue = archipelagoAlgorithm.value;
-
-        if (selectedValue && !selectedAlgorithms.includes(selectedValue)) {
-          // Limit number of algorithms
-          if (selectedAlgorithms.length >= MAX_ALGORITHMS) {
-            Swal.fire({
-              title: "Maximum Algorithms Reached",
-              text: `You can only select up to ${MAX_ALGORITHMS} algorithms`,
-              icon: "warning",
-              toast: true,
-              position: "top-end",
-              showConfirmButton: false,
-              timer: 3000,
-            });
-            return;
-          }
-
-          // Add to selected algorithms array
-          selectedAlgorithms.push(selectedValue);
-
-          // Create and append tag
-          const algorithmTag = createAlgorithmTag(selectedValue);
-          selectedAlgorithmsContainer.insertBefore(
-            algorithmTag,
-            algorithmsCounter
+        // Add the event listener
+        newSelect.addEventListener("change", function (event) {
+          const algorithmValue = event.target.value;
+          console.log(`Normal algorithm selected: ${algorithmValue}`);
+          const paramsContainer = document.getElementById(
+            "normal-algorithm-params"
           );
 
-          // Remove from dropdown
-          for (let i = 0; i < archipelagoAlgorithm.options.length; i++) {
-            if (archipelagoAlgorithm.options[i].value === selectedValue) {
-              archipelagoAlgorithm.remove(i);
-              break;
-            }
+          if (paramsContainer && algorithmValue) {
+            displayAlgorithmParameters(
+              algorithmValue,
+              paramsContainer,
+              "normal",
+              {} // Empty object for now, will be populated when loading existing data
+            );
+          } else {
+            console.warn("Could not display algorithm parameters:", {
+              algorithm: algorithmValue,
+              container: paramsContainer ? "found" : "not found",
+            });
           }
+        });
 
-          // Reset dropdown
-          archipelagoAlgorithm.value = "";
-
-          // Update counter
-          updateAlgorithmsCounter();
+        // If there's already a value selected, trigger the change event
+        if (newSelect.value) {
+          console.log(
+            `Triggering change event for pre-selected algorithm: ${newSelect.value}`
+          );
+          newSelect.dispatchEvent(new Event("change"));
         }
-      });
+      } else {
+        console.warn("Normal algorithm select element not found");
+      }
 
-      // Initial counter update
-      updateAlgorithmsCounter();
-    }
+      // Set up the file upload functionality
+      const normalCsvUploadBtn = document.getElementById(
+        "normal-csv-upload-btn"
+      );
+      const normalCsvClearBtn = document.getElementById("normal-csv-clear-btn");
+      const normalCsvInput = document.getElementById("normal-csv-upload");
+      const normalCsvFilename = document.getElementById("normal-csv-filename");
 
-    // Add event listeners for the "Set Population" toggle buttons
-    const normalSetPopToggle = document.getElementById("normal-set-population");
-    const archipelagoSetPopToggle = document.getElementById(
-      "archipelago-set-population"
-    );
-
-    if (normalSetPopToggle) {
-      normalSetPopToggle.addEventListener("change", function () {
-        toggleCsvUploadVisibility("normal");
-      });
-      // Initialize visibility on load
-      toggleCsvUploadVisibility("normal");
-    }
-
-    if (archipelagoSetPopToggle) {
-      archipelagoSetPopToggle.addEventListener("change", function () {
-        toggleCsvUploadVisibility("archipelago");
-      });
-      // Initialize visibility on load
-      toggleCsvUploadVisibility("archipelago");
-    }
-
-    // Set up form submission
-    if (modeForm) {
-      modeForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-
-        const modeData = getModeData();
-        console.log("Mode data:", modeData);
-
-        // Validate the form
-        let isValid = true;
-        let errorMessage = "";
-
-        if (modeData.mode === "normal") {
-          if (!modeData.algorithm) {
-            isValid = false;
-            errorMessage = "Please select an algorithm";
+      if (
+        normalCsvUploadBtn &&
+        normalCsvClearBtn &&
+        normalCsvInput &&
+        normalCsvFilename
+      ) {
+        setupFileUpload(
+          normalCsvUploadBtn,
+          normalCsvClearBtn,
+          normalCsvInput,
+          normalCsvFilename,
+          (file) => {
+            console.log("Normal CSV file selected:", file.name);
+            window.optimizationHandler.normalCsvFile = file;
           }
-        } else if (modeData.mode === "archipelago") {
-          if (selectedAlgorithms.length === 0) {
-            isValid = false;
-            errorMessage = "Please select at least one algorithm";
+        );
+      }
+
+      // Set up archipelago algorithm selection functionality
+      const archipelagoAlgorithmSelect = document.getElementById(
+        "archipelago-algorithm"
+      );
+      const addAlgorithmBtn = document.getElementById("add-algorithm-btn");
+
+      if (archipelagoAlgorithmSelect && addAlgorithmBtn) {
+        this.setupAddAlgorithmButton = setupAddAlgorithmButton;
+      }
+
+      // Set up archipelago CSV upload
+      const archipelagoCsvUploadBtn = document.getElementById(
+        "archipelago-csv-upload-btn"
+      );
+      const archipelagoCsvClearBtn = document.getElementById(
+        "archipelago-csv-clear-btn"
+      );
+      const archipelagoCsvInput = document.getElementById(
+        "archipelago-csv-upload"
+      );
+      const archipelagoCsvFilename = document.getElementById(
+        "archipelago-csv-filename"
+      );
+
+      if (
+        archipelagoCsvUploadBtn &&
+        archipelagoCsvClearBtn &&
+        archipelagoCsvInput &&
+        archipelagoCsvFilename
+      ) {
+        setupFileUpload(
+          archipelagoCsvUploadBtn,
+          archipelagoCsvClearBtn,
+          archipelagoCsvInput,
+          archipelagoCsvFilename,
+          (file) => {
+            console.log("Archipelago CSV file selected:", file.name);
+            window.optimizationHandler.archipelagoCsvFile = file;
           }
-        }
+        );
+      }
 
-        if (isValid) {
-          // Save the data
-          saveOptimizationData("mode", modeData);
-
-          Swal.fire({
-            title: "Success",
-            text: "Optimization mode settings saved successfully",
-            icon: "success",
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-          });
-        } else {
-          Swal.fire({
-            title: "Validation Error",
-            text: errorMessage,
-            icon: "error",
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-          });
-        }
-      });
+      console.log("Mode form initialized successfully");
+    } catch (error) {
+      console.error("Error initializing mode form:", error);
     }
   }
 
   // Function to initialize the mode form with existing data
   function initializeExistingModeData() {
     try {
+      // Get mode data from localStorage or other source
       const missionData = JSON.parse(localStorage.getItem("missionData")) || {};
-      const modeData = missionData.optimization?.mode || null;
+      const modeData = missionData.optimization?.mode;
 
-      // Set default population values if no data exists
       if (!modeData) {
-        const normalPopulationField =
-          document.getElementById("normal-population");
-        const archipelagoPopulationField = document.getElementById(
-          "archipelago-population"
-        );
-
-        if (normalPopulationField && normalPopulationField.value === "") {
-          normalPopulationField.value = "1";
-        }
-
-        if (
-          archipelagoPopulationField &&
-          archipelagoPopulationField.value === ""
-        ) {
-          archipelagoPopulationField.value = "1";
-        }
+        console.log("No saved mode data found.");
         return;
       }
 
-      // Set the mode radio button
-      if (modeData.mode === "normal" && modeNormalRadio) {
-        modeNormalRadio.checked = true;
-      } else if (modeData.mode === "archipelago" && modeArchipelagoRadio) {
-        modeArchipelagoRadio.checked = true;
+      console.log("Initializing mode form with saved data:", modeData);
+
+      // Select the appropriate mode radio button
+      const isNormalMode = modeData.type === "normal";
+      const normalModeRadio = document.getElementById("mode-normal");
+      const archipelagoModeRadio = document.getElementById("mode-archipelago");
+
+      if (normalModeRadio && archipelagoModeRadio) {
+        if (isNormalMode) {
+          normalModeRadio.checked = true;
+        } else {
+          archipelagoModeRadio.checked = true;
+        }
+        // Trigger mode toggle to update UI
+        enhancedToggleMode();
       }
 
-      // Apply the mode toggle
-      toggleModeFields();
+      if (isNormalMode) {
+        // Normal mode fields
+        const normalAlgorithm = document.getElementById("normal-algorithm");
+        const normalLowerBound = document.getElementById("normal-lower-bound");
+        const normalUpperBound = document.getElementById("normal-upper-bound");
+        const normalPopulation = document.getElementById("normal-population");
+        const normalSetPopulation = document.getElementById(
+          "normal-set-population"
+        );
+        const normalProblemStrategy = document.getElementById(
+          "normal-problem-strategy"
+        );
+        const normalCsvFilename = document.getElementById(
+          "normal-csv-filename"
+        );
 
-      if (modeData.mode === "normal") {
-        // Set normal mode fields
-        document.getElementById("normal-algorithm").value =
-          modeData.algorithm || "";
+        // Set values if they exist in modeData
+        if (normalAlgorithm && modeData.algorithm) {
+          normalAlgorithm.value = modeData.algorithm;
 
-        if (modeData.map) {
-          document.getElementById("normal-lower-bound").value =
-            modeData.map.lower || 0;
-          document.getElementById("normal-upper-bound").value =
-            modeData.map.upper || 1;
+          // Display algorithm parameters if algorithm is selected
+          if (modeData.algorithm) {
+            displayAlgorithmParameters(
+              modeData.algorithm,
+              document.getElementById("normal-algorithm-params"),
+              "normal",
+              modeData.parameters || {} // Load stored parameters
+            );
+          }
         }
 
-        document.getElementById("normal-population").value =
-          modeData.population || "";
-        document.getElementById("normal-set-population").checked =
-          modeData.setPopulation !== undefined ? modeData.setPopulation : true;
-        document.getElementById("normal-csv-filename").value =
-          modeData.csvFilename || "";
-        document.getElementById("normal-problem-strategy").value =
-          modeData.problemStrategy || "IGNORE";
-
-        // Show/hide clear button based on whether a file is selected
-        if (modeData.csvFilename && normalCsvClearBtn) {
-          normalCsvClearBtn.style.display = "block";
+        if (
+          normalLowerBound &&
+          modeData.map &&
+          modeData.map.lower !== undefined
+        ) {
+          normalLowerBound.value = modeData.map.lower;
         }
 
-        // Update CSV upload visibility based on toggle state
-        toggleCsvUploadVisibility("normal");
-      } else if (modeData.mode === "archipelago") {
-        // Set archipelago mode fields
-        document.getElementById("archipelago-topology").value =
-          modeData.topology || "Fully Connected";
-        document.getElementById("archipelago-migration-type").value =
-          modeData.migrationType || "Broadcast";
-        document.getElementById("archipelago-migration-handling").value =
-          modeData.migrationHandling || "Evict";
-
-        if (modeData.map) {
-          document.getElementById("archipelago-lower-bound").value =
-            modeData.map.lower || 0;
-          document.getElementById("archipelago-upper-bound").value =
-            modeData.map.upper || 1;
+        if (
+          normalUpperBound &&
+          modeData.map &&
+          modeData.map.upper !== undefined
+        ) {
+          normalUpperBound.value = modeData.map.upper;
         }
 
-        document.getElementById("archipelago-population").value =
-          modeData.population || "";
-        document.getElementById("archipelago-set-population").checked =
-          modeData.setPopulation !== undefined ? modeData.setPopulation : true;
-        document.getElementById("archipelago-csv-filename").value =
-          modeData.csvFilename || "";
-
-        // Show/hide clear button based on whether a file is selected
-        if (modeData.csvFilename && archipelagoCsvClearBtn) {
-          archipelagoCsvClearBtn.style.display = "block";
+        if (normalPopulation && modeData.population !== undefined) {
+          normalPopulation.value = modeData.population;
         }
 
-        // Update CSV upload visibility based on toggle state
-        toggleCsvUploadVisibility("archipelago");
+        if (normalSetPopulation && modeData.setPopulation !== undefined) {
+          normalSetPopulation.checked = modeData.setPopulation;
+          // Update CSV upload visibility
+          toggleCsvUploadVisibility("normal");
+        }
 
-        // Add selected algorithms
-        if (modeData.algorithms && Array.isArray(modeData.algorithms)) {
+        if (normalProblemStrategy && modeData.problemStrategy) {
+          normalProblemStrategy.value = modeData.problemStrategy;
+        }
+
+        if (normalCsvFilename && modeData.initialPopulationFile) {
+          normalCsvFilename.value = modeData.initialPopulationFile;
+          document.getElementById("normal-csv-clear-btn").style.display =
+            "inline-block";
+        }
+      } else {
+        // Archipelago mode fields
+        const archipelagoTopology = document.getElementById(
+          "archipelago-topology"
+        );
+        const archipelagoMigrationType = document.getElementById(
+          "archipelago-migration-type"
+        );
+        const archipelagoMigrationHandling = document.getElementById(
+          "archipelago-migration-handling"
+        );
+        const archipelagoLowerBound = document.getElementById(
+          "archipelago-lower-bound"
+        );
+        const archipelagoUpperBound = document.getElementById(
+          "archipelago-upper-bound"
+        );
+        const archipelagoPopulation = document.getElementById(
+          "archipelago-population"
+        );
+        const archipelagoSetPopulation = document.getElementById(
+          "archipelago-set-population"
+        );
+        const archipelagoCsvFilename = document.getElementById(
+          "archipelago-csv-filename"
+        );
+        const selectedAlgorithmsContainer = document.getElementById(
+          "selected-algorithms-container"
+        );
+
+        // Set values if they exist in modeData
+        if (archipelagoTopology && modeData.topology) {
+          archipelagoTopology.value = modeData.topology;
+        }
+
+        if (archipelagoMigrationType && modeData.migrationType) {
+          archipelagoMigrationType.value = modeData.migrationType;
+        }
+
+        if (archipelagoMigrationHandling && modeData.migrationHandling) {
+          archipelagoMigrationHandling.value = modeData.migrationHandling;
+        }
+
+        if (
+          archipelagoLowerBound &&
+          modeData.map &&
+          modeData.map.lower !== undefined
+        ) {
+          archipelagoLowerBound.value = modeData.map.lower;
+        }
+
+        if (
+          archipelagoUpperBound &&
+          modeData.map &&
+          modeData.map.upper !== undefined
+        ) {
+          archipelagoUpperBound.value = modeData.map.upper;
+        }
+
+        if (archipelagoPopulation && modeData.population !== undefined) {
+          archipelagoPopulation.value = modeData.population;
+        }
+
+        if (archipelagoSetPopulation && modeData.setPopulation !== undefined) {
+          archipelagoSetPopulation.checked = modeData.setPopulation;
+          // Update CSV upload visibility
+          toggleCsvUploadVisibility("archipelago");
+        }
+
+        if (archipelagoCsvFilename && modeData.initialPopulationFile) {
+          archipelagoCsvFilename.value = modeData.initialPopulationFile;
+          document.getElementById("archipelago-csv-clear-btn").style.display =
+            "inline-block";
+        }
+
+        // Populate selected algorithms if they exist
+        if (
+          selectedAlgorithmsContainer &&
+          modeData.algorithms &&
+          Array.isArray(modeData.algorithms)
+        ) {
           // Clear existing algorithms
-          selectedAlgorithms = [];
-
-          // Remove any existing algorithm tags
           const existingTags =
             selectedAlgorithmsContainer.querySelectorAll(".algorithm-tag");
           existingTags.forEach((tag) => tag.remove());
 
-          // Add each algorithm
-          modeData.algorithms.forEach((algorithm) => {
-            // Add to selected algorithms array
-            if (!selectedAlgorithms.includes(algorithm)) {
-              selectedAlgorithms.push(algorithm);
+          // Add algorithm tags with parameters
+          modeData.algorithms.forEach((algo) => {
+            if (algo.name) {
+              const tag = createAlgorithmTag(algo.name);
 
-              // Create and append tag
-              const algorithmTag = createAlgorithmTag(algorithm);
-              selectedAlgorithmsContainer.insertBefore(
-                algorithmTag,
-                algorithmsCounter
-              );
+              // Position tag before the counter
+              const counter = document.getElementById("algorithms-counter");
+              if (counter) {
+                selectedAlgorithmsContainer.insertBefore(tag, counter);
+              } else {
+                selectedAlgorithmsContainer.appendChild(tag);
+              }
 
-              // Remove from dropdown
-              for (let i = 0; i < archipelagoAlgorithm.options.length; i++) {
-                if (archipelagoAlgorithm.options[i].value === algorithm) {
-                  archipelagoAlgorithm.remove(i);
-                  break;
-                }
+              // Store algorithm parameters if they exist
+              if (
+                algo.parameters &&
+                window.optimizationHandler.storeArchipelagoAlgorithmParams
+              ) {
+                window.optimizationHandler.storeArchipelagoAlgorithmParams(
+                  tag.id,
+                  algo.parameters
+                );
               }
             }
           });
 
           // Update counter
-          updateAlgorithmsCounter();
+          if (window.optimizationHandler.updateAlgorithmsCounter) {
+            window.optimizationHandler.updateAlgorithmsCounter();
+          } else if (window.updateAlgorithmsCounter) {
+            window.updateAlgorithmsCounter();
+          }
         }
       }
     } catch (error) {
-      console.error("Error initializing existing mode data:", error);
-
-      // Set default values even on error
-      const normalPopulationField =
-        document.getElementById("normal-population");
-      const archipelagoPopulationField = document.getElementById(
-        "archipelago-population"
-      );
-
-      if (normalPopulationField && normalPopulationField.value === "") {
-        normalPopulationField.value = "1";
-      }
-
-      if (
-        archipelagoPopulationField &&
-        archipelagoPopulationField.value === ""
-      ) {
-        archipelagoPopulationField.value = "1";
-      }
+      console.error("Error initializing mode form with saved data:", error);
     }
   }
 
@@ -3693,65 +4830,124 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Enhanced function to ensure Add Algorithm button works
   function setupAddAlgorithmButton() {
-    const addBtn = document.getElementById("add-algorithm-btn");
-    const algorithmSelect = document.getElementById("archipelago-algorithm");
-    const container = document.getElementById("selected-algorithms-container");
-    const counter = document.getElementById("algorithms-counter");
+    const archipelagoAlgorithm = document.getElementById(
+      "archipelago-algorithm"
+    );
+    const addAlgorithmBtn = document.getElementById("add-algorithm-btn");
+    const selectedAlgorithmsContainer = document.getElementById(
+      "selected-algorithms-container"
+    );
 
-    if (addBtn && algorithmSelect && container) {
-      console.log("Setting up Add Algorithm button");
-
-      // Remove any existing listeners by cloning and replacing the button
-      const newBtn = addBtn.cloneNode(true);
-      addBtn.parentNode.replaceChild(newBtn, addBtn);
-
-      // Add new event listener
-      newBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        console.log("Add Algorithm button clicked");
-
-        const selectedValue = algorithmSelect.value;
-        console.log("Selected algorithm:", selectedValue);
-
-        if (selectedValue && !selectedAlgorithms.includes(selectedValue)) {
-          // Limit number of algorithms
-          if (selectedAlgorithms.length >= MAX_ALGORITHMS) {
-            Swal.fire({
-              title: "Maximum Algorithms Reached",
-              text: `You can only select up to ${MAX_ALGORITHMS} algorithms`,
-              icon: "warning",
-              toast: true,
-              position: "top-end",
-              showConfirmButton: false,
-              timer: 3000,
-            });
-            return;
-          }
-
-          // Add to selected algorithms array
-          selectedAlgorithms.push(selectedValue);
-
-          // Create and append tag
-          const algorithmTag = createAlgorithmTag(selectedValue);
-          container.insertBefore(algorithmTag, counter);
-
-          // Remove from dropdown
-          for (let i = 0; i < algorithmSelect.options.length; i++) {
-            if (algorithmSelect.options[i].value === selectedValue) {
-              algorithmSelect.remove(i);
-              break;
-            }
-          }
-
-          // Reset dropdown
-          algorithmSelect.value = "";
-
-          // Update counter
-          updateAlgorithmsCounter();
-        }
-      });
+    if (
+      !archipelagoAlgorithm ||
+      !addAlgorithmBtn ||
+      !selectedAlgorithmsContainer
+    ) {
+      console.warn(
+        "Required elements for archipelago algorithm selection not found"
+      );
+      return;
     }
+
+    const MAX_ALGORITHMS = 3;
+
+    addAlgorithmBtn.addEventListener("click", () => {
+      const selectedValue = archipelagoAlgorithm.value;
+
+      if (!selectedValue) {
+        Swal.fire({
+          title: "No Algorithm Selected",
+          text: "Please select an algorithm to add",
+          icon: "warning",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        return;
+      }
+
+      // Check if algorithm is already selected
+      const existingAlgorithms = Array.from(
+        selectedAlgorithmsContainer.querySelectorAll(".algorithm-tag")
+      ).map((tag) => tag.dataset.algorithm);
+
+      if (existingAlgorithms.includes(selectedValue)) {
+        Swal.fire({
+          title: "Algorithm Already Added",
+          text: `${selectedValue} is already in your selection`,
+          icon: "warning",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        return;
+      }
+
+      // Check maximum number of algorithms
+      if (existingAlgorithms.length >= MAX_ALGORITHMS) {
+        Swal.fire({
+          title: "Maximum Algorithms Reached",
+          text: `You can only select up to ${MAX_ALGORITHMS} algorithms`,
+          icon: "warning",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        return;
+      }
+
+      // Create algorithm tag
+      const tag = createAlgorithmTag(selectedValue);
+
+      // Insert before the counter
+      const counter = document.getElementById("algorithms-counter");
+      selectedAlgorithmsContainer.insertBefore(tag, counter);
+
+      // Reset dropdown
+      archipelagoAlgorithm.value = "";
+
+      // Update counter
+      updateAlgorithmsCounter();
+    });
   }
+
+  // Parameter storage for archipelago mode
+  // Initialize parameter storage
+  window.optimizationHandler = window.optimizationHandler || {};
+  window.optimizationHandler.archipelagoParamsStore = {};
+
+  // Function to store algorithm parameters
+  window.optimizationHandler.storeArchipelagoAlgorithmParams = function (
+    tagId,
+    params
+  ) {
+    if (!window.optimizationHandler.archipelagoParamsStore) {
+      window.optimizationHandler.archipelagoParamsStore = {};
+    }
+    window.optimizationHandler.archipelagoParamsStore[tagId] = params;
+    console.log(`Stored parameters for ${tagId}:`, params);
+  };
+
+  // Function to get algorithm parameters
+  window.optimizationHandler.getArchipelagoAlgorithmParams = function (tagId) {
+    if (!window.optimizationHandler.archipelagoParamsStore) {
+      return {};
+    }
+    return window.optimizationHandler.archipelagoParamsStore[tagId] || {};
+  };
+
+  // Function to clear algorithm parameters
+  window.optimizationHandler.clearArchipelagoAlgorithmParams = function (
+    tagId
+  ) {
+    if (window.optimizationHandler.archipelagoParamsStore) {
+      delete window.optimizationHandler.archipelagoParamsStore[tagId];
+      console.log(`Cleared parameters for ${tagId}`);
+    }
+  };
 
   // Add setupAddAlgorithmButton to the initialization flow
   const modeBtn = document.getElementById("mode-btn");
@@ -4045,6 +5241,24 @@ document.addEventListener("DOMContentLoaded", function () {
         if (isNormalChecked) {
           normalMode.style.display = "block";
           archipelagoMode.style.display = "none";
+
+          // Check if an algorithm is already selected in Normal mode and display parameters
+          const normalAlgorithm = document.getElementById("normal-algorithm");
+          const paramsContainer = document.getElementById(
+            "normal-algorithm-params"
+          );
+
+          if (normalAlgorithm && normalAlgorithm.value && paramsContainer) {
+            console.log(
+              `Displaying parameters for pre-selected algorithm: ${normalAlgorithm.value}`
+            );
+            displayAlgorithmParameters(
+              normalAlgorithm.value,
+              paramsContainer,
+              "normal",
+              {} // Will use defaults until actual params are loaded
+            );
+          }
         } else {
           normalMode.style.display = "none";
           archipelagoMode.style.display = "block";
@@ -4064,6 +5278,47 @@ document.addEventListener("DOMContentLoaded", function () {
     // Also set up the Add Algorithm button
     setupAddAlgorithmButton();
   }, 1000); // Slightly longer timeout to ensure all elements are loaded
+
+  // Add a direct initialization for the normal mode algorithm parameters
+  setTimeout(() => {
+    // Initialize normal algorithm parameters if already selected
+    const normalAlgorithm = document.getElementById("normal-algorithm");
+    const paramsContainer = document.getElementById("normal-algorithm-params");
+
+    if (normalAlgorithm && normalAlgorithm.value && paramsContainer) {
+      console.log(
+        `Direct initialization: Displaying parameters for algorithm: ${normalAlgorithm.value}`
+      );
+      displayAlgorithmParameters(
+        normalAlgorithm.value,
+        paramsContainer,
+        "normal",
+        {} // Will use default values
+      );
+    }
+
+    // Re-attach event listener to normal algorithm select to ensure it works
+    if (normalAlgorithm) {
+      // Clone to remove any existing listeners
+      const newSelect = normalAlgorithm.cloneNode(true);
+      normalAlgorithm.parentNode.replaceChild(newSelect, normalAlgorithm);
+
+      console.log("Re-attaching normal algorithm change event listener");
+      newSelect.addEventListener("change", function (event) {
+        if (event.target.value && paramsContainer) {
+          console.log(
+            `Change event: Displaying parameters for ${event.target.value}`
+          );
+          displayAlgorithmParameters(
+            event.target.value,
+            paramsContainer,
+            "normal",
+            {}
+          );
+        }
+      });
+    }
+  }, 1500); // Slightly longer timeout to ensure everything else is loaded
 
   // Listen for sequence updates to refresh all flag dropdowns
   document.addEventListener("sequenceUpdated", function () {
@@ -4088,4 +5343,313 @@ document.addEventListener("DOMContentLoaded", function () {
       populateFlagDropdown(dropdown, `Design Variable ${index + 1}`);
     });
   });
+
+  // Add after the getModeData function, before the initModeForm function
+
+  // Function to dynamically generate parameter inputs based on selected algorithm
+  function displayAlgorithmParameters(
+    algorithmName,
+    containerElement,
+    mode,
+    existingParams = {}
+  ) {
+    // Skip if algorithm name is empty or null
+    if (!algorithmName || algorithmName === "") {
+      console.log("No algorithm selected, not displaying parameters");
+      if (containerElement) {
+        containerElement.innerHTML = "";
+      }
+      return;
+    }
+
+    // Skip if container is missing
+    if (!containerElement) {
+      console.warn(
+        `Container element not found for algorithm ${algorithmName}`
+      );
+      return;
+    }
+
+    // Clear the container
+    containerElement.innerHTML = "";
+
+    // Get parameters for the selected algorithm
+    const params = window.algorithmParameters[algorithmName];
+    if (!params) {
+      console.warn(`No parameters defined for algorithm: ${algorithmName}`);
+      return;
+    }
+
+    console.log(`Displaying parameters for ${algorithmName} in ${mode} mode`);
+
+    // Create form elements for each parameter
+    const paramsForm = document.createElement("div");
+    paramsForm.className = "algorithm-parameters-form";
+
+    // Add title
+    const title = document.createElement("h4");
+    title.textContent = `${algorithmName} Parameters`;
+    paramsForm.appendChild(title);
+
+    // Create rows of parameter inputs (2 per row for better layout)
+    let row;
+    let itemsInRow = 0;
+
+    // Count total parameters to handle odd number
+    const totalParams = Object.keys(params).length;
+    let paramCounter = 0;
+
+    for (const paramKey in params) {
+      paramCounter++;
+
+      // Create new row if needed
+      if (itemsInRow === 0) {
+        row = document.createElement("div");
+        row.className = "form-row";
+        paramsForm.appendChild(row);
+      }
+
+      // Create form group for parameter
+      const formGroup = document.createElement("div");
+      formGroup.className = "form-group";
+
+      // For last parameter in odd-numbered set, make it full width
+      if (paramCounter === totalParams && totalParams % 2 === 1) {
+        formGroup.className = "form-group full-width";
+      }
+
+      // Create label
+      const label = document.createElement("label");
+      label.className = "label";
+      label.textContent = params[paramKey].label || paramKey;
+      formGroup.appendChild(label);
+
+      // Create appropriate input based on parameter type
+      const param = params[paramKey];
+      let input;
+
+      // Default value from existingParams or parameter default
+      const paramValue =
+        existingParams[paramKey] !== undefined
+          ? existingParams[paramKey]
+          : param.default;
+
+      if (param.type === "select") {
+        // Create select dropdown
+        input = document.createElement("select");
+        input.className = "input-field algorithm-param-input";
+
+        // Add options
+        if (param.options && Array.isArray(param.options)) {
+          param.options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option;
+            optionElement.textContent = option;
+            optionElement.selected = option === paramValue;
+            input.appendChild(optionElement);
+          });
+        }
+      } else if (param.type === "checkbox") {
+        // Create checkbox
+        input = document.createElement("input");
+        input.type = "checkbox";
+        input.className = "toggle-input algorithm-param-input";
+        input.checked = paramValue === true;
+
+        // Create toggle container
+        const toggleContainer = document.createElement("div");
+        toggleContainer.className = "toggle-container";
+
+        // Add slider label
+        const sliderLabel = document.createElement("label");
+        sliderLabel.className = "toggle-slider";
+
+        toggleContainer.appendChild(input);
+        toggleContainer.appendChild(sliderLabel);
+        formGroup.appendChild(toggleContainer);
+
+        // Skip adding input separately since it's already in toggle container
+        input = null;
+      } else {
+        // Default to text/number input
+        input = document.createElement("input");
+        input.type = param.type || "text";
+        input.className = "input-field algorithm-param-input";
+        input.value = paramValue !== undefined ? paramValue : "";
+
+        // Set attributes based on parameter definition
+        if (param.min !== undefined) input.min = param.min;
+        if (param.max !== undefined) input.max = param.max;
+        if (param.step !== undefined) input.step = param.step;
+        if (param.placeholder) input.placeholder = param.placeholder;
+      }
+
+      // Set common attributes and add to form group
+      if (input) {
+        input.name = paramKey;
+        input.id = `${mode}-${algorithmName}-${paramKey}`;
+        input.dataset.algorithm = algorithmName;
+        input.dataset.parameter = paramKey;
+        formGroup.appendChild(input);
+      }
+
+      // Add tooltip/help text if provided
+      if (param.help) {
+        const helpText = document.createElement("small");
+        helpText.className = "input-help";
+        helpText.textContent = param.help;
+        formGroup.appendChild(helpText);
+      }
+
+      // Add to row
+      row.appendChild(formGroup);
+      itemsInRow++;
+
+      // Reset for next row if needed (2 items per row)
+      if (itemsInRow >= 2) {
+        itemsInRow = 0;
+      }
+    }
+
+    // Add the form to the container
+    containerElement.appendChild(paramsForm);
+  }
+
+  // Function to open the algorithm parameters modal
+  function openAlgorithmParamsModal(algorithm, tagId) {
+    const modal = document.getElementById("algorithm-params-modal");
+    const modalTitle = document.getElementById("modal-algorithm-title");
+    const modalParamsContainer = document.getElementById(
+      "modal-algorithm-params"
+    );
+    const saveButton = document.getElementById("save-algorithm-params");
+    const resetButton = document.getElementById("reset-algorithm-params");
+    const closeButton = document.querySelector(".close-modal");
+
+    if (!modal || !modalTitle || !modalParamsContainer) {
+      console.error("Modal elements not found");
+      return;
+    }
+
+    // Set current editing context in window object for access by event handlers
+    window.currentEditingAlgorithm = algorithm;
+    window.currentEditingTagId = tagId;
+
+    // Set title
+    modalTitle.textContent = `${algorithm} Parameters`;
+
+    // Get existing parameters for this tag
+    const existingParams = window.optimizationHandler
+      .getArchipelagoAlgorithmParams
+      ? window.optimizationHandler.getArchipelagoAlgorithmParams(tagId)
+      : {};
+
+    // Display parameters in the modal
+    displayAlgorithmParameters(
+      algorithm,
+      modalParamsContainer,
+      "modal",
+      existingParams
+    );
+
+    // Show modal
+    modal.style.display = "block";
+
+    // Handle save button click
+    if (saveButton) {
+      // Remove any existing event listeners by cloning
+      const newSaveButton = saveButton.cloneNode(true);
+      saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+
+      newSaveButton.addEventListener("click", () => {
+        // Collect parameters from the modal
+        const params = {};
+        const inputs = modalParamsContainer.querySelectorAll(
+          ".algorithm-param-input"
+        );
+
+        inputs.forEach((input) => {
+          const paramKey = input.dataset.parameter;
+          let value;
+
+          // Handle different input types
+          if (input.type === "checkbox") {
+            value = input.checked;
+          } else if (input.type === "number") {
+            value = parseFloat(input.value);
+            if (isNaN(value)) value = null;
+          } else if (input.tagName === "SELECT") {
+            value = input.value;
+          } else {
+            value = input.value;
+          }
+
+          if (paramKey && value !== undefined) {
+            params[paramKey] = value;
+          }
+        });
+
+        // Store the parameters
+        if (window.optimizationHandler.storeArchipelagoAlgorithmParams) {
+          window.optimizationHandler.storeArchipelagoAlgorithmParams(
+            window.currentEditingTagId,
+            params
+          );
+        }
+
+        // Close modal
+        modal.style.display = "none";
+
+        // Show success message
+        Swal.fire({
+          title: "Parameters Saved",
+          text: `Parameters for ${window.currentEditingAlgorithm} have been saved`,
+          icon: "success",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      });
+    }
+
+    // Handle reset button click
+    if (resetButton) {
+      // Remove any existing event listeners by cloning
+      const newResetButton = resetButton.cloneNode(true);
+      resetButton.parentNode.replaceChild(newResetButton, resetButton);
+
+      newResetButton.addEventListener("click", () => {
+        // Reset to default parameters
+        displayAlgorithmParameters(
+          window.currentEditingAlgorithm,
+          modalParamsContainer,
+          "modal",
+          {} // Empty object will use default values
+        );
+      });
+    }
+
+    // Handle close button click
+    if (closeButton) {
+      // Remove any existing event listeners by cloning
+      const newCloseButton = closeButton.cloneNode(true);
+      closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+
+      newCloseButton.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+    }
+
+    // Also close modal when clicking outside
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  }
+
+  // Make this function available globally
+  window.optimizationHandler.openAlgorithmParamsModal =
+    openAlgorithmParamsModal;
 });
