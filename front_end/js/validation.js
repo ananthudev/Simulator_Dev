@@ -1505,9 +1505,18 @@ class FormValidator {
       valueInput.value === "" ||
       isNaN(parseFloat(valueInput.value))
     ) {
-      this.showError(valueInput, "Please enter a valid numeric value");
-      isValid = false;
-      errors.push(`Constraint ${index}: Value must be a valid number`);
+      // Check if this is a constraint type that doesn't need a value
+      const noValueTypes = ["CUSTOM", "DCISS_IMPACT"];
+
+      // Only validate the value if this constraint type requires it
+      if (constraintType && !noValueTypes.includes(constraintType)) {
+        this.showError(valueInput, "Please enter a valid numeric value");
+        isValid = false;
+        errors.push(`Constraint ${index}: Value must be a valid number`);
+      } else {
+        // For constraint types that don't need a value, just remove any error styling
+        this.removeError(valueInput);
+      }
     } else {
       this.removeError(valueInput);
     }

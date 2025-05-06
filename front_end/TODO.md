@@ -89,6 +89,26 @@
 - [x] **Profile Steering CSV Handling:** Integrated CSV upload, parsing, validation, and storage within the Profile component configuration. Includes template download function (`downloadProfileTemplate`).
 - [x] **Integration with Main Data:** Saves the final steering configuration sequence into `finalMissionData` (likely via `saveSteeringConfigToFinalData` called on form submit). Updates global flag registry and reference dropdowns.
 
+### Optimization Module Enhancements (`optimization.js`, `map-component.js`)
+
+- [x] **Constraint Flag Handling:**
+  - Implemented dynamic flag requirement logic for different constraint types.
+  - Added automatic disabling of flag dropdown for specific constraint types (Q, MAX_QAOA, ALPHA, MAX_BODY_RATE, MAX_HEAT_FLUX, SLACK_VARIABLE, MAX_SENSED_ACC, CUSTOM, DCISS_IMPACT).
+  - Added informative tooltip message when flag field is disabled.
+  - Modified validation logic to skip flag validation for constraint types that don't require flags.
+- [x] **Line Bounds Data Structure:**
+  - Implemented segmented line bounds for DCISS_IMPACT and CUSTOM constraints.
+  - Updated coordinate data structure to organize points into separate line segments (l1, l2, l3, etc.) instead of a single array.
+  - Each line segment limited to 2 points to ensure proper line formation.
+  - Maintained backward compatibility with existing code.
+- [x] **Map Component for Constraint Visualization:**
+  - Added interactive map interface for defining geographical constraints.
+  - Implemented line segment selector to let users create multiple boundary lines.
+  - Added color-coding for different line segments for better visual distinction.
+  - Implemented coordinate input fields and table display with "center" and "delete" actions.
+  - Maintained lat/long coordinate swapping for Astra C compatibility.
+  - Added styling to improve the UI and make segment relationships clear.
+
 ### General UI/UX Features
 
 - [x] **Interactive Form Navigation:** Smooth transitions between main sections and dynamic stage/motor/nozzle forms.
@@ -108,7 +128,7 @@
 - [x] Created data access interface (via `window.steeringState` and `finalMissionData` integration).
 - [x] Ensured component references update correctly (e.g., in dropdowns).
 
-## Pending Tasks ��
+## Pending Tasks
 
 ### Core Features & Integration
 
@@ -139,6 +159,10 @@
 - [ ] **Form Status Indicators:**
   - Add visual indicators (e.g., icons - checkmark, dot, warning) to sidebar navigation items and configuration panel tabs (like Steering Start/Stop/Params) to show the saved/unsaved/error status of each section.
 - [ ] **Steering Preview Modal Styling:** Change the background color and overall styling of the steering configuration preview modal to match the application's dark theme.
+- [ ] **Offline Map Functionality:**
+  - Implement support for offline maps by downloading tiles using Mobile Atlas Creator.
+  - Integrate cached map tiles with the map component for constraint visualization.
+  - Ensure maps are accessible without internet connection.
 - [ ] **Theme Toggle (Day/Night Mode):**
   - Add a toggle button (e.g., sun/moon icon) to switch between light and dark themes.
   - Implement CSS variables or class toggling to apply theme changes across the entire application UI.

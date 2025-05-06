@@ -1902,6 +1902,28 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
+    // Get the value input field in this constraint instance
+    const valueInput = instance.querySelector(".constraint-value");
+
+    // Check if this is a type that doesn't require a value field
+    const noValueTypes = ["CUSTOM", "DCISS_IMPACT"];
+
+    // Disable or enable the value input field based on constraint type
+    if (valueInput) {
+      if (noValueTypes.includes(constraintType)) {
+        // Disable the value input for these types
+        valueInput.disabled = true;
+        valueInput.title = "Value not required for this constraint type";
+        valueInput.value = "";
+        valueInput.parentElement.classList.add("disabled-field");
+      } else {
+        // Enable the value input for other types
+        valueInput.disabled = false;
+        valueInput.title = "";
+        valueInput.parentElement.classList.remove("disabled-field");
+      }
+    }
+
     // Clear existing fields
     additionalFieldsContainer.innerHTML = "";
 
@@ -1933,8 +1955,8 @@ document.addEventListener("DOMContentLoaded", function () {
             <label class="label">Coordinate:</label>
             <select class="input-field constraint-coordinate">
               <option value="" disabled selected>Select Coordinate</option>
-              <option value="latitude">Latitude</option>
-              <option value="longitude">Longitude</option>
+              <option value="Latitude">Latitude</option>
+              <option value="Longitude">Longitude</option>
             </select>
           </div>
         </div>
@@ -2418,7 +2440,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const constraintType = nameSelect.value;
         const constraint = {
           name: constraintType,
-          value: valueInput ? parseFloat(valueInput.value) : null,
           type: typeSelect ? typeSelect.value : null,
           condition: conditionSelect ? conditionSelect.value : null,
           flag: flagSelect ? flagSelect.value || null : null,
@@ -2426,6 +2447,11 @@ document.addEventListener("DOMContentLoaded", function () {
           enable: enableToggle ? enableToggle.checked : true,
           factor: 1, // Always 1 as per requirements - kept in data model but hidden in UI
         };
+
+        // Only add value field for constraint types that need it
+        if (!["CUSTOM", "DCISS_IMPACT"].includes(constraintType)) {
+          constraint.value = valueInput ? parseFloat(valueInput.value) : null;
+        }
 
         // Handle specific constraint types
         if (
@@ -4070,6 +4096,25 @@ document.addEventListener("DOMContentLoaded", function () {
           flagSelect.title = "Flag not required for this constraint type";
           flagSelect.value = "";
           flagSelect.parentElement.classList.add("disabled-field");
+        }
+      }
+
+      // Check if value field should be disabled for this constraint
+      const nameSelect2 = instance.querySelector(".constraint-name");
+      const valueInput = instance.querySelector(".constraint-value");
+
+      if (nameSelect2 && valueInput) {
+        const constraintType = nameSelect2.value;
+
+        // List of constraint types that don't require a value
+        const noValueTypes = ["CUSTOM", "DCISS_IMPACT"];
+
+        // Disable value input if this constraint type doesn't need it
+        if (noValueTypes.includes(constraintType)) {
+          valueInput.disabled = true;
+          valueInput.title = "Value not required for this constraint type";
+          valueInput.value = "";
+          valueInput.parentElement.classList.add("disabled-field");
         }
       }
     });

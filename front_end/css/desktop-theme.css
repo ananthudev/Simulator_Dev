@@ -1916,27 +1916,8 @@ h3.section-title {
   background-color: rgba(74, 144, 226, 0.5);
 }
 
-/* Coordinate table styling */
-.coordinates-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 15px;
-}
-
-.coordinates-table th,
-.coordinates-table td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.coordinates-table th {
-  background-color: rgba(30, 30, 30, 0.7);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Active segment highlighting */
-tr.active-segment-row {
+/* Enhancement for existing coordinates table for line segments */
+.coordinates-table tr.active-segment-row {
   background-color: rgba(74, 144, 226, 0.15);
   border-left: 3px solid rgba(74, 144, 226, 0.7);
 }
@@ -1956,15 +1937,5 @@ tr.active-segment-row {
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* Constraint map container */
-.map-container {
-  margin-bottom: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.constraint-map {
-  height: 300px;
-  width: 100%;
-}
+/* The existing map-container and constraint-map classes will be used,
+   removing the duplicate definitions */
