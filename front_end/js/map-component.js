@@ -12,6 +12,11 @@ document.addEventListener("DOMContentLoaded", function () {
   let markers = [];
   let activeConstraintContainer = null;
 
+  // Add variables to track line segments
+  let lineSegments = { l1: [] }; // Initialize with line 1
+  let activeSegment = "l1";
+  let segmentLines = {}; // To store the Leaflet polylines
+
   // Initialize maps when a constraint with coordinates is selected/created
   document.addEventListener("change", function (e) {
     // Check if the element that changed is a constraint type selector
@@ -164,9 +169,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="map-container">
                     <div id="constraint-map-${Date.now()}" class="constraint-map"></div>
                 </div>
+                <div class="line-segments-control">
+                    <div class="form-group">
+                        <label class="label">Active Line Segment:</label>
+                        <select class="input-field line-segment-selector">
+                            <option value="l1">Line 1</option>
+                        </select>
+                        <button type="button" class="add-segment-btn">+ Add New Line Segment</button>
+                    </div>
+                </div>
                 <table class="coordinates-table">
                     <thead>
                         <tr>
+                            <th>Line</th>
                             <th>Latitude</th>
                             <th>Longitude</th>
                             <th>Actions</th>
@@ -184,6 +199,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         <input type="number" class="input-field lng-input" step="any" placeholder="Enter longitude">
                     </div>
                     <button type="button" class="add-coordinate-btn">Add Coordinate</button>
+                </div>
+                <div class="map-instructions">
+                    <p><strong>Instructions:</strong> Coordinates in pairs form line segments. Each line segment (Line 1, Line 2, etc.) represents a separate boundary.</p>
                 </div>
             `;
 
@@ -208,6 +226,42 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
       });
+
+      // Set up event listeners for segment controls
+      const segmentSelector = mapInterface.querySelector(
+        ".line-segment-selector"
+      );
+      const addSegmentBtn = mapInterface.querySelector(".add-segment-btn");
+
+      if (segmentSelector) {
+        segmentSelector.addEventListener("change", function () {
+          activeSegment = this.value;
+          highlightActiveSegment();
+        });
+      }
+
+      if (addSegmentBtn) {
+        addSegmentBtn.addEventListener("click", function () {
+          const segmentCount = Object.keys(lineSegments).length + 1;
+          const newSegmentKey = `l${segmentCount}`;
+
+          // Add new segment option to selector
+          const option = document.createElement("option");
+          option.value = newSegmentKey;
+          option.textContent = `Line ${segmentCount}`;
+          segmentSelector.appendChild(option);
+
+          // Select the new segment
+          segmentSelector.value = newSegmentKey;
+          activeSegment = newSegmentKey;
+
+          // Initialize the new segment
+          lineSegments[newSegmentKey] = [];
+
+          // Update the UI
+          highlightActiveSegment();
+        });
+      }
     }
 
     // Initialize the map if not done already
@@ -248,10 +302,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Add a marker to the map and table
+  // Modify the addMarker function to associate markers with line segments
   function addMarker(latLng) {
-    if (markers.length >= config.maxMarkers) {
-      alert(`Maximum of ${config.maxMarkers} markers allowed.`);
+    if (!activeSegment) return;
+
+    // Check if we've reached the limit for this line segment (2 markers per segment)
+    if (lineSegments[activeSegment].length >= 2) {
+      alert(
+        "Each line segment can only have 2 points. Please create a new line segment."
+      );
       return;
     }
 
@@ -260,26 +319,46 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable: true,
     }).addTo(map);
 
-    // Store marker in array
-    markers.push(marker);
+    // Store marker with its segment
+    marker.segmentKey = activeSegment;
+
+    // Store marker in array for active segment
+    if (!lineSegments[activeSegment]) {
+      lineSegments[activeSegment] = [];
+    }
+    lineSegments[activeSegment].push(marker);
 
     // Add drag end event to update when marker is moved
     marker.on("dragend", function () {
       updateCoordinatesTable();
       updateConstraintValue();
+      updateLineSegments();
     });
 
     // Add to table
     updateCoordinatesTable();
 
-    // Fit bounds if multiple markers
-    if (markers.length > 1) {
-      const bounds = L.latLngBounds(markers.map((m) => m.getLatLng()));
+    // Update line segments
+    updateLineSegments();
+
+    // Fit bounds considering all markers
+    const allMarkers = getAllMarkers();
+    if (allMarkers.length > 1) {
+      const bounds = L.latLngBounds(allMarkers.map((m) => m.getLatLng()));
       map.fitBounds(bounds, { padding: [50, 50] });
     }
   }
 
-  // Update the coordinates table
+  // Helper function to get all markers from all segments
+  function getAllMarkers() {
+    let allMarkers = [];
+    Object.values(lineSegments).forEach((markers) => {
+      allMarkers = allMarkers.concat(markers);
+    });
+    return allMarkers;
+  }
+
+  // Update the coordinates table to show line segment info
   function updateCoordinatesTable() {
     if (!activeConstraintContainer) return;
 
@@ -290,54 +369,120 @@ document.addEventListener("DOMContentLoaded", function () {
     // Clear existing rows
     coordsList.innerHTML = "";
 
-    // Add a row for each marker
-    markers.forEach((marker, index) => {
-      const latLng = marker.getLatLng();
-      const row = document.createElement("tr");
+    // Add rows for each segment and its markers
+    Object.entries(lineSegments).forEach(([segmentKey, segmentMarkers]) => {
+      segmentMarkers.forEach((marker, markerIndex) => {
+        const latLng = marker.getLatLng();
+        const row = document.createElement("tr");
 
-      row.innerHTML = `
-                <td>${latLng.lat.toFixed(6)}</td>
-                <td>${latLng.lng.toFixed(6)}</td>
-                <td class="coord-actions">
-                    <button type="button" class="coord-btn center" title="Center on map">⌖</button>
-                    <button type="button" class="coord-btn delete" title="Delete">×</button>
-                </td>
-            `;
+        // Extract segment number from key (l1 -> Line 1)
+        const segmentNumber = segmentKey.replace("l", "");
 
-      // Add event listeners for actions
-      const centerBtn = row.querySelector(".coord-btn.center");
-      centerBtn.addEventListener("click", function () {
-        map.setView(latLng, 10);
+        row.innerHTML = `
+                    <td>Line ${segmentNumber}</td>
+                    <td>${latLng.lat.toFixed(6)}</td>
+                    <td>${latLng.lng.toFixed(6)}</td>
+                    <td class="coord-actions">
+                        <button type="button" class="coord-btn center" title="Center on map">⌖</button>
+                        <button type="button" class="coord-btn delete" title="Delete">×</button>
+                    </td>
+                `;
+
+        // Add class if this is part of the active segment
+        if (segmentKey === activeSegment) {
+          row.classList.add("active-segment-row");
+        }
+
+        // Add event listeners for actions
+        const centerBtn = row.querySelector(".coord-btn.center");
+        centerBtn.addEventListener("click", function () {
+          map.setView(latLng, 10);
+        });
+
+        const deleteBtn = row.querySelector(".coord-btn.delete");
+        deleteBtn.addEventListener("click", function () {
+          // Remove marker from map
+          map.removeLayer(marker);
+
+          // Remove marker from segment array
+          const markerIndex = lineSegments[segmentKey].indexOf(marker);
+          if (markerIndex !== -1) {
+            lineSegments[segmentKey].splice(markerIndex, 1);
+          }
+
+          // Update UI
+          updateCoordinatesTable();
+          updateConstraintValue();
+          updateLineSegments();
+        });
+
+        coordsList.appendChild(row);
       });
-
-      const deleteBtn = row.querySelector(".coord-btn.delete");
-      deleteBtn.addEventListener("click", function () {
-        map.removeLayer(marker);
-        markers.splice(index, 1);
-        updateCoordinatesTable();
-        updateConstraintValue();
-      });
-
-      coordsList.appendChild(row);
     });
   }
 
-  // Update the constraint's value field with the coordinates
+  // Draw lines connecting markers in each segment
+  function updateLineSegments() {
+    // Remove all existing lines
+    Object.values(segmentLines).forEach((line) => {
+      if (map.hasLayer(line)) {
+        map.removeLayer(line);
+      }
+    });
+    segmentLines = {};
+
+    // Create new lines for each segment
+    Object.entries(lineSegments).forEach(([segmentKey, segmentMarkers]) => {
+      if (segmentMarkers.length >= 2) {
+        const points = segmentMarkers.map((marker) => marker.getLatLng());
+
+        // Different colors for different line segments
+        const colors = {
+          l1: "#4a90e2", // Blue
+          l2: "#50e3c2", // Teal
+          l3: "#e6a545", // Orange
+          l4: "#bd10e0", // Purple
+        };
+
+        const color = colors[segmentKey] || "#e3506f"; // Default to pink for additional lines
+        const weight = segmentKey === activeSegment ? 4 : 2; // Active segment has thicker line
+
+        // Create polyline with color based on segment key
+        const polyline = L.polyline(points, {
+          color: color,
+          weight: weight,
+          opacity: 0.8,
+          dashArray: segmentKey === activeSegment ? null : "5, 5", // Dashed for inactive segments
+        }).addTo(map);
+
+        segmentLines[segmentKey] = polyline;
+      }
+    });
+  }
+
+  // Highlight the active segment on the map
+  function highlightActiveSegment() {
+    // Update the line weights and styles
+    updateLineSegments();
+
+    // Update the table highlighting
+    updateCoordinatesTable();
+  }
+
+  // Update the constraint value with segmented coordinates
   function updateConstraintValue() {
     if (!activeConstraintContainer) return;
-
-    // Convert markers to coordinate pairs
-    const coordinates = markers.map((marker) => {
-      const latLng = marker.getLatLng();
-      return [latLng.lat, latLng.lng];
-    });
 
     // Find the appropriate target field based on constraint type
     const constraintType =
       activeConstraintContainer.querySelector(".constraint-name").value;
     let targetField;
 
-    if (constraintType === "IIP" || constraintType === "CUSTOM") {
+    if (
+      constraintType === "IIP" ||
+      constraintType === "CUSTOM" ||
+      constraintType === "DCISS_IMPACT"
+    ) {
       const dcissType = activeConstraintContainer.querySelector(
         ".constraint-dciss-type"
       )?.value;
@@ -350,41 +495,39 @@ document.addEventListener("DOMContentLoaded", function () {
         targetField = activeConstraintContainer.querySelector(
           ".constraint-dciss-line-bound"
         );
-      } else if (dcissType === "Ellipse") {
-        // For Ellipse type, we don't use the map for coordinates
-        return;
-      }
-    } else if (constraintType === "DCISS_IMPACT") {
-      const dcissType = activeConstraintContainer.querySelector(
-        ".constraint-dciss-type"
-      )?.value;
-
-      if (dcissType === "Line") {
-        targetField = activeConstraintContainer.querySelector(
-          ".constraint-dciss-line-bounds"
-        );
-      } else if (dcissType === "Box") {
-        targetField = activeConstraintContainer.querySelector(
-          ".constraint-dciss-line-bound"
-        );
-      } else if (dcissType === "Ellipse") {
-        // For Ellipse type, we don't use the map for coordinates
-        return;
       }
     }
 
-    // Update the target field if found - since this is now a hidden field we just set the value
-    if (targetField && coordinates.length > 0) {
-      targetField.value = JSON.stringify(coordinates);
+    // Format coordinates as per segments for the line_bounds field
+    if (targetField) {
+      const segmentedCoords = {};
+
+      Object.entries(lineSegments).forEach(([segmentKey, markers]) => {
+        if (markers.length > 0) {
+          segmentedCoords[segmentKey] = markers.map((marker) => {
+            const latLng = marker.getLatLng();
+            return [latLng.lat, latLng.lng];
+          });
+        }
+      });
+
+      // Only update if we have some coordinates
+      if (Object.keys(segmentedCoords).length > 0) {
+        targetField.value = JSON.stringify(segmentedCoords);
+      }
     }
   }
 
-  // Load existing coordinates from the constraint
+  // Load existing coordinates and recreate the segments
   function loadExistingCoordinates(constraintContainer, constraintType) {
     let coordinatesField;
     let coordinates = [];
 
-    if (constraintType === "IIP" || constraintType === "CUSTOM") {
+    if (
+      constraintType === "IIP" ||
+      constraintType === "CUSTOM" ||
+      constraintType === "DCISS_IMPACT"
+    ) {
       const dcissType = constraintContainer.querySelector(
         ".constraint-dciss-type"
       )?.value;
@@ -397,55 +540,74 @@ document.addEventListener("DOMContentLoaded", function () {
         coordinatesField = constraintContainer.querySelector(
           ".constraint-dciss-line-bound"
         );
-      } else if (dcissType === "Ellipse") {
-        // Skip adding markers for Ellipse type - map is not used
-        return;
       }
-    } else if (constraintType === "DCISS_IMPACT") {
-      const dcissType = constraintContainer.querySelector(
-        ".constraint-dciss-type"
-      )?.value;
+    }
 
-      if (dcissType === "Line") {
-        coordinatesField = constraintContainer.querySelector(
-          ".constraint-dciss-line-bounds"
-        );
-      } else if (dcissType === "Box") {
-        coordinatesField = constraintContainer.querySelector(
-          ".constraint-dciss-line-bound"
-        );
-      } else if (dcissType === "Ellipse") {
-        // Skip adding markers for Ellipse type - map is not used
-        return;
-      }
+    // Reset the segments
+    lineSegments = { l1: [] };
+    activeSegment = "l1";
+
+    // Clear segment selector
+    const segmentSelector = constraintContainer.querySelector(
+      ".line-segment-selector"
+    );
+    if (segmentSelector) {
+      segmentSelector.innerHTML = '<option value="l1">Line 1</option>';
     }
 
     // Parse coordinates from field
     if (coordinatesField && coordinatesField.value) {
       try {
         const parsed = JSON.parse(coordinatesField.value);
-        if (Array.isArray(parsed)) {
-          // Check if this is an array of arrays (coordinates)
-          if (parsed.length > 0 && Array.isArray(parsed[0])) {
-            coordinates = parsed;
-          } else if (typeof parsed[0] === "number" && parsed.length === 2) {
-            // Single coordinate pair [lat, lng]
-            coordinates = [parsed];
-          }
+
+        // Check if this is the new format (object with l1, l2, l3)
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          Object.entries(parsed).forEach(([segmentKey, coords]) => {
+            // Add segment to selector if not l1
+            if (segmentKey !== "l1" && segmentSelector) {
+              const segmentNumber = segmentKey.replace("l", "");
+              const option = document.createElement("option");
+              option.value = segmentKey;
+              option.textContent = `Line ${segmentNumber}`;
+              segmentSelector.appendChild(option);
+            }
+
+            // Initialize segment if needed
+            lineSegments[segmentKey] = [];
+
+            // Add markers for this segment
+            if (Array.isArray(coords)) {
+              activeSegment = segmentKey; // Set active segment to add markers to the right segment
+              coords.forEach((coord) => {
+                if (Array.isArray(coord) && coord.length === 2) {
+                  addMarker(coord);
+                }
+              });
+            }
+          });
+        } else if (Array.isArray(parsed)) {
+          // Old format: array of coordinates - all for l1
+          activeSegment = "l1";
+          parsed.forEach((coord) => {
+            if (Array.isArray(coord) && coord.length === 2) {
+              addMarker(coord);
+            }
+          });
         }
       } catch (e) {
         console.error("Error parsing coordinates:", e);
       }
     }
 
-    // Add markers for each coordinate
-    coordinates.forEach((coord) => {
-      if (Array.isArray(coord) && coord.length === 2) {
-        addMarker(coord);
-      }
-    });
+    // Reset active segment to l1
+    activeSegment = "l1";
+    if (segmentSelector) {
+      segmentSelector.value = "l1";
+    }
 
-    // Update the table
+    // Update UI
     updateCoordinatesTable();
+    updateLineSegments();
+    highlightActiveSegment();
   }
 });

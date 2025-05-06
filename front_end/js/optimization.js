@@ -1591,6 +1591,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="form-group">
                     <label for="objective-factor-${formIndex}" class="label">Factor:</label>
                     <select id="objective-factor-${formIndex}" class="input-field objective-factor-select">
+                        <option value="" disabled selected>Select Factor</option>
                         <option value="+1">Minimize</option>
                         <option value="-1">Maximize</option>
                     </select>
@@ -1650,7 +1651,14 @@ document.addEventListener("DOMContentLoaded", function () {
           `#objective-factor-${index}`
         );
 
-        if (nameSelect && nameSelect.value && flagSelect && factorSelect) {
+        if (
+          nameSelect &&
+          nameSelect.value &&
+          flagSelect &&
+          flagSelect.value &&
+          factorSelect &&
+          factorSelect.value
+        ) {
           objectives.push({
             name: nameSelect.value,
             value: "null",
@@ -1664,22 +1672,154 @@ document.addEventListener("DOMContentLoaded", function () {
     return objectives;
   }
 
+  // Helper function to remove items of a specific type from optimization array
+  function removeItemsByType(optimizationArray, type) {
+    if (!Array.isArray(optimizationArray)) return [];
+    return optimizationArray.filter((item) => item.type !== type);
+  }
+
   // Function to save optimization data
   function saveOptimizationData(section, data) {
     console.log(`Saving ${section} data:`, data);
 
     // Here you would normally save to backend or update in memory
 
-    // Show success message
-    Swal.fire({
-      icon: "success",
-      title: "Saved",
-      text: `${section} data saved successfully!`,
-      toast: true,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 3000,
-    });
+    // Store data in finalMissionData if it exists
+    if (window.finalMissionData) {
+      // Transform data structure for optimization to match expected format
+      if (section === "objectiveFunctions" || section === "constraints") {
+        if (!window.finalMissionData.optimization) {
+          window.finalMissionData.optimization = [];
+        }
+
+        // If we're handling constraints, extract tolerance values
+        if (section === "constraints" && Array.isArray(data)) {
+          // Extract tolerance values into a separate array
+          const tolerances = data.map(
+            (constraint) => constraint.tolerance || 0
+          );
+
+          // Remove tolerance property from constraints before adding to the optimization array
+          const constraintsWithoutTolerance = data.map((constraint) => {
+            const { tolerance, ...constraintData } = constraint;
+            return constraintData;
+          });
+
+          // Update or create constraint_tolerence array
+          window.finalMissionData.constraint_tolerence = tolerances;
+
+          // Remove existing constraints before adding new ones
+          window.finalMissionData.optimization = removeItemsByType(
+            window.finalMissionData.optimization,
+            "EQUALITY"
+          );
+          window.finalMissionData.optimization = removeItemsByType(
+            window.finalMissionData.optimization,
+            "INEQUALITY"
+          );
+
+          // Add constraints (without tolerance) to optimization array
+          window.finalMissionData.optimization.push(
+            ...constraintsWithoutTolerance
+          );
+        } else if (section === "objectiveFunctions" && Array.isArray(data)) {
+          // Remove existing objective functions before adding new ones
+          window.finalMissionData.optimization = removeItemsByType(
+            window.finalMissionData.optimization,
+            "OBJECTIVE"
+          );
+
+          // Add objective functions to optimization array
+          window.finalMissionData.optimization.push(...data);
+        }
+      } else {
+        // For other sections, maintain original structure
+        if (!window.finalMissionData.optimization) {
+          window.finalMissionData.optimization = {};
+        }
+        window.finalMissionData.optimization[section] = data;
+      }
+
+      console.log(`Updated finalMissionData optimization data`);
+
+      // Save to localStorage for persistence (optional)
+      try {
+        const missionData = JSON.parse(
+          localStorage.getItem("missionData") || "{}"
+        );
+
+        // Apply same transformation for localStorage
+        if (section === "objectiveFunctions" || section === "constraints") {
+          if (!missionData.optimization) {
+            missionData.optimization = [];
+          }
+
+          if (section === "constraints" && Array.isArray(data)) {
+            const tolerances = data.map(
+              (constraint) => constraint.tolerance || 0
+            );
+            const constraintsWithoutTolerance = data.map((constraint) => {
+              const { tolerance, ...constraintData } = constraint;
+              return constraintData;
+            });
+
+            missionData.constraint_tolerence = tolerances;
+
+            // Remove existing constraints before adding new ones
+            missionData.optimization = removeItemsByType(
+              missionData.optimization,
+              "EQUALITY"
+            );
+            missionData.optimization = removeItemsByType(
+              missionData.optimization,
+              "INEQUALITY"
+            );
+
+            missionData.optimization.push(...constraintsWithoutTolerance);
+          } else if (section === "objectiveFunctions" && Array.isArray(data)) {
+            // Remove existing objective functions before adding new ones
+            missionData.optimization = removeItemsByType(
+              missionData.optimization,
+              "OBJECTIVE"
+            );
+
+            missionData.optimization.push(...data);
+          }
+        } else {
+          if (!missionData.optimization) {
+            missionData.optimization = {};
+          }
+          missionData.optimization[section] = data;
+        }
+
+        localStorage.setItem("missionData", JSON.stringify(missionData));
+      } catch (error) {
+        console.warn("Could not save to localStorage:", error);
+      }
+    }
+
+    // Show success message using the toast instead of a popup
+    if (
+      window.FormValidator &&
+      typeof window.FormValidator.showToastMessage === "function"
+    ) {
+      window.FormValidator.showToastMessage(
+        "success",
+        "Saved",
+        `${section} data saved successfully!`
+      );
+    } else {
+      // Fallback to SweetAlert directly
+      Swal.fire({
+        icon: "success",
+        title: "Saved",
+        text: `${section} data saved successfully!`,
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    }
 
     return data;
   }
@@ -1729,6 +1869,38 @@ document.addEventListener("DOMContentLoaded", function () {
     const additionalFieldsContainer =
       instance.querySelector(".additional-fields");
     if (!additionalFieldsContainer) return;
+
+    // Get the flag dropdown in this constraint instance
+    const flagDropdown = instance.querySelector(".constraint-flag");
+
+    // Check if this is a type that doesn't require a flag
+    const noFlagTypes = [
+      "Q",
+      "MAX_QAOA",
+      "ALPHA",
+      "MAX_BODY_RATE",
+      "MAX_HEAT_FLUX",
+      "SLACK_VARIABLE",
+      "MAX_SENSED_ACC",
+      "CUSTOM",
+      "DCISS_IMPACT",
+    ];
+
+    // Disable or enable the flag dropdown based on constraint type
+    if (flagDropdown) {
+      if (noFlagTypes.includes(constraintType)) {
+        // Disable the flag dropdown for these types
+        flagDropdown.disabled = true;
+        flagDropdown.title = "Flag not required for this constraint type";
+        flagDropdown.value = "";
+        flagDropdown.parentElement.classList.add("disabled-field");
+      } else {
+        // Enable the flag dropdown for other types
+        flagDropdown.disabled = false;
+        flagDropdown.title = "";
+        flagDropdown.parentElement.classList.remove("disabled-field");
+      }
+    }
 
     // Clear existing fields
     additionalFieldsContainer.innerHTML = "";
@@ -2061,35 +2233,69 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Update enable toggle IDs to be unique
     const enableToggle = newInstance.querySelector(".constraint-enable");
-    const enableToggleLabel = newInstance.querySelector(".toggle-slider");
-    if (enableToggle && enableToggleLabel) {
-      const toggleId = `constraint-enable-${window.constraintCounter}`;
-      enableToggle.id = toggleId;
-      enableToggleLabel.setAttribute("for", toggleId);
+    if (enableToggle) {
+      enableToggle.id = `constraint-enable-${window.constraintCounter}`;
     }
 
-    // If not the first constraint, add a divider before this one
-    if (constraintsContainer.children.length > 0) {
-      const divider = document.createElement("div");
-      divider.className = "constraint-divider";
-      constraintsContainer.appendChild(divider);
+    // Update the label's for attribute to match the toggle ID
+    const toggleLabel = newInstance.querySelector(".toggle-slider");
+    if (toggleLabel) {
+      toggleLabel.setAttribute(
+        "for",
+        `constraint-enable-${window.constraintCounter}`
+      );
     }
 
-    // Hide the factor field completely since it's always 1
-    const factorInput = newInstance.querySelector(".constraint-factor");
-    if (factorInput) {
-      factorInput.parentElement.style.display = "none";
+    // Setup constraint name select change handler
+    const constraintNameSelect = newInstance.querySelector(".constraint-name");
+    if (constraintNameSelect) {
+      constraintNameSelect.addEventListener(
+        "change",
+        handleConstraintNameChange
+      );
     }
 
-    // Add to container first so we can find elements
+    // Setup constraint type change handler
+    const constraintTypeSelect = newInstance.querySelector(".constraint-type");
+    if (constraintTypeSelect) {
+      constraintTypeSelect.addEventListener("change", function () {
+        const conditionField = newInstance.querySelector(
+          ".constraint-condition"
+        );
+        if (conditionField) {
+          toggleConditionBasedOnType(this, conditionField);
+        }
+      });
+    }
+
+    // Setup delete button
+    const deleteBtn = newInstance.querySelector(".delete-instance-btn");
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", function () {
+        // Remove this instance
+        newInstance.remove();
+        // Renumber remaining instances
+        renumberConstraints();
+      });
+    }
+
+    // Make sure we create a container for additional fields
+    let additionalFieldsContainer =
+      newInstance.querySelector(".additional-fields");
+    if (!additionalFieldsContainer) {
+      additionalFieldsContainer = document.createElement("div");
+      additionalFieldsContainer.classList.add("additional-fields");
+      newInstance.appendChild(additionalFieldsContainer);
+    }
+
+    // Add the instance to the container
     constraintsContainer.appendChild(newInstance);
 
-    // Populate constraint name dropdown for this instance
-    const nameSelect = newInstance.querySelector(".constraint-name");
-    if (nameSelect) {
-      // Clear the dropdown except for the placeholder
-      while (nameSelect.options.length > 1) {
-        nameSelect.remove(1);
+    // Populate the constraint name dropdown for this instance
+    if (constraintNameSelect) {
+      // Clear dropdown except placeholder
+      while (constraintNameSelect.options.length > 1) {
+        constraintNameSelect.remove(1);
       }
 
       // Create an array of options for sorting
@@ -2109,55 +2315,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const optionElement = document.createElement("option");
         optionElement.value = option.value;
         optionElement.textContent = option.text;
-        nameSelect.appendChild(optionElement);
+        constraintNameSelect.appendChild(optionElement);
       });
-
-      // Add listener for constraint name changes
-      nameSelect.addEventListener("change", handleConstraintNameChange);
     }
 
-    // Populate flag dropdown if it exists
+    // Populate the flag dropdown for this instance
     const flagSelect = newInstance.querySelector(".constraint-flag");
     if (flagSelect) {
-      populateFlagDropdown(
-        flagSelect,
-        `Constraint ${window.constraintCounter}`
-      );
+      populateFlagDropdown(flagSelect, "Constraint");
     }
 
-    // Add event listener for the delete button
-    const deleteBtn = newInstance.querySelector(".delete-instance-btn");
-    if (deleteBtn) {
-      deleteBtn.addEventListener("click", () => {
-        // Also remove the divider if it exists
-        const prevElement = newInstance.previousElementSibling;
-        if (
-          prevElement &&
-          prevElement.classList.contains("constraint-divider")
-        ) {
-          constraintsContainer.removeChild(prevElement);
-        }
-
-        newInstance.remove();
-        // Optionally renumber remaining constraints
-        renumberConstraints();
-      });
-    }
-
-    // Add event listener to the type dropdown to toggle condition field
-    const typeSelect = newInstance.querySelector(".constraint-type");
-    const conditionField = newInstance.querySelector(".constraint-condition");
-
-    if (typeSelect && conditionField) {
-      typeSelect.addEventListener("change", () => {
-        toggleConditionBasedOnType(typeSelect, conditionField);
-      });
-    }
-
-    // Add div container for additional fields
-    const additionalFieldsContainer = document.createElement("div");
-    additionalFieldsContainer.className = "additional-fields";
-    newInstance.appendChild(additionalFieldsContainer);
+    return newInstance.appendChild(additionalFieldsContainer);
   }
 
   // Function to toggle condition dropdown based on type selection
@@ -2373,14 +2541,82 @@ document.addEventListener("DOMContentLoaded", function () {
                   // Try to parse as JSON first
                   const lineBoundsText = lineBoundsInput.value.trim();
 
-                  // Format expected: [[lat1,lon1],[lat2,lon2]]
+                  // Check if this is the new segment format (object with l1, l2, l3)
                   if (
+                    lineBoundsText.startsWith("{") &&
+                    lineBoundsText.endsWith("}")
+                  ) {
+                    // Parse the segmented coordinates
+                    const segmentedCoords = JSON.parse(lineBoundsText);
+
+                    // Create line_bounds object with each segment
+                    constraint.Parameters.line_bounds = {};
+
+                    // Process each segment, swapping lat/lon order
+                    Object.entries(segmentedCoords).forEach(
+                      ([segmentKey, coordsArray]) => {
+                        if (Array.isArray(coordsArray)) {
+                          // Swap the order of latitude and longitude for Astra C format (from [lat, lon] to [lon, lat])
+                          const swappedCoords = coordsArray.map((point) => [
+                            point[1],
+                            point[0],
+                          ]);
+                          constraint.Parameters.line_bounds[segmentKey] =
+                            swappedCoords;
+                        }
+                      }
+                    );
+                  }
+                  // Old format: array of coordinates
+                  else if (
                     lineBoundsText.startsWith("[") &&
                     lineBoundsText.endsWith("]")
                   ) {
-                    constraint.Parameters.line_bounds = {
-                      l1: JSON.parse(lineBoundsText),
-                    };
+                    // Parse the lineBounds array
+                    const coordsArray = JSON.parse(lineBoundsText);
+
+                    // Handle array of arrays (group by pairs into segments)
+                    if (
+                      coordsArray.length > 0 &&
+                      Array.isArray(coordsArray[0])
+                    ) {
+                      // Ensure all coordinates are processed as pairs for different segments
+                      constraint.Parameters.line_bounds = {};
+
+                      // If there are 2 coordinates, put them in l1
+                      if (coordsArray.length === 2) {
+                        // Swap the order of latitude and longitude
+                        const swappedCoords = coordsArray.map((point) => [
+                          point[1],
+                          point[0],
+                        ]);
+                        constraint.Parameters.line_bounds.l1 = swappedCoords;
+                      }
+                      // If more than 2, group in pairs into l1, l2, l3, etc.
+                      else if (coordsArray.length > 2) {
+                        for (let i = 0; i < coordsArray.length - 1; i += 2) {
+                          if (i + 1 < coordsArray.length) {
+                            const segmentKey = `l${Math.floor(i / 2) + 1}`;
+                            const segmentCoords = [
+                              coordsArray[i],
+                              coordsArray[i + 1],
+                            ];
+
+                            // Swap the order of latitude and longitude
+                            const swappedCoords = segmentCoords.map((point) => [
+                              point[1],
+                              point[0],
+                            ]);
+                            constraint.Parameters.line_bounds[segmentKey] =
+                              swappedCoords;
+                          }
+                        }
+                      }
+                    } else {
+                      constraint.Parameters.line_bounds = {
+                        l1: lineBoundsText,
+                      };
+                    }
                   } else {
                     constraint.Parameters.line_bounds = {
                       l1: lineBoundsText,
@@ -2418,7 +2654,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
                   // Check if it's already in array format
                   if (centerText.startsWith("[") && centerText.endsWith("]")) {
-                    constraint.Parameters.Center = JSON.parse(centerText);
+                    const centerCoords = JSON.parse(centerText);
+                    // Swap the order if it's a coordinate pair [lat, lon] to [lon, lat]
+                    if (
+                      Array.isArray(centerCoords) &&
+                      centerCoords.length === 2
+                    ) {
+                      constraint.Parameters.Center = [
+                        centerCoords[1],
+                        centerCoords[0],
+                      ];
+                    } else {
+                      constraint.Parameters.Center = centerCoords;
+                    }
                   } else {
                     // Parse comma-separated values
                     const parts = centerText
@@ -2431,7 +2679,8 @@ document.addEventListener("DOMContentLoaded", function () {
                       !isNaN(parts[0]) &&
                       !isNaN(parts[1])
                     ) {
-                      constraint.Parameters.Center = parts;
+                      // Swap the order for Astra C format [lat, lon] to [lon, lat]
+                      constraint.Parameters.Center = [parts[1], parts[0]];
                     } else {
                       // Fall back to original text if parsing fails
                       console.warn(
@@ -2458,8 +2707,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     lineBoundText.startsWith("[") &&
                     lineBoundText.endsWith("]")
                   ) {
-                    constraint.Parameters.Line_Bound =
-                      JSON.parse(lineBoundText);
+                    // Parse the coordinate array
+                    const coordsArray = JSON.parse(lineBoundText);
+
+                    // If this is a nested array with coordinate pairs, swap lat/long in each pair
+                    if (
+                      Array.isArray(coordsArray) &&
+                      coordsArray.some((item) => Array.isArray(item))
+                    ) {
+                      const swappedCoords = coordsArray.map((point) => {
+                        if (Array.isArray(point) && point.length === 2) {
+                          return [point[1], point[0]]; // Swap lat/long to long/lat
+                        }
+                        return point;
+                      });
+                      constraint.Parameters.Line_Bound = swappedCoords;
+                    } else {
+                      constraint.Parameters.Line_Bound = coordsArray;
+                    }
                   } else {
                     constraint.Parameters.Line_Bound = lineBoundText;
                   }
@@ -2494,14 +2759,82 @@ document.addEventListener("DOMContentLoaded", function () {
                   // Try to parse as JSON first
                   const lineBoundsText = lineBoundsInput.value.trim();
 
-                  // Format expected: [[lat1,lon1],[lat2,lon2]]
+                  // Check if this is the new segment format (object with l1, l2, l3)
                   if (
+                    lineBoundsText.startsWith("{") &&
+                    lineBoundsText.endsWith("}")
+                  ) {
+                    // Parse the segmented coordinates
+                    const segmentedCoords = JSON.parse(lineBoundsText);
+
+                    // Create line_bounds object with each segment
+                    constraint.Parameters.line_bounds = {};
+
+                    // Process each segment, swapping lat/lon order
+                    Object.entries(segmentedCoords).forEach(
+                      ([segmentKey, coordsArray]) => {
+                        if (Array.isArray(coordsArray)) {
+                          // Swap the order of latitude and longitude for Astra C format (from [lat, lon] to [lon, lat])
+                          const swappedCoords = coordsArray.map((point) => [
+                            point[1],
+                            point[0],
+                          ]);
+                          constraint.Parameters.line_bounds[segmentKey] =
+                            swappedCoords;
+                        }
+                      }
+                    );
+                  }
+                  // Old format: array of coordinates
+                  else if (
                     lineBoundsText.startsWith("[") &&
                     lineBoundsText.endsWith("]")
                   ) {
-                    constraint.Parameters.line_bounds = {
-                      l1: JSON.parse(lineBoundsText),
-                    };
+                    // Parse the lineBounds array
+                    const coordsArray = JSON.parse(lineBoundsText);
+
+                    // Handle array of arrays (group by pairs into segments)
+                    if (
+                      coordsArray.length > 0 &&
+                      Array.isArray(coordsArray[0])
+                    ) {
+                      // Ensure all coordinates are processed as pairs for different segments
+                      constraint.Parameters.line_bounds = {};
+
+                      // If there are 2 coordinates, put them in l1
+                      if (coordsArray.length === 2) {
+                        // Swap the order of latitude and longitude
+                        const swappedCoords = coordsArray.map((point) => [
+                          point[1],
+                          point[0],
+                        ]);
+                        constraint.Parameters.line_bounds.l1 = swappedCoords;
+                      }
+                      // If more than 2, group in pairs into l1, l2, l3, etc.
+                      else if (coordsArray.length > 2) {
+                        for (let i = 0; i < coordsArray.length - 1; i += 2) {
+                          if (i + 1 < coordsArray.length) {
+                            const segmentKey = `l${Math.floor(i / 2) + 1}`;
+                            const segmentCoords = [
+                              coordsArray[i],
+                              coordsArray[i + 1],
+                            ];
+
+                            // Swap the order of latitude and longitude
+                            const swappedCoords = segmentCoords.map((point) => [
+                              point[1],
+                              point[0],
+                            ]);
+                            constraint.Parameters.line_bounds[segmentKey] =
+                              swappedCoords;
+                          }
+                        }
+                      }
+                    } else {
+                      constraint.Parameters.line_bounds = {
+                        l1: lineBoundsText,
+                      };
+                    }
                   } else {
                     constraint.Parameters.line_bounds = {
                       l1: lineBoundsText,
@@ -2539,7 +2872,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
                   // Check if it's already in array format
                   if (centerText.startsWith("[") && centerText.endsWith("]")) {
-                    constraint.Parameters.Center = JSON.parse(centerText);
+                    const centerCoords = JSON.parse(centerText);
+                    // Swap the order if it's a coordinate pair [lat, lon] to [lon, lat]
+                    if (
+                      Array.isArray(centerCoords) &&
+                      centerCoords.length === 2
+                    ) {
+                      constraint.Parameters.Center = [
+                        centerCoords[1],
+                        centerCoords[0],
+                      ];
+                    } else {
+                      constraint.Parameters.Center = centerCoords;
+                    }
                   } else {
                     // Parse comma-separated values
                     const parts = centerText
@@ -2552,7 +2897,8 @@ document.addEventListener("DOMContentLoaded", function () {
                       !isNaN(parts[0]) &&
                       !isNaN(parts[1])
                     ) {
-                      constraint.Parameters.Center = parts;
+                      // Swap the order for Astra C format [lat, lon] to [lon, lat]
+                      constraint.Parameters.Center = [parts[1], parts[0]];
                     } else {
                       // Fall back to original text if parsing fails
                       console.warn(
@@ -2579,8 +2925,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     lineBoundText.startsWith("[") &&
                     lineBoundText.endsWith("]")
                   ) {
-                    constraint.Parameters.Line_Bound =
-                      JSON.parse(lineBoundText);
+                    // Parse the coordinate array
+                    const coordsArray = JSON.parse(lineBoundText);
+
+                    // If this is a nested array with coordinate pairs, swap lat/long in each pair
+                    if (
+                      Array.isArray(coordsArray) &&
+                      coordsArray.some((item) => Array.isArray(item))
+                    ) {
+                      const swappedCoords = coordsArray.map((point) => {
+                        if (Array.isArray(point) && point.length === 2) {
+                          return [point[1], point[0]]; // Swap lat/long to long/lat
+                        }
+                        return point;
+                      });
+                      constraint.Parameters.Line_Bound = swappedCoords;
+                    } else {
+                      constraint.Parameters.Line_Bound = coordsArray;
+                    }
                   } else {
                     constraint.Parameters.Line_Bound = lineBoundText;
                   }
@@ -3224,26 +3586,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (objectiveFunctionForm) {
-    objectiveFunctionForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      console.log("Objective Function form submitted.");
-
-      // Perform basic validation
-      const objectiveData = getObjectiveFunctionData();
-
-      if (objectiveData.length === 0) {
-        Swal.fire({
-          icon: "error",
-          title: "Validation Error",
-          text: "Please add at least one objective function.",
-          toast: false,
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-
-      saveOptimizationData("objectiveFunctions", objectiveData);
-    });
+    // Submit handler moved to FormValidator.initializeObjectiveFunctionValidation() in validation.js
+    // This prevents duplicate event handlers and centralizes validation logic
   }
 
   // --- Constraints Listeners ---
@@ -3670,13 +4014,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Also add initialization for existing constraints
   function initializeExistingConstraints() {
+    // Get saved constraints from finalData if available
+    const savedConstraints = window.finalData?.constraints || [];
+
+    // Apply styling to existing constraint instances
     const existingConstraints = document.querySelectorAll(
       "#constraints-container .optimization-instance:not(.hidden-template)"
     );
-    existingConstraints.forEach((constraint, index) => {
+
+    existingConstraints.forEach((instance, index) => {
       // Add the class and direct styling
       const colorIndex = (index + 1) % 6 || 6;
-      constraint.classList.add(`constraint-form-${colorIndex}`);
+      instance.classList.add(`constraint-form-${colorIndex}`);
 
       // Apply direct color with inline style
       const borderColors = {
@@ -3687,14 +4036,125 @@ document.addEventListener("DOMContentLoaded", function () {
         5: "#e3506f", // Pink
         6: "#67c23a", // Green
       };
-      constraint.style.borderLeft = `4px solid ${borderColors[colorIndex]}`;
+      instance.style.borderLeft = `4px solid ${borderColors[colorIndex]}`;
 
       // Make the heading more prominent
-      const heading = constraint.querySelector(".instance-title");
+      const heading = instance.querySelector(".instance-title");
       if (heading) {
         heading.classList.add("constraint-heading");
       }
+
+      // Check if flag dropdown should be disabled for this constraint
+      const nameSelect = instance.querySelector(".constraint-name");
+      const flagSelect = instance.querySelector(".constraint-flag");
+
+      if (nameSelect && flagSelect) {
+        const constraintType = nameSelect.value;
+
+        // List of constraint types that don't require a flag
+        const noFlagTypes = [
+          "Q",
+          "MAX_QAOA",
+          "ALPHA",
+          "MAX_BODY_RATE",
+          "MAX_HEAT_FLUX",
+          "SLACK_VARIABLE",
+          "MAX_SENSED_ACC",
+          "CUSTOM",
+          "DCISS_IMPACT",
+        ];
+
+        // Disable flag dropdown if this constraint type doesn't need it
+        if (noFlagTypes.includes(constraintType)) {
+          flagSelect.disabled = true;
+          flagSelect.title = "Flag not required for this constraint type";
+          flagSelect.value = "";
+          flagSelect.parentElement.classList.add("disabled-field");
+        }
+      }
     });
+
+    // If we have saved constraints but no UI instances, create them
+    if (
+      savedConstraints.length > 0 &&
+      constraintsContainer &&
+      (!existingConstraints.length ||
+        existingConstraints.length !== savedConstraints.length)
+    ) {
+      console.log(
+        "Initializing constraints from saved data:",
+        savedConstraints.length
+      );
+
+      // Clear the container
+      constraintsContainer.innerHTML = "";
+
+      // Reset the counter
+      window.constraintCounter = 0;
+
+      // Create instances for each saved constraint
+      savedConstraints.forEach((constraint) => {
+        addConstraintInstance();
+
+        // Get the last created instance
+        const instance = constraintsContainer.querySelector(
+          ".optimization-instance:last-child"
+        );
+        if (!instance) return;
+
+        // Populate basic fields
+        const nameSelect = instance.querySelector(".constraint-name");
+        const valueInput = instance.querySelector(".constraint-value");
+        const typeSelect = instance.querySelector(".constraint-type");
+        const conditionSelect = instance.querySelector(".constraint-condition");
+        const flagSelect = instance.querySelector(".constraint-flag");
+        const toleranceInput = instance.querySelector(".constraint-tolerance");
+        const enableToggle = instance.querySelector(".constraint-enable");
+
+        if (nameSelect) {
+          nameSelect.value = constraint.name || "";
+
+          // Check if this is a type that doesn't require a flag
+          const noFlagTypes = [
+            "Q",
+            "MAX_QAOA",
+            "ALPHA",
+            "MAX_BODY_RATE",
+            "MAX_HEAT_FLUX",
+            "SLACK_VARIABLE",
+            "MAX_SENSED_ACC",
+            "CUSTOM",
+            "DCISS_IMPACT",
+          ];
+
+          // Disable the flag dropdown if needed
+          if (flagSelect && noFlagTypes.includes(constraint.name)) {
+            flagSelect.disabled = true;
+            flagSelect.title = "Flag not required for this constraint type";
+            flagSelect.value = "";
+            flagSelect.parentElement.classList.add("disabled-field");
+          }
+
+          // Trigger change event to populate additional fields
+          nameSelect.dispatchEvent(new Event("change"));
+        }
+
+        // Set other fields
+        if (valueInput && constraint.value !== undefined)
+          valueInput.value = constraint.value;
+        if (typeSelect) typeSelect.value = constraint.type || "INEQUALITY";
+        if (conditionSelect && constraint.condition)
+          conditionSelect.value = constraint.condition;
+        if (flagSelect && constraint.flag) flagSelect.value = constraint.flag;
+        if (toleranceInput && constraint.tolerance !== undefined)
+          toleranceInput.value = constraint.tolerance;
+        if (enableToggle)
+          enableToggle.checked =
+            constraint.enable !== undefined ? constraint.enable : true;
+
+        // Handle additional constraint-specific fields (will be populated by the change event)
+      });
+    }
   }
 
   // Call this on page load

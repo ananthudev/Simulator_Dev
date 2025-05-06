@@ -1387,33 +1387,496 @@ class FormValidator {
   }
   // --- END ADDED ---
 
+  // NEW: Validation for the objective function fields
+  static validateObjectiveFunction(objectiveForm) {
+    let isValid = true;
+    const errors = [];
+
+    // Get all objective function instances
+    const objectiveInstances = objectiveForm.querySelectorAll(
+      ".objective-function-instance"
+    );
+
+    if (objectiveInstances.length === 0) {
+      // Display toast message instead of popup
+      this.showToastMessage(
+        "error",
+        "No Objective Functions",
+        "Please add at least one objective function."
+      );
+      return {
+        isValid: false,
+        errors: ["No objective functions added"],
+      };
+    }
+
+    objectiveInstances.forEach((instance, index) => {
+      const formIndex = instance.getAttribute("data-index");
+
+      // Get fields
+      const nameSelect = instance.querySelector(`#objective-name-${formIndex}`);
+      const flagSelect = instance.querySelector(`#objective-flag-${formIndex}`);
+      const factorSelect = instance.querySelector(
+        `#objective-factor-${formIndex}`
+      );
+
+      // Validate Name
+      if (!nameSelect || !nameSelect.value) {
+        this.showError(nameSelect, "Please select an objective name");
+        isValid = false;
+        errors.push(`Objective Function ${index + 1}: Name is required`);
+      } else {
+        this.removeError(nameSelect);
+      }
+
+      // Validate Flag
+      if (!flagSelect || !flagSelect.value) {
+        this.showError(flagSelect, "Please select a reference flag");
+        isValid = false;
+        errors.push(`Objective Function ${index + 1}: Flag is required`);
+      } else {
+        this.removeError(flagSelect);
+      }
+
+      // Validate Factor (no longer assuming it's always set)
+      if (!factorSelect || !factorSelect.value) {
+        this.showError(
+          factorSelect,
+          "Please select a factor (Minimize/Maximize)"
+        );
+        isValid = false;
+        errors.push(`Objective Function ${index + 1}: Factor is required`);
+      } else {
+        this.removeError(factorSelect);
+      }
+    });
+
+    // If validation fails, show toast message
+    if (!isValid) {
+      // Create a more specific error message from the errors array
+      const errorSummary =
+        errors.length > 2
+          ? `${errors.slice(0, 2).join(", ")} and ${
+              errors.length - 2
+            } more issue(s)`
+          : errors.join(", ");
+
+      this.showToastMessage(
+        "error",
+        "Objective Validation Error",
+        `Please fix these issues: ${errorSummary}`
+      );
+    }
+
+    return {
+      isValid,
+      errors,
+    };
+  }
+
+  // Validate a single constraint instance
+  static validateConstraintInstance(instance, errors = []) {
+    let isValid = true;
+    const index = instance.getAttribute("data-index") || "Unknown";
+
+    // Get all required fields
+    const nameSelect = instance.querySelector(".constraint-name");
+    const valueInput = instance.querySelector(".constraint-value");
+    const typeSelect = instance.querySelector(".constraint-type");
+    const conditionSelect = instance.querySelector(".constraint-condition");
+    const flagSelect = instance.querySelector(".constraint-flag");
+    const toleranceInput = instance.querySelector(".constraint-tolerance");
+
+    // Get constraint type early so we can use it for validation logic
+    const constraintType = nameSelect ? nameSelect.value : null;
+
+    // Validate name
+    if (!nameSelect || !nameSelect.value) {
+      this.showError(nameSelect, "Please select a constraint type");
+      isValid = false;
+      errors.push(`Constraint ${index}: Type is required`);
+    } else {
+      this.removeError(nameSelect);
+    }
+
+    // Validate value
+    if (
+      !valueInput ||
+      valueInput.value === "" ||
+      isNaN(parseFloat(valueInput.value))
+    ) {
+      this.showError(valueInput, "Please enter a valid numeric value");
+      isValid = false;
+      errors.push(`Constraint ${index}: Value must be a valid number`);
+    } else {
+      this.removeError(valueInput);
+    }
+
+    // Validate constraint type
+    if (!typeSelect || !typeSelect.value) {
+      this.showError(typeSelect, "Please select a constraint relation type");
+      isValid = false;
+      errors.push(`Constraint ${index}: Relation type is required`);
+    } else {
+      this.removeError(typeSelect);
+
+      // If type is INEQUALITY, condition must be selected
+      if (
+        typeSelect.value === "INEQUALITY" &&
+        (!conditionSelect || !conditionSelect.value)
+      ) {
+        this.showError(
+          conditionSelect,
+          "Please select a condition for inequality"
+        );
+        isValid = false;
+        errors.push(
+          `Constraint ${index}: Condition is required for inequality`
+        );
+      } else if (conditionSelect) {
+        this.removeError(conditionSelect);
+      }
+    }
+
+    // Validate flag
+    if (!flagSelect || !flagSelect.value) {
+      // Check if this is a constraint type that doesn't need a flag
+      const noFlagTypes = [
+        "Q",
+        "MAX_QAOA",
+        "ALPHA",
+        "MAX_BODY_RATE",
+        "MAX_HEAT_FLUX",
+        "SLACK_VARIABLE",
+        "MAX_SENSED_ACC",
+        "CUSTOM",
+        "DCISS_IMPACT",
+      ];
+
+      // Only validate the flag if this constraint type requires it
+      if (constraintType && !noFlagTypes.includes(constraintType)) {
+        this.showError(flagSelect, "Please select a reference flag");
+        isValid = false;
+        errors.push(`Constraint ${index}: Flag is required`);
+      } else {
+        // For constraint types that don't need a flag, just remove any error styling
+        this.removeError(flagSelect);
+      }
+    } else {
+      this.removeError(flagSelect);
+    }
+
+    // Validate tolerance (if present)
+    if (
+      toleranceInput &&
+      toleranceInput.value !== "" &&
+      isNaN(parseFloat(toleranceInput.value))
+    ) {
+      this.showError(toleranceInput, "Tolerance must be a valid number");
+      isValid = false;
+      errors.push(`Constraint ${index}: Tolerance must be a valid number`);
+    } else if (toleranceInput) {
+      this.removeError(toleranceInput);
+    }
+
+    // Check additional fields based on constraint type
+    if (constraintType) {
+      // Validate DCISS_IMPACT and CUSTOM fields
+      if (["DCISS_IMPACT", "CUSTOM"].includes(constraintType)) {
+        const dcissTypeSelect = instance.querySelector(
+          ".constraint-dciss-type"
+        );
+        if (!dcissTypeSelect || !dcissTypeSelect.value) {
+          this.showError(
+            dcissTypeSelect,
+            "Please select a constraint sub-type"
+          );
+          isValid = false;
+          errors.push(`Constraint ${index}: Sub-type selection is required`);
+        } else {
+          this.removeError(dcissTypeSelect);
+
+          // Validate sub-type specific fields
+          const dcissType = dcissTypeSelect.value;
+          const parametersContainer = instance.querySelector(
+            ".dciss-parameters-container"
+          );
+
+          if (dcissType === "Ellipse") {
+            const semiMajorInput = parametersContainer.querySelector(
+              ".constraint-dciss-semi-major"
+            );
+            const semiMinorInput = parametersContainer.querySelector(
+              ".constraint-dciss-semi-minor"
+            );
+            const centerInput = parametersContainer.querySelector(
+              ".constraint-dciss-center"
+            );
+
+            if (
+              !semiMajorInput ||
+              semiMajorInput.value === "" ||
+              isNaN(parseFloat(semiMajorInput.value))
+            ) {
+              this.showError(semiMajorInput, "Semi major axis is required");
+              isValid = false;
+              errors.push(
+                `Constraint ${index}: Semi major axis must be a valid number`
+              );
+            } else {
+              this.removeError(semiMajorInput);
+            }
+
+            if (
+              !semiMinorInput ||
+              semiMinorInput.value === "" ||
+              isNaN(parseFloat(semiMinorInput.value))
+            ) {
+              this.showError(semiMinorInput, "Semi minor axis is required");
+              isValid = false;
+              errors.push(
+                `Constraint ${index}: Semi minor axis must be a valid number`
+              );
+            } else {
+              this.removeError(semiMinorInput);
+            }
+
+            if (!centerInput || !centerInput.value.trim()) {
+              this.showError(centerInput, "Center coordinates are required");
+              isValid = false;
+              errors.push(
+                `Constraint ${index}: Center coordinates are required`
+              );
+            } else {
+              this.removeError(centerInput);
+            }
+          }
+          // Add validation for Line and Box if needed
+        }
+      }
+
+      // Validate trigger-based constraints
+      if (
+        [
+          "Q",
+          "MAX_QAOA",
+          "ALPHA",
+          "MAX_BODY_RATE",
+          "MAX_HEAT_FLUX",
+          "SLACK_VARIABLE",
+          "MAX_SENSED_ACC",
+        ].includes(constraintType)
+      ) {
+        const triggerSelect = instance.querySelector(".constraint-trigger");
+        if (!triggerSelect || !triggerSelect.value) {
+          this.showError(triggerSelect, "Please select a trigger type");
+          isValid = false;
+          errors.push(`Constraint ${index}: Trigger type is required`);
+        } else {
+          this.removeError(triggerSelect);
+
+          const triggerType = triggerSelect.value;
+          const rangeContainer = instance.querySelector(".flag-time-range");
+
+          if (triggerType === "FLAG") {
+            const fromFlagSelect = rangeContainer.querySelector(
+              ".constraint-flag-from"
+            );
+            const toFlagSelect = rangeContainer.querySelector(
+              ".constraint-flag-to"
+            );
+
+            if (!fromFlagSelect || !fromFlagSelect.value) {
+              this.showError(fromFlagSelect, "From flag is required");
+              isValid = false;
+              errors.push(`Constraint ${index}: From flag is required`);
+            } else {
+              this.removeError(fromFlagSelect);
+            }
+
+            if (!toFlagSelect || !toFlagSelect.value) {
+              this.showError(toFlagSelect, "To flag is required");
+              isValid = false;
+              errors.push(`Constraint ${index}: To flag is required`);
+            } else {
+              this.removeError(toFlagSelect);
+            }
+          } else if (triggerType === "MISSION_TIME") {
+            const fromTimeInput = rangeContainer.querySelector(
+              ".constraint-time-from"
+            );
+            const toTimeInput = rangeContainer.querySelector(
+              ".constraint-time-to"
+            );
+
+            if (
+              !fromTimeInput ||
+              fromTimeInput.value === "" ||
+              isNaN(parseFloat(fromTimeInput.value))
+            ) {
+              this.showError(fromTimeInput, "From time must be a valid number");
+              isValid = false;
+              errors.push(
+                `Constraint ${index}: From time must be a valid number`
+              );
+            } else {
+              this.removeError(fromTimeInput);
+            }
+
+            if (
+              !toTimeInput ||
+              toTimeInput.value === "" ||
+              isNaN(parseFloat(toTimeInput.value))
+            ) {
+              this.showError(toTimeInput, "To time must be a valid number");
+              isValid = false;
+              errors.push(
+                `Constraint ${index}: To time must be a valid number`
+              );
+            } else {
+              this.removeError(toTimeInput);
+            }
+          }
+        }
+      }
+    }
+
+    // If validation fails, also show a toast with specific errors
+    if (!isValid && errors.length > 0) {
+      // Create a more specific error message from the errors array
+      const errorSummary =
+        errors.length > 2
+          ? `${errors.slice(0, 2).join(", ")} and ${
+              errors.length - 2
+            } more issue(s)`
+          : errors.join(", ");
+
+      this.showToastMessage(
+        "error",
+        `Constraint ${index} Invalid`,
+        `Please fix these issues: ${errorSummary}`
+      );
+    }
+
+    return isValid;
+  }
+
+  // Initialize validation for objective function fields
+  static initializeObjectiveFunctionValidation() {
+    const objectiveFunctionForm = document.getElementById(
+      "objective-function-form"
+    );
+
+    if (!objectiveFunctionForm) return;
+
+    // Add form submission handler
+    objectiveFunctionForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const { isValid } = this.validateObjectiveFunction(objectiveFunctionForm);
+
+      if (isValid) {
+        // Call the data collection function from optimization.js
+        if (
+          typeof window.optimizationModule?.getObjectiveFunctionData ===
+          "function"
+        ) {
+          const objectiveData =
+            window.optimizationModule.getObjectiveFunctionData();
+
+          // Call the save function from optimization.js
+          if (
+            typeof window.optimizationModule?.saveOptimizationData ===
+            "function"
+          ) {
+            window.optimizationModule.saveOptimizationData(
+              "objectiveFunctions",
+              objectiveData
+            );
+            this.showToastMessage(
+              "success",
+              "Success",
+              "Objective function data saved successfully!"
+            );
+          } else {
+            this.showToastMessage(
+              "error",
+              "Error",
+              "Could not save data. Function not available."
+            );
+          }
+        } else {
+          this.showToastMessage(
+            "error",
+            "Error",
+            "Could not get objective function data. Function not available."
+          );
+        }
+      }
+    });
+
+    // Add event delegation for dynamic objective function fields
+    const objectiveFunctionContainer = document.getElementById(
+      "objective-function-container"
+    );
+    if (objectiveFunctionContainer) {
+      objectiveFunctionContainer.addEventListener("change", (event) => {
+        const target = event.target;
+
+        // Check if the changed element is one we want to validate
+        if (target.classList.contains("objective-name-select")) {
+          if (!target.value) {
+            this.showError(target, "Please select an objective name");
+          } else {
+            this.removeError(target);
+          }
+        } else if (target.classList.contains("objective-flag-select")) {
+          if (!target.value) {
+            this.showError(target, "Please select a reference flag");
+          } else {
+            this.removeError(target);
+          }
+        } else if (target.classList.contains("objective-factor-select")) {
+          if (!target.value) {
+            this.showError(
+              target,
+              "Please select a factor (Minimize/Maximize)"
+            );
+          } else {
+            this.removeError(target);
+          }
+        }
+      });
+    }
+
+    console.log("Objective function validation initialized");
+  }
+
+  // Toast message instead of popup
+  static showToastMessage(icon, title, message) {
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon: icon,
+      title: title,
+      text: message,
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
+  }
+
   // --- Methods for general feedback (using Swal) ---
   static showGeneralError(title, message) {
-    Swal.fire({
-      title: title || "Error",
-      text: message,
-      icon: "error",
-      confirmButtonText: "OK",
-    });
+    this.showToastMessage("error", title || "Error", message);
   }
 
   static showGeneralSuccess(title, message) {
-    Swal.fire({
-      title: title || "Success",
-      text: message,
-      icon: "success",
-      timer: 2000,
-      showConfirmButton: false,
-    });
+    this.showToastMessage("success", title || "Success", message);
   }
 
   static showGeneralInfo(title, message) {
-    Swal.fire({
-      title: title || "Information",
-      text: message,
-      icon: "info",
-      confirmButtonText: "OK",
-    });
+    this.showToastMessage("info", title || "Information", message);
   }
   // --- END Methods for general feedback ---
 }
@@ -1430,4 +1893,7 @@ document.addEventListener("DOMContentLoaded", () => {
   FormValidator.initializeVehicleFormValidation();
   FormValidator.initializeSequenceFormValidation();
   // FormValidator.initializeSteeringFormValidation(); // Removed
+
+  // Initialize objective function validation
+  FormValidator.initializeObjectiveFunctionValidation();
 });
