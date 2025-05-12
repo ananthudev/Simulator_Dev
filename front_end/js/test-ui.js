@@ -1,70 +1,419 @@
 // Initialize test UI
 document.addEventListener("DOMContentLoaded", function () {
-  // Create main test button
-  const testButton = document.createElement("button");
-  testButton.id = "run-tests";
-  testButton.textContent = "Run Tests";
-  testButton.className = "test-button main main-test-button";
-  testButton.onclick = window.TestHelpers.runAllTests;
-  document.body.appendChild(testButton);
+  // Check if TestData is available - if not, load it
+  if (!window.TestData) {
+    console.warn("TestData not available - dynamically loading test-data.js");
+    const script = document.createElement("script");
+    script.src = "js/test-data.js";
+    script.onload = function () {
+      console.log("TestData loaded successfully");
+      initializeTestUI();
+    };
+    script.onerror = function () {
+      console.error("Failed to load TestData");
+      // Initialize anyway with what we have
+      initializeTestUI();
+    };
+    document.head.appendChild(script);
+  } else {
+    initializeTestUI();
+  }
+});
 
-  // Create container for individual test buttons
-  const testContainer = document.createElement("div");
-  testContainer.className = "test-container";
+function initializeTestUI() {
+  // Create the main test UI container
+  const mainTestContainer = document.createElement("div");
+  mainTestContainer.id = "main-test-ui-container";
 
-  // Define test types
-  const testTypes = [
-    { name: "Test Mission", fn: window.TestHelpers.fillTestMissionData },
-    {
-      name: "Test Environment",
-      fn: window.TestHelpers.fillTestEnvironmentData,
-    },
-    {
-      name: "Test ASCEND",
-      fn: () => window.TestHelpers.fillTestVehicleData("ascend"),
-    },
-    {
-      name: "Test PROJECTILE",
-      fn: () => window.TestHelpers.fillTestVehicleData("projectile"),
-    },
-    {
-      name: "Test ORBITAL",
-      fn: () => window.TestHelpers.fillTestVehicleData("orbital"),
-    },
-    // --- NEW Buttons for Filling Stage/Motor Data ---
-    {
-      name: "Fill Current Stage",
-      fn: window.TestHelpers.fillCurrentStageData,
-      className: "test-button stage",
-    },
-    {
-      name: "Fill Current Motor",
-      fn: window.TestHelpers.fillCurrentMotorData,
-      className: "test-button motor",
-    },
-    // Example for Stage 2 (can be added if needed)
-    // {
-    //     name: "Fill Stage 2 Data",
-    //     fn: () => window.TestHelpers.fillTestStageData(2),
-    //     className: "test-button stage",
-    // },
-    // Example for Motor 2_1 (can be added if needed)
-    // {
-    //     name: "Fill Motor 2_1 Data",
-    //     fn: () => window.TestHelpers.fillTestMotorData(2, 1),
-    //     className: "test-button motor",
-    // },
-  ];
+  // Create header for collapsing
+  const testHeader = document.createElement("div");
+  testHeader.id = "test-ui-header";
 
-  // Create individual test buttons
-  testTypes.forEach((test) => {
-    const button = document.createElement("button");
-    button.textContent = test.name;
-    // Use specific class if provided, otherwise default to secondary
-    button.className = test.className || "test-button secondary";
-    button.onclick = test.fn;
-    testContainer.appendChild(button);
+  const headerTitle = document.createElement("h3");
+  headerTitle.textContent = "Test Controls";
+  testHeader.appendChild(headerTitle);
+
+  const toggleButton = document.createElement("button");
+  toggleButton.id = "test-ui-toggle";
+  toggleButton.textContent = "Hide"; // Initial state
+  testHeader.appendChild(toggleButton);
+
+  mainTestContainer.appendChild(testHeader);
+
+  // Create the collapsible content container
+  const collapsibleContent = document.createElement("div");
+  collapsibleContent.id = "test-ui-collapsible-content";
+
+  // Create the 'Run All Tests' button (moved inside collapsible content)
+  const runAllTestsButton = document.createElement("button");
+  runAllTestsButton.id = "run-tests";
+  runAllTestsButton.textContent = "Run All Tests";
+  runAllTestsButton.className = "test-button main"; // Removed fixed positioning class
+  runAllTestsButton.onclick = window.TestHelpers.runAllTests;
+  collapsibleContent.appendChild(runAllTestsButton);
+
+  // Create container for individual test buttons (existing)
+  const testButtonContainer = document.createElement("div"); // Renamed from testContainer for clarity
+  testButtonContainer.className = "test-button-container"; // New class for specific styling
+  collapsibleContent.appendChild(testButtonContainer);
+
+  // Create status indicator area (existing)
+  const statusIndicator = document.createElement("div");
+  statusIndicator.className = "test-status-indicator";
+  statusIndicator.style.display = "none"; // Initially hidden
+  collapsibleContent.appendChild(statusIndicator);
+
+  mainTestContainer.appendChild(collapsibleContent);
+  document.body.appendChild(mainTestContainer);
+
+  // Add event listener for toggling
+  toggleButton.addEventListener("click", function () {
+    const content = document.getElementById("test-ui-collapsible-content");
+    const isHidden = content.style.display === "none";
+    content.style.display = isHidden ? "block" : "none";
+    toggleButton.textContent = isHidden ? "Hide" : "Show";
   });
 
-  document.body.appendChild(testContainer);
-});
+  // Define test types in groups for better organization
+  const testGroups = [
+    {
+      name: "Basic Forms",
+      tests: [
+        {
+          name: "Test Mission",
+          fn: window.TestHelpers.fillTestMissionData,
+          className: "test-button secondary mission",
+        },
+        {
+          name: "Test Environment",
+          fn: window.TestHelpers.fillTestEnvironmentData,
+          className: "test-button secondary environment",
+        },
+        {
+          name: "Test ASCEND",
+          fn: () => window.TestHelpers.fillTestVehicleData("ascend"),
+          className: "test-button secondary vehicle",
+        },
+        {
+          name: "Test PROJECTILE",
+          fn: () => window.TestHelpers.fillTestVehicleData("projectile"),
+          className: "test-button secondary vehicle",
+        },
+        {
+          name: "Test ORBITAL",
+          fn: () => window.TestHelpers.fillTestVehicleData("orbital"),
+          className: "test-button secondary vehicle",
+        },
+      ],
+    },
+    {
+      name: "Stages & Motors",
+      tests: [
+        {
+          name: "Fill Current Stage",
+          fn: window.TestHelpers.fillCurrentStageData,
+          className: "test-button stage",
+        },
+        {
+          name: "Fill Current Motor",
+          fn: window.TestHelpers.fillCurrentMotorData,
+          className: "test-button motor",
+        },
+        {
+          name: "Upload Aero Data",
+          fn: () => window.TestHelpers.fillTestAeroData(1),
+          className: "test-button upload",
+        },
+        {
+          name: "Upload Thrust Data",
+          fn: () => window.TestHelpers.fillTestThrustData(1, 1),
+          className: "test-button upload",
+        },
+      ],
+    },
+    {
+      name: "Sequence & Control",
+      tests: [
+        {
+          name: "Fill Sequence",
+          fn: window.TestHelpers.fillTestSequenceData,
+          className: "test-button sequence",
+        },
+        {
+          name: "Fill Steering",
+          fn: window.TestHelpers.fillTestSteeringData,
+          className: "test-button steering",
+        },
+        {
+          name: "Fill Stopping Condition",
+          fn: window.TestHelpers.fillTestStoppingConditionData,
+          className: "test-button stopping",
+        },
+      ],
+    },
+    {
+      name: "Optimization Module",
+      tests: [
+        {
+          name: "Fill Objective Function",
+          fn: window.TestHelpers.fillTestObjectiveFunction,
+          className: "test-button objective",
+        },
+        {
+          name: "Fill Constraints",
+          fn: window.TestHelpers.fillTestConstraints,
+          className: "test-button constraints",
+        },
+        {
+          name: "Fill Optimization Mode",
+          fn: window.TestHelpers.fillTestOptimizationMode,
+          className: "test-button opt-mode",
+        },
+        {
+          name: "Fill Design Variables",
+          fn: window.TestHelpers.fillTestDesignVariables,
+          className: "test-button design-vars",
+        },
+      ],
+    },
+  ];
+
+  // Add group headers and buttons to container
+  testGroups.forEach((group) => {
+    // Add group header
+    const groupHeader = document.createElement("h4"); // Changed to h4 for better hierarchy
+    groupHeader.textContent = group.name;
+    groupHeader.className = "test-group-header";
+    testButtonContainer.appendChild(groupHeader); // Append to testButtonContainer
+
+    // Add group tests
+    group.tests.forEach((test) => {
+      const button = document.createElement("button");
+      button.textContent = test.name;
+      // Use specific class if provided, otherwise default to secondary
+      button.className = test.className || "test-button secondary";
+      button.onclick = test.fn;
+      testButtonContainer.appendChild(button); // Append to testButtonContainer
+    });
+  });
+
+  // Add some basic styling specific to the test UI
+  const style = document.createElement("style");
+  style.textContent = `
+    #main-test-ui-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(0,0,0,0.9);
+      border: 1px solid #444;
+      border-radius: 5px;
+      width: 300px; /* Adjust width as needed */
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+    #test-ui-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: #333;
+      border-bottom: 1px solid #444;
+      cursor: pointer; /* Indicate it's clickable */
+    }
+    #test-ui-header h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #eee;
+    }
+     #test-ui-toggle {
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      background: #555;
+      border: 1px solid #666;
+      border-radius: 3px;
+      color: #fff;
+    }
+    #test-ui-toggle:hover {
+      background: #666;
+    }
+    #test-ui-collapsible-content {
+      padding: 10px;
+      /* Initially visible, will be toggled by JS */
+    }
+    .test-button-container {
+       margin-bottom: 10px;
+       display: flex; /* Use flexbox for layout */
+       flex-wrap: wrap; /* Allow buttons to wrap to the next line */
+       gap: 3px; /* Reduced gap between buttons */
+       align-items: flex-start; /* Align items to the start */
+    }
+    .test-button, #run-tests, #test-ui-toggle {
+      padding: 2px 4px; /* Further reduced padding */
+      font-size: 9px; /* Further reduced font size */
+      cursor: pointer;
+      border: 1px solid #666;
+      border-radius: 3px;
+      color: #fff;
+      /* Add specific button styling */
+      background-color: #555; /* Default background */
+      flex: 0 1 auto; /* Allow buttons to shrink but not grow */
+      min-width: 0; /* Allow buttons to shrink below content size if needed */
+      box-sizing: border-box; /* Include padding and border in the element's total width and height */
+      white-space: nowrap; /* Prevent text wrapping within buttons */
+      overflow: hidden; /* Hide overflowed text */
+      text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    }
+
+    #run-tests {
+        width: 100%; /* Make run all tests button full width */
+        flex-grow: 1; /* Allow it to grow */
+        text-align: center;
+        padding: 5px 10px; /* Slightly larger padding for main button */
+        font-size: 12px; /* Slightly larger font for main button */
+    }
+
+    .test-button:hover, #run-tests:hover, #test-ui-toggle:hover {
+        background-color: #666;
+    }
+
+    /* Specific color styles for different button types */
+    .test-button.main {
+        background-color: #007bff; /* Blue */
+    }
+    .test-button.main:hover {
+        background-color: #0056b3;
+    }
+    .test-button.mission {
+        background-color: #28a745; /* Green */
+    }
+    .test-button.mission:hover {
+        background-color: #218838;
+    }
+    .test-button.environment {
+        background-color: #ffc107; /* Yellow */
+        color: #333; /* Darken text for contrast */
+    }
+    .test-button.environment:hover {
+        background-color: #e0a800;
+    }
+    .test-button.vehicle {
+        background-color: #dc3545; /* Red */
+    }
+    .test-button.vehicle:hover {
+        background-color: #c82333;
+    }
+    .test-button.stage {
+        background-color: #6f42c1; /* Purple */
+    }
+    .test-button.stage:hover {
+        background-color: #5a32a3;
+    }
+    .test-button.motor {
+        background-color: #20c997; /* Teal */
+        color: #333; /* Darken text */
+    }
+    .test-button.motor:hover {
+        background-color: #1abc9c;
+    }
+    .test-button.upload {
+        background-color: #17a2b8; /* Cyan */
+    }
+    .test-button.upload:hover {
+        background-color: #138496;
+    }
+     .test-button.sequence {
+        background-color: #fd7e14; /* Orange */
+    }
+    .test-button.sequence:hover {
+        background-color: #fb8c00;
+    }
+     .test-button.steering {
+        background-color: #6610f2; /* Indigo */
+    }
+    .test-button.steering:hover {
+        background-color: #520bd7;
+    }
+    .test-button.stopping {
+        background-color: #e83e8c; /* Pink */
+    }
+    .test-button.stopping:hover {
+        background-color: #d63384;
+    }
+     .test-button.objective {
+        background-color: #66bb6a; /* Light Green */
+        color: #333;
+    }
+    .test-button.objective:hover {
+        background-color: #5cb860;
+    }
+     .test-button.constraints {
+        background-color: #42a5f5; /* Light Blue */
+    }
+    .test-button.constraints:hover {
+        background-color: #3b9de5;
+    }
+     .test-button.opt-mode {
+        background-color: #ffee58; /* Light Yellow */
+        color: #333;
+    }
+    .test-button.opt-mode:hover {
+        background-color: #ffeb3b;
+    }
+     .test-button.design-vars {
+        background-color: #ab47bc; /* Purple */
+    }
+    .test-button.design-vars:hover {
+        background-color: #9b3ebc;
+    }
+
+    .test-group-header {
+        width: 100%; /* Make header take full width */
+        margin-top: 10px; /* Space above header */
+        margin-bottom: 5px; /* Space below header */
+        font-size: 14px; /* Slightly smaller font than title */
+        color: #ccc;
+        border-bottom: 1px solid #444; /* Separator line */
+        padding-bottom: 3px;
+    }
+
+    .test-status-indicator {
+      margin-top: 10px;
+      border: 1px solid #555;
+      padding: 10px;
+      background: #222;
+      max-height: 300px;
+      overflow-y: auto;
+      border-radius: 5px;
+      color: #ccc;
+    }
+    .test-step {
+      margin-bottom: 5px;
+      padding: 5px;
+      border-left: 3px solid #444;
+      border-radius: 2px;
+      background: #2a2a2a;
+    }
+    .test-step.pending {
+      border-left-color: #f39c12;
+    }
+    .test-step.completed {
+      border-left-color: #2ecc71;
+    }
+    .test-step.error {
+      border-left-color: #e74c3c;
+    }
+    .test-final-status {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
+      color: #2ecc71;
+      padding: 5px;
+      border-radius: 4px;
+      background: rgba(46, 204, 113, 0.1);
+    }
+  `;
+  document.head.appendChild(style);
+}

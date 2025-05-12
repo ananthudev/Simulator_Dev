@@ -60,13 +60,26 @@ function addSteeringComponent(type, baseDisplayName) {
   }
 
   const componentId = generateComponentId(type);
-  let finalDisplayName = baseDisplayName;
+  let finalDisplayName;
 
-  // Always add instance number to the display name
-  if (componentId.includes("_")) {
-    const num = componentId.substring(componentId.lastIndexOf("_") + 1);
-    finalDisplayName = `${baseDisplayName} ${num}`;
-  }
+  // Create the desired display name format: Capitalized_Type_Name_Increment
+  const idParts = componentId.split("_");
+  const typeNamePart = idParts[0]; // e.g., "verticalAscend", "profile"
+  const numericPart = idParts.slice(1).join("_"); // e.g., "1" or could be empty if id has no underscore
+
+  // Convert typeNamePart from camelCase or single word to Capitalized_Words_With_Underscores
+  // e.g., "verticalAscend" -> "Vertical_Ascend"
+  // e.g., "profile" -> "Profile"
+  let formattedTypeName = typeNamePart
+    .replace(/([A-Z])/g, "_$1") // Insert underscore before caps: "vertical_Ascend" or "profile"
+    .toLowerCase() // "vertical_ascend" or "profile"
+    .split("_") // ["vertical", "ascend"] or ["profile"]
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // ["Vertical", "Ascend"] or ["Profile"]
+    .join("_"); // "Vertical_Ascend" or "Profile"
+
+  finalDisplayName = numericPart
+    ? `${formattedTypeName}_${numericPart}`
+    : formattedTypeName;
 
   // Create list item for the component
   const li = document.createElement("li");

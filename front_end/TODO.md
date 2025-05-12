@@ -108,6 +108,14 @@
   - Implemented coordinate input fields and table display with "center" and "delete" actions.
   - Maintained lat/long coordinate swapping for Astra C compatibility.
   - Added styling to improve the UI and make segment relationships clear.
+- [x] **Design Variable Segment Dropdown Logic:** Ensured correct population of segment dropdowns for 'PROPULSION' (motor names) and 'STEERING' (steering component names) categories, including fixing refresh mechanisms and initialization.
+- [x] **Per-Axis Bounds Configuration UI:**
+  - Implemented a checkbox-based UI for selecting individual axes (Roll, Pitch, Yaw) in PROFILE and CONST_BODYRATE steering segment types.
+  - Created a dynamic system where selecting an axis shows dedicated lower/upper bound input fields for that specific axis.
+  - Structured the data collection to organize bounds into proper arrays per axis in the JSON output.
+  - Improved form layout by positioning bound fields in logical order (e.g., above Independent Variable fields in PROFILE type).
+  - Added validation to ensure at least one axis is selected.
+  - Maintained backward compatibility with existing JSON structure.
 
 ### General UI/UX Features
 
@@ -219,9 +227,14 @@
 
 ### Testing
 
+- [x] Create isolated test suite with Cypress
+  - [x] End-to-end tests for core functionality
+  - [x] Form validation tests
+  - [x] API interaction tests with mock server
+  - [x] Custom test commands and utilities
+  - [x] Realistic test fixtures for simulation and optimization modes using testcase.jsonc data
 - [ ] Unit test implementation
 - [ ] Integration test suite
-- [ ] End-to-end testing
 - [ ] Performance testing
 
 ### Optimization
@@ -232,3 +245,106 @@
 - [ ] Browser compatibility testing
 
 ### Contributor - Ananthu Dev (Frontend Developer (Electron.js, HTML, CSS, JavaScript, JSON Handling), Backend Integration (JS/Python, Astra C Binary), DevOps (GitLab CI/CD, Gerrit, Jenkins), Cloud (AWS, Docker), Database, Licensing, Maintenance and Support)
+
+### Code Refactoring & Conflict Resolution
+
+- [ ] **Function Name Deduplication:** Resolve duplicate utility functions across files:
+
+  - Consolidate error/success handling (`showError`, `showSuccess`, `showWarning`) between `formHandler.js` and `validation.js`.
+  - Standardize on `FormValidator` class for all validation and feedback.
+  - Document which version should be used where to prevent confusion.
+
+- [ ] **Global Namespace Management:**
+
+  - Reduce reliance on `window` object properties (`finalMissionData`, `eventSequence`, `flagRegistry`, etc.).
+  - Implement module pattern or ES modules to better encapsulate functionality.
+  - Create a centralized data manager to handle all mission data access/updates.
+
+- [ ] **Event Listener Management:**
+
+  - Audit and refactor multiple event listeners on same elements (e.g., save buttons).
+  - Use event delegation more consistently for dynamically created elements.
+  - Create a registry of attached listeners to prevent duplicates.
+  - Implement better cleanup of listeners when forms/elements are removed.
+
+- [ ] **CSS Style Conflicts:**
+
+  - Move inline style injections (like in `formHandler.js`) to proper CSS files.
+  - Standardize class naming conventions to prevent selector collisions.
+  - Consider adopting a CSS methodology like BEM for more robust component styling.
+
+- [ ] **Unified API for Common Operations:**
+
+  - Create standardized APIs for file handling, form validation, and data saving.
+  - Implement consistent error handling and user feedback approaches.
+  - Document these APIs for future development reference.
+
+- [ ] **Documentation Improvements:**
+
+  - Add JSDoc comments to clarify function purposes, parameters, and dependencies.
+  - Document component interactions and data flow between modules.
+  - Create architectural diagrams showing module relationships.
+
+- [ ] **Integration Testing:**
+  - Develop test cases specifically focused on validating that refactored components work correctly together.
+  - Test boundary cases where multiple modules interact with the same data or DOM elements.
+
+### Electron.js Application Enhancements
+
+- [ ] **Architecture Improvements:**
+
+  - Integrate a modern JavaScript framework (React, Vue, or Svelte) for more maintainable UI components
+  - Implement component-based architecture for better code organization and reusability
+  - Use state management libraries (Redux, Vuex, or context API) to replace global window variables
+  - Gradually migrate to TypeScript for improved type safety and better IDE support
+  - Move heavy computations to background worker threads to prevent UI freezing
+  - Implement proper IPC communication between renderer and main processes
+
+- [ ] **Performance Optimizations:**
+
+  - Improve memory management with better cleanup of large objects
+  - Monitor memory usage with Electron DevTools and address leaks
+  - Optimize handling of large CSV datasets and map components
+  - Implement app preloading for faster startup times
+  - Consider lazy-loading modules that aren't immediately needed
+  - Add debouncing/throttling to event handlers for better performance
+  - Virtualize long lists (like event sequences) to handle large datasets efficiently
+
+- [ ] **User Experience Enhancements:**
+
+  - Add keyboard shortcuts for common operations
+  - Improve tab navigation flow through complex forms
+  - Implement command palette (Ctrl+K) for quick access to functionality
+  - Enhance offline map functionality with better caching
+  - Allow users to customize workspace layout
+  - Save user preferences (units, recently used values, UI preferences)
+  - Implement dashboard with customizable widgets for frequently used tools
+
+- [ ] **Development Workflow:**
+
+  - Implement Spectron or Playwright for Electron-specific E2E testing
+  - Optimize Electron build size with better asset management
+  - Implement differential updates to reduce update package size
+  - Create better hot reloading for development
+
+- [ ] **Platform Integration:**
+
+  - Implement better OS integration (file associations, deep linking)
+  - Add system notifications for long-running processes
+  - Optimize for multiple displays and high-DPI screens
+  - Improve consistency between macOS, Windows, and Linux versions
+  - Implement platform-specific optimizations (native menus, etc.)
+
+- [ ] **Security Enhancements:**
+
+  - Implement proper CSP policies
+  - Use contextIsolation and secure IPC patterns
+  - Conduct regular security audits of dependencies
+
+- [ ] **Advanced Features:**
+  - Add multi-user collaboration features for team-based mission planning
+  - Implement WebRTC or server-based synchronization
+  - Add commenting and annotation capabilities
+  - Consider adding ML-based optimization suggestions
+  - Implement predictive input for common parameter configurations
+  - Add anomaly detection in simulation results

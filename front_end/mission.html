@@ -2667,6 +2667,7 @@
 
     <!-- Test related files -->
     <link rel="stylesheet" href="css/test-ui.css" />
+    <script src="js/test-data.js"></script>
     <script src="js/test-helpers.js"></script>
     <script src="js/test-ui.js"></script>
 
@@ -3027,39 +3028,65 @@
                 class="dv-steering-type-fields hidden"
                 data-segment-type="ZERO_RATE"
               >
+                <!-- Original ZERO_RATE specific controls if any (e.g., a general duration or control variable) -->
                 <div class="form-row">
-                  <div class="form-group full-width">
-                    <label class="label dv-control-variable-label"
-                      >Control Variable(s):</label
+                  <div class="form-group">
+                    <label class="label" for="dv-zerorate-control-variable"
+                      >Control Variable (Duration/General):</label
                     >
                     <input
                       type="text"
                       class="input-field dv-control-variable"
-                      placeholder="e.g., DURATION (comma-separated)"
+                      id="dv-zerorate-control-variable"
+                      placeholder="e.g., Duration value or parameter name"
                     />
+                    <small class="input-help"
+                      >General control variable if applicable, bounds per axis
+                      below.</small
+                    >
                   </div>
                 </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="label dv-lower-bound-label"
-                      >Lower Bound(s):</label
+
+                <!-- New Axis Selection Checkboxes -->
+                <div class="form-group dv-axis-checkbox-group">
+                  <label class="label">Axes (Select at least one):</label>
+                  <div class="axis-checkboxes">
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="roll"
+                        class="dv-axis-select-cb"
+                      />
+                      Roll</label
                     >
-                    <input
-                      type="text"
-                      class="input-field dv-lower-bound"
-                      placeholder="e.g., 0 (comma-separated)"
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label class="label dv-upper-bound-label"
-                      >Upper Bound(s):</label
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="pitch"
+                        class="dv-axis-select-cb"
+                      />
+                      Pitch</label
                     >
-                    <input
-                      type="text"
-                      class="input-field dv-upper-bound"
-                      placeholder="e.g., 10 (comma-separated)"
-                    />
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="yaw"
+                        class="dv-axis-select-cb"
+                      />
+                      Yaw</label
+                    >
                   </div>
+                  <div
+                    class="error-message hidden"
+                    data-validation-for="axis-selection"
+                  >
+                    At least one axis must be selected.
+                  </div>
+                </div>
+
+                <!-- Container for Dynamic Per-Axis Bounds -->
+                <div class="dv-axis-bounds-container">
+                  <!-- Dynamically injected bounds sections will go here -->
                 </div>
               </div>
 
@@ -3079,36 +3106,46 @@
                       placeholder="e.g., RATE (comma-separated)"
                     />
                   </div>
-                  <div class="form-group">
-                    <label class="label dv-axis-label">Axis/Axes:</label>
-                    <input
-                      type="text"
-                      class="input-field dv-axis"
-                      placeholder="e.g., pitch,yaw (comma-separated)"
-                    />
+                </div>
+                <!-- New Axis Selection Checkboxes -->
+                <div class="form-group dv-axis-checkbox-group">
+                  <label class="label">Axes (Select at least one):</label>
+                  <div class="axis-checkboxes">
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="roll"
+                        class="dv-axis-select-cb"
+                      />
+                      Roll</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="pitch"
+                        class="dv-axis-select-cb"
+                      />
+                      Pitch</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="yaw"
+                        class="dv-axis-select-cb"
+                      />
+                      Yaw</label
+                    >
+                  </div>
+                  <div
+                    class="error-message hidden"
+                    data-validation-for="axis-selection"
+                  >
+                    At least one axis must be selected.
                   </div>
                 </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="label dv-lower-bound-label"
-                      >Lower Bound(s):</label
-                    >
-                    <input
-                      type="text"
-                      class="input-field dv-lower-bound"
-                      placeholder="e.g., -5,0 (comma-separated)"
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label class="label dv-upper-bound-label"
-                      >Upper Bound(s):</label
-                    >
-                    <input
-                      type="text"
-                      class="input-field dv-upper-bound"
-                      placeholder="e.g., 5,10 (comma-separated)"
-                    />
-                  </div>
+                <!-- Container for Dynamic Per-Axis Bounds -->
+                <div class="dv-axis-bounds-container">
+                  <!-- Dynamically injected bounds sections will go here -->
                 </div>
               </div>
 
@@ -3128,15 +3165,46 @@
                       placeholder="e.g., PROFILE_VALUE"
                     />
                   </div>
-                  <div class="form-group">
-                    <label class="label dv-axis-label">Axis:</label>
-                    <select class="input-field dv-axis">
-                      <option value="" disabled selected>Select Axis</option>
-                      <option value="roll">Roll</option>
-                      <option value="pitch">Pitch</option>
-                      <option value="yaw">Yaw</option>
-                    </select>
+                </div>
+                <!-- New Axis Selection Checkboxes -->
+                <div class="form-group dv-axis-checkbox-group">
+                  <label class="label">Axes (Select at least one):</label>
+                  <div class="axis-checkboxes">
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="roll"
+                        class="dv-axis-select-cb"
+                      />
+                      Roll</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="pitch"
+                        class="dv-axis-select-cb"
+                      />
+                      Pitch</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        value="yaw"
+                        class="dv-axis-select-cb"
+                      />
+                      Yaw</label
+                    >
                   </div>
+                  <div
+                    class="error-message hidden"
+                    data-validation-for="axis-selection"
+                  >
+                    At least one axis must be selected.
+                  </div>
+                </div>
+                <!-- Container for Dynamic Per-Axis Bounds - MOVED ABOVE Independent Variable -->
+                <div class="dv-axis-bounds-container">
+                  <!-- Dynamically injected bounds sections will go here -->
                 </div>
                 <div class="form-row">
                   <div class="form-group">
@@ -3158,28 +3226,6 @@
                       type="text"
                       class="input-field dv-ind-vector"
                       placeholder="Indices: e.g., 1,3,5"
-                    />
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="label dv-lower-bound-label"
-                      >Lower Bound(s):</label
-                    >
-                    <input
-                      type="text"
-                      class="input-field dv-lower-bound"
-                      placeholder="e.g., -10,-5,-2"
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label class="label dv-upper-bound-label"
-                      >Upper Bound(s):</label
-                    >
-                    <input
-                      type="text"
-                      class="input-field dv-upper-bound"
-                      placeholder="e.g., 10,5,2"
                     />
                   </div>
                 </div>

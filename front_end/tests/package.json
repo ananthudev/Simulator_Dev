@@ -1,0 +1,22 @@
+{
+  "name": "astra-gui-tests",
+  "version": "1.0.0",
+  "description": "Test suite for ASTRA GUI application",
+  "scripts": {
+    "start-server": "http-server ../../ -p 8080 -c-1",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test": "start-server-and-test start-server http://localhost:8080 cypress:run",
+    "test:open": "start-server-and-test start-server http://localhost:8080 cypress:open"
+  },
+  "devDependencies": {
+    "cypress": "^14.3.3",
+    "cypress-file-upload": "^5.0.8",
+    "http-server": "^14.1.1",
+    "start-server-and-test": "^2.0.11"
+  },
+  "private": true,
+  "dependencies": {
+    "astra-gui-tests": "file:"
+  }
+}

@@ -110,6 +110,21 @@ document.addEventListener("DOMContentLoaded", function () {
         .addEventListener("click", (event) => {
           event.preventDefault();
           showForm(designVariablesForm);
+          // Refresh design variable segment dropdowns when this form is shown
+          if (
+            window.optimizationHandler &&
+            typeof window.optimizationHandler
+              .refreshAllDesignVariableSegmentDropdowns === "function"
+          ) {
+            console.log(
+              "Calling refreshAllDesignVariableSegmentDropdowns from ui-navigation."
+            );
+            window.optimizationHandler.refreshAllDesignVariableSegmentDropdowns();
+          } else {
+            console.warn(
+              "refreshAllDesignVariableSegmentDropdowns function not found on window.optimizationHandler."
+            );
+          }
         });
     } else {
       // For simulation mode, add stopping header BEFORE stopping condition
@@ -1379,15 +1394,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const timeInputs = timeFields.querySelectorAll("input, select");
   const altitudeInputs = altitudeFields.querySelectorAll("input, select");
 
+  // Expose these functions globally so they can be used in formHandler.js
+  window.disableFields = disableFields;
+  window.enableFields = enableFields;
+  window.resetStoppingFields = resetStoppingFields;
+
   function disableFields(elements) {
     elements.forEach((element) => {
       element.disabled = true;
+      // Add disabled styling class for consistent appearance
+      element.classList.add("disabled-field");
     });
   }
 
   function enableFields(elements) {
     elements.forEach((element) => {
       element.disabled = false;
+      // Remove disabled styling class
+      element.classList.remove("disabled-field");
     });
   }
 

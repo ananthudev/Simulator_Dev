@@ -1,0 +1,747 @@
+{
+  "Software": "ASTRA",
+  "mission": {
+    "mission_name": "SSPO",
+    "planet_name": "EARTH",
+    "MODE": "optimization",
+    "tracking_option": "ON",
+    "frame_model": "POST",
+    "output_frame": "POST",
+    "UTC": {
+      "Date": "2025-04-19",
+      "Time": "12:45:23"
+    }
+  },
+  "_mission_data_start": "--- Mission Details Start ---",
+  "_mission_data_end": "--- Mission Details End ---",
+  "_environment_data_start": "--- Environment Details Start ---",
+  "EARTH": {
+    "Gravity_param": {
+      "order": 2,
+      "degree": 0
+    },
+    "coe_info": {
+      "component": "PERIGEE_GC_LATITUDE"
+    },
+    "atmos_model": "atmos_76"
+  },
+  "Wind": [
+    [
+      "Altitude",
+      "Zonal",
+      "Meridonal"
+    ],
+    [
+      "m",
+      "m/s",
+      "m/s"
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      60000,
+      0,
+      0
+    ],
+    [
+      90000,
+      0,
+      0
+    ],
+    [
+      150000,
+      0,
+      0
+    ],
+    [
+      400000,
+      0,
+      0
+    ]
+  ],
+  "_environment_data_end": "--- Environment Details End ---",
+  "_vehicle_data_start": "--- Vehicle Details Start ---",
+  "Garuda": {
+    "no_Stg": 1,
+    "stage": [
+      "Stage_1"
+    ],
+    "payload": "James Webb",
+    "plf": "Heat Shield",
+    "integration_method": "RK4",
+    "time_step": 0.1,
+    "effective_altitude": 100000,
+    "steering": "Garuda_Steering",
+    "sequence": "Garuda_Sequence",
+    "Initial_condition": "Location_1"
+  },
+  "SSPO": {
+    "vehicle": [
+      "Garuda"
+    ],
+    "vehicle_type": "ASCEND"
+  },
+  "James Webb": {
+    "unit": "kg",
+    "mass": 500
+  },
+  "Heat Shield": {
+    "mass_unit": "kg",
+    "mass": 200,
+    "ref_area": 0,
+    "sep_flag": "HSS_Flag",
+    "descend_drag": null,
+    "DCISS": "OFF"
+  },
+  "Initial_States": {
+    "Location_1": {
+      "type": "Launch_Point",
+      "latitude_unit": "deg",
+      "latitude": 13,
+      "longitude_unit": "deg",
+      "longitude": 80.2,
+      "azimuth_unit": "deg",
+      "azimuth": 180,
+      "above_MSL_unit": "m",
+      "above_MSL": 0,
+      "height_unit": "m",
+      "lp_height": 30,
+      "launch_set_angle": 0,
+      "roll": 0,
+      "pitch": 0,
+      "yaw": 0
+    }
+  },
+  "_vehicle_data_end": "--- Vehicle Details End ---",
+  "Stage_1": {
+    "motor": [
+      "S1_MOTOR1"
+    ],
+    "actuator": null,
+    "str_mass": 1000,
+    "length": null,
+    "ref_area": 2.5,
+    "burntime": 120,
+    "aero_data": [
+      "Stage_1_AeroData"
+    ],
+    "sample_data": null,
+    "inert_mass": null,
+    "ini_flag": "ST_1_INI",
+    "sep_flag": "ST_1_SEP",
+    "strapon": null,
+    "descend_drag": null,
+    "DCISS": "OFF",
+    "coasting": "OFF"
+  },
+  "Stage_1_AeroData": {
+    "Flag": [
+      "S1_M1_IGN"
+    ],
+    "aero": [
+      [
+        "Mach",
+        0,
+        10000,
+        20000,
+        30000,
+        40000,
+        50000,
+        60000,
+        70000,
+        150000
+      ],
+      [
+        "",
+        "m",
+        "m",
+        "m",
+        "m",
+        "m",
+        "m",
+        "m",
+        "m",
+        "m"
+      ],
+      [
+        0,
+        0.2568,
+        0.2588,
+        0.261,
+        0.2483,
+        0.2538,
+        0.2538,
+        0.2536,
+        0.2527,
+        0.248
+      ],
+      [
+        0.4,
+        0.4241,
+        0.435,
+        0.4512,
+        0.4442,
+        0.3899,
+        0.3901,
+        0.3925,
+        0.3917,
+        0.3969
+      ],
+      [
+        0.6,
+        0.426,
+        0.4362,
+        0.4526,
+        0.4594,
+        0.406,
+        0.4262,
+        0.4269,
+        0.429,
+        0.4389
+      ],
+      [
+        0.8,
+        0.5673,
+        0.5769,
+        0.5929,
+        0.6032,
+        0.5612,
+        0.5592,
+        0.5598,
+        0.5619,
+        0.5718
+      ],
+      [
+        0.95,
+        0.7328,
+        0.742,
+        0.7574,
+        0.7709,
+        0.7392,
+        0.7208,
+        0.7214,
+        0.7233,
+        0.7326
+      ],
+      [
+        1.05,
+        0.8354,
+        0.8449,
+        0.8611,
+        0.8763,
+        0.8487,
+        0.8216,
+        0.8222,
+        0.824,
+        0.8328
+      ],
+      [
+        1.1,
+        0.8723,
+        0.8818,
+        0.8979,
+        0.9134,
+        0.8864,
+        0.8577,
+        0.8582,
+        0.8601,
+        0.8686
+      ],
+      [
+        1.2,
+        0.927,
+        0.9362,
+        0.9522,
+        0.9682,
+        0.9424,
+        0.9108,
+        0.9112,
+        0.913,
+        0.9211
+      ],
+      [
+        1.5,
+        0.8692,
+        0.878,
+        0.8933,
+        0.9103,
+        0.8956,
+        0.8497,
+        0.8922,
+        0.8938,
+        0.901
+      ],
+      [
+        2,
+        0.7371,
+        0.7451,
+        0.7592,
+        0.7764,
+        0.7698,
+        0.7271,
+        0.7505,
+        0.7519,
+        0.7583
+      ],
+      [
+        3,
+        0.6283,
+        0.6351,
+        0.6471,
+        0.6629,
+        0.6681,
+        0.6338,
+        0.6328,
+        0.634,
+        0.6394
+      ],
+      [
+        4,
+        0.5936,
+        0.5993,
+        0.6095,
+        0.6233,
+        0.6303,
+        0.6126,
+        0.5934,
+        0.5944,
+        0.5993
+      ],
+      [
+        20,
+        0.5936,
+        0.5993,
+        0.6095,
+        0.6233,
+        0.6303,
+        0.6126,
+        0.5934,
+        0.5944,
+        0.5993
+      ]
+    ]
+  },
+  "S1_MOTOR1": {
+    "str_mass": 1000,
+    "type_of_prop": "solid",
+    "prop_mass": 5050,
+    "nozzledia": 0.6,
+    "burntime": 120,
+    "ign_flag": "S1_M1_IGN",
+    "burn_out_flag": "S1_M1_Burnout",
+    "cut_off_flags": [
+      "S1_M1_CUTOFF"
+    ],
+    "sep_flag": "ST_1_SEP",
+    "no_of_nozzles": 1,
+    "nozzle": "S1_MOTOR1_NOZ1",
+    "thr_time": [
+      [
+        "Time",
+        "Thrust",
+        "PropMass"
+      ],
+      [
+        "s",
+        "kN",
+        "Kg"
+      ],
+      [
+        0,
+        0,
+        44999
+      ],
+      [
+        0.1,
+        981,
+        44966.213
+      ],
+      [
+        1.1,
+        981,
+        44638.344
+      ],
+      [
+        50,
+        981,
+        28605.557
+      ],
+      [
+        100,
+        981,
+        12212.115
+      ],
+      [
+        120,
+        981,
+        5654.738
+      ],
+      [
+        120.1,
+        725.94,
+        5630.4175
+      ],
+      [
+        125,
+        725.94,
+        4441.623
+      ],
+      [
+        130,
+        725.94,
+        3228.508
+      ],
+      [
+        140,
+        725.94,
+        802.279
+      ],
+      [
+        142.99,
+        725.94,
+        76.836
+      ],
+      [
+        143,
+        725.94,
+        74.41
+      ],
+      [
+        143.289,
+        725.94,
+        4.292
+      ],
+      [
+        143.3,
+        725.94,
+        1.623
+      ],
+      [
+        143.31,
+        725.94,
+        1.623
+      ],
+      [
+        143.32,
+        725.94,
+        1.623
+      ],
+      [
+        143.9,
+        0,
+        0
+      ]
+    ]
+  },
+  "S1_MOTOR1_NOZ1": {
+    "Diameter": 0.6,
+    "Location": {
+      "Radial_dist": 0,
+      "Phi": 0
+    },
+    "mis_alignment": {
+      "sigma_thrust": 0,
+      "tau_thrust": 0,
+      "epsilon_thrust": 0
+    },
+    "Orientation": {
+      "mu": 0,
+      "lamda": 0,
+      "kappa": 0
+    },
+    "eta_thrust": 0,
+    "zeta_thrust": 0,
+    "Throat_location": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    }
+  },
+  "Garuda_Sequence": [
+    {
+      "identity": "ST_1_INI",
+      "trigger": "MISSION_TIME",
+      "value": 23,
+      "reference": "none",
+      "comment": "dere"
+    },
+    {
+      "identity": "S1_M1_IGN",
+      "trigger": "MISSION_TIME",
+      "value": 2345,
+      "reference": "ST_1_INI",
+      "comment": ""
+    },
+    {
+      "identity": "S1_M1_Burnout",
+      "trigger": "MISSION_TIME",
+      "value": 234,
+      "reference": "S1_M1_IGN",
+      "comment": "sdf"
+    },
+    {
+      "identity": "ST_1_SEP",
+      "trigger": "PHASE_TIME",
+      "value": 2345,
+      "reference": "S1_M1_Burnout",
+      "comment": "wser"
+    },
+    {
+      "identity": "HSS_Flag",
+      "trigger": "PHASE_TIME",
+      "value": 1234,
+      "reference": "S1_M1_Burnout",
+      "comment": "wderfgt"
+    }
+  ],
+  "_steering_data_start": "--- Steering Details Start ---",
+  "Vertical_Ascend_1": {
+    "start": {
+      "identity": "VA_START_1",
+      "trigger": "MISSION_TIME",
+      "value": 1234,
+      "reference": "ST_1_INI",
+      "comment": "123"
+    },
+    "stop": {
+      "identity": "VA_STOP_1",
+      "trigger": "PHASE_TIME",
+      "value": 23,
+      "reference": "VA_START_1",
+      "comment": "23"
+    },
+    "steering": {
+      "type": "PROFILE",
+      "comment": "xdf",
+      "mode": "normal",
+      "quantity": "BODY_RATE",
+      "ind_variable": "PHASE_TIME",
+      "value": [
+        [
+          "Time",
+          "ROLL",
+          "YAW",
+          "PITCH"
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          5,
+          0,
+          0,
+          0
+        ],
+        [
+          10,
+          0,
+          0,
+          0
+        ],
+        [
+          15,
+          0,
+          0,
+          -0.548259479
+        ],
+        [
+          20,
+          0,
+          0,
+          -0.545069313
+        ],
+        [
+          30,
+          0,
+          0,
+          -0.418256636
+        ],
+        [
+          43.9,
+          0,
+          0,
+          -0.408389469
+        ],
+        [
+          54,
+          0,
+          0,
+          -0.545129447
+        ],
+        [
+          74.1,
+          0,
+          0,
+          -0.514086138
+        ],
+        [
+          95.1,
+          0,
+          0,
+          -0.312098692
+        ],
+        [
+          120.4,
+          0,
+          0,
+          -0.227735727
+        ],
+        [
+          123,
+          0,
+          0,
+          1.11e-16
+        ],
+        [
+          129.9,
+          0,
+          0,
+          0
+        ],
+        [
+          140,
+          0,
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "Constant_Pitch_1": {
+    "start": {
+      "identity": "CP_START_1",
+      "trigger": "PHASE_TIME",
+      "value": 234,
+      "reference": "ST_1_INI",
+      "comment": "234"
+    },
+    "stop": {
+      "identity": "CP_STOP_1",
+      "trigger": "MISSION_TIME",
+      "value": 123,
+      "reference": "ST_1_SEP",
+      "comment": "we"
+    },
+    "steering": {
+      "type": "CONST_BODYRATE",
+      "comment": "ewrty",
+      "axis": "roll",
+      "value": 234
+    }
+  },
+  "Garuda_Steering": {
+    "Steering_Sequence": "132",
+    "steering": [
+      "Vertical_Ascend_1",
+      "Constant_Pitch_1"
+    ]
+  },
+  "_steering_data_end": "--- Steering Details End ---",
+  "optimization": [
+    {
+      "name": "DUMMY",
+      "value": "null",
+      "type": "OBJECTIVE",
+      "flag": "ST_1_SEP",
+      "factor": 1
+    },
+    {
+      "name": "AOP",
+      "value": "null",
+      "type": "OBJECTIVE",
+      "flag": "ST_1_INI",
+      "factor": 1
+    },
+    {
+      "name": "CUSTOM",
+      "type": "INEQUALITY",
+      "condition": "GREATER_THAN",
+      "flag": null,
+      "enable": true,
+      "factor": 1,
+      "ti": 32,
+      "tf": 23,
+      "time_point": 23,
+      "input": "GROUND_TRACE",
+      "Parameters": {
+        "constraint": "Line",
+        "Position": "above",
+        "line_bounds": {
+          "l1": [
+            [
+              79.47509765625001,
+              15.826608507510938
+            ],
+            [
+              85.36376953125001,
+              15.318624951383336
+            ]
+          ],
+          "l2": [
+            [
+              85.396728515625,
+              15.470886846716157
+            ],
+            [
+              85.07263183593751,
+              13.857413896093906
+            ]
+          ],
+          "l3": [
+            [
+              85.12756347656251,
+              13.921404477043424
+            ],
+            [
+              79.51354980468751,
+              15.79027137686381
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "name": "DCISS_IMPACT",
+      "type": "EQUALITY",
+      "condition": "",
+      "flag": null,
+      "enable": true,
+      "factor": 1,
+      "Parameters": {
+        "constraint": "Ellipse",
+        "SemiMajor": 23,
+        "SemiMinor": 23,
+        "Center": "324,3434,5454,5454,566.7"
+      }
+    },
+    {
+      "name": "DCISS_IMPACT",
+      "type": "EQUALITY",
+      "condition": "",
+      "flag": null,
+      "enable": true,
+      "factor": 1,
+      "Parameters": {
+        "constraint": "Box",
+        "Line_Bound": "{\"l1\":[[13.48178328128279,80.11230468750001],[12.196415362051905,87.84667968750001]],\"l2\":[[12.293378364045218,87.901611328125],[9.943489177492735,87.06665039062501]],\"l3\":[[10.181470350626359,87.11059570312501],[13.578249932511106,80.05737304687501]]}"
+      }
+    }
+  ],
+  "constraint_tolerence": [
+    1234,
+    324,
+    233
+  ]
+}

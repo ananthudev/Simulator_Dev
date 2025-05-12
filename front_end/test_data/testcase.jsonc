@@ -1,0 +1,969 @@
+{
+    "Software": "ASTRA", //SARAS // ASTRA
+
+  "mission": {
+    "mission_name": "SSPO",
+    "planet_name": "EARTH", //EARTH,MOON,MARS
+    "MODE": "optimization",
+    "tracking_option": "OFF",
+    "frame_model": "POST", // or J2000 (POST if not specified) // MOD // TOD // TEME // PEF
+    "output_frame": "J2000" //not called in simulation
+  },
+
+  "stopping_criteria": {
+    "type": "Flag", //Time //Altitude
+    "flag_name": "ST_2_SEP",
+    "value": 0.1,
+    "condition": "EQ"
+  },
+
+  "Initial_States": {
+    "Location_1": {
+      "type": "Launch_Point",
+      "latitude_unit": "deg",
+      "latitude": 8.4038977,
+      "longitude_unit": "deg",
+      "longitude": 78.0197,
+      "azimuth_unit": "deg",
+      "azimuth": 187.43,
+      "above_MSL_unit": "m",
+      "above_MSL": 10,
+      "height_unit": "m",
+      "lp_height": 17,
+      "launch_set_angle": 0,
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.0
+    }
+  },
+
+  "SSPO": {
+    "vehicle": ["testcase"],
+    "vehicle_type": "ASCEND" //ASCEND // ORBITAL
+  },
+
+  "EARTH": {
+    "atmos_model": "ISA", //"atmos_76",NRLMSISE-00 // or atmos(profile)// JB2008 // ISA (INDIAN STANDARD ATMOSPHERE)
+    "Gravity_param": {
+           //j2 model order = 0,degree = 2
+           
+      "order": 0,
+           "degree": 2
+       },
+    "coe_info": {
+      "component": "MSL" //RE,PERIGEE_GC_LATITUDE,MSL
+    }
+  },
+
+  "gas_property": {
+    "gamma": 1.4,
+    "R_unit": "J/kg/K",
+    "R": 287
+  },
+
+  "testcase": {
+    "no_Stg": 2,
+    "stage": ["Stage_1", "Stage_2"],
+    "payload": "jameswebb",
+    "plf": "Heatshield",
+    "integration_method": "RK4",
+    "time_step": 0.1,
+    "effective_altitude": 70000,
+    "steering": "Cosmic_case_10_02_s1_1011_Steering",
+    "sequence": "Cosmic_case_10_02_s1_1011_Sequence",
+    "Initial_condition": "Location_1"
+  },
+
+  "jameswebb": { "unit": "kg", "mass": 448.723182559239 },
+
+  "Heatshield": {
+    "mass_unit": "kg",
+    "mass": 150.0,
+    "ref_area": 0.0,
+    "sep_flag": "HS_SEP",
+    "descend_drag": null,
+    "DCISS": "OFF"
+  },
+
+  "Stage_1": {
+    "motor": ["Cosmic_M1"],
+    "actuator": null,
+    "str_mass": 6604.0269,
+    "length": null,
+    "ref_area": 3.141592654,
+    "burntime": 169.1,
+    "aero_data": ["Aero1"],
+    "sample_data": null,
+    "inert_mass": null,
+    "ini_flag": "ST_1_INI",
+    "sep_flag": "ST_1_SEP",
+    "strapon": null,
+    "descend_drag": "descent_aero1",
+    "DCISS": "OFF",
+    "coasting": "OFF"
+  },
+
+  "Stage_2": {
+    "motor": ["Cosmic_M2"],
+    "actuator": null,
+    "str_mass": 1102.8098,
+    "length": null,
+    "ref_area": 3.141592654,
+    "burntime": 288.5,
+    "aero_data": ["Aero1"],
+    "sample_data": null,
+    "ini_flag": "ST_2_INI",
+    "sep_flag": "ST_2_SEP",
+    "strapon": null,
+    "descend_drag": "descent_aero1",
+    "DCISS": "OFF",
+                       "coasting": "OFF"
+                   },
+           
+  "Cosmic_M1": {
+    "str_mass": 6604.0269,
+
+    "type_of_prop": "solid",
+    "no_of_nozzles": 1,
+
+    "prop_mass": 53432.5818,
+
+    "nozzle": "noz_1",
+
+    "nozzledia": 1.14,
+
+    "burntime": 169.1,
+    "ign_flag": "M1_IGN",
+    "burn_out_flag": "M1_BURN_OUT",
+    "sep_flag": "ST_1_SEP",
+
+    "thr_time": [
+      ["Time", "Thrust", "PropMass"],
+      ["s", "kN", "Kg"],
+
+      [0, 0, 53432.5818],
+      [0.1, 1011.5, 53400.9920106694],
+      [10, 1011.5, 50273.6028669385],
+      [50, 1011.5, 37637.6871346925],
+      [100, 1011.5, 21842.792469385],
+      [150, 1011.5, 6047.89780407747],
+      [160.8, 1011.5, 2636.20055637104],
+      [160.9, 1011.5, 2604.61076704043],
+      [161.2, 1011.5, 2509.84139904859],
+      [169, 1011.5, 45.8378312606155],
+      [169.1, 0, 14.2480419300023]
+    ]
+  },
+
+  "Cosmic_M2": {
+    "str_mass": 1102.8098,
+
+    "type_of_prop": "solid",
+    "no_of_nozzles": 1,
+
+    "prop_mass": 7380.3422,
+
+    "nozzle": "noz_2",
+
+    "nozzledia": 0.83,
+
+    "burntime": 288.5,
+    "ign_flag": "M2_IGN",
+    "burn_out_flag": "M2_BURN_OUT",
+    "sep_flag": "ST_2_SEP",
+
+    "thr_time": [
+      ["Time", "Thrust", "PropMass"],
+      ["s", "kN", "Kg"],
+
+      [0, 0, 7380.3422],
+      [0.1, 88, 7377.78405581814],
+      [2.1, 88, 7326.62117218086],
+      [50, 88, 6101.2701090681],
+      [50.1, 88, 6098.71196488624],
+      [100, 88, 4822.1980181362],
+      [150, 88, 3543.1259272043],
+      [200, 88, 2264.05383627239],
+      [250, 88, 984.981745340492],
+      [288.4, 88, 2.65437950479225],
+      [288.5, 0, 0.096235322927861]
+    ]
+  },
+
+  "noz_1": {
+    "Diameter": 1.14,
+
+    "Location": {
+      "Radial_dist": 0.0,
+      "Phi": 0.0
+    },
+
+    "mis_alignment": {
+      "sigma_thrust": 0.0,
+      "tau_thrust": 0.0,
+      "epsilon_thurst": 0.0
+    },
+
+    "Orientation": {
+      "mu": 0.0,
+      "lamda": 0.0,
+      "kappa": 0.0
+    },
+
+    "eta_thrust": 0.0,
+    "zeta_thrust": 0.0,
+
+    "Throat_location": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+
+  "noz_2": {
+    "Diameter": 0.83,
+
+    "Location": {
+      "Radial_dist": 0.0,
+      "Phi": 0.0
+    },
+
+    "mis_alignment": {
+      "sigma_thrust": 0.0,
+      "tau_thrust": 0.0,
+      "epsilon_thurst": 0.0
+    },
+
+    "Orientation": {
+      "mu": 0.0,
+      "lamda": 0.0,
+      "kappa": 0.0
+    },
+
+    "eta_thrust": 0.0,
+    "zeta_thrust": 0.0,
+
+    "Throat_location": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+
+  "Aero1": {
+    "Flag": ["M1_IGN"],
+    "aero": [
+      ["Mach", 0, 150000],
+      ["", "m", "m"],
+
+      [0, 0.38, 0.38],
+      [0.4, 0.38, 0.38],
+      [0.6, 0.38, 0.38],
+      [0.8, 0.38, 0.38],
+      [0.85, 0.38, 0.38],
+      [0.9, 0.38, 0.38],
+      [0.95, 0.38, 0.38],
+      [1, 0.38, 0.38],
+      [1.05, 0.38, 0.38],
+      [1.1, 0.38, 0.38],
+      [1.15, 0.38, 0.38],
+      [1.2, 0.38, 0.38],
+      [1.4, 0.38, 0.38],
+      [1.6, 0.38, 0.38],
+      [1.8, 0.38, 0.38],
+      [2, 0.38, 0.38],
+      [2.3, 0.38, 0.38],
+      [2.8, 0.38, 0.38],
+      [3, 0.38, 0.38],
+      [4, 0.38, 0.38],
+      [6, 0.38, 0.38],
+      [10, 0.38, 0.38]
+    ]
+  },
+
+  "Aero2": {
+    "Flag": ["M2_IGN"],
+    "aero": [
+      ["Mach", 0, 150000],
+      ["", "m", "m"],
+
+      [0, 0.38, 0.38],
+      [0.4, 0.38, 0.38],
+      [0.6, 0.38, 0.38],
+      [0.8, 0.38, 0.38],
+      [0.85, 0.38, 0.38],
+      [0.9, 0.38, 0.38],
+      [0.95, 0.38, 0.38],
+      [1, 0.38, 0.38],
+      [1.05, 0.38, 0.38],
+      [1.1, 0.38, 0.38],
+      [1.15, 0.38, 0.38],
+      [1.2, 0.38, 0.38],
+      [1.4, 0.38, 0.38],
+      [1.6, 0.38, 0.38],
+      [1.8, 0.38, 0.38],
+      [2, 0.38, 0.38],
+      [2.3, 0.38, 0.38],
+      [2.8, 0.38, 0.38],
+      [3, 0.38, 0.38],
+      [4, 0.38, 0.38],
+      [6, 0.38, 0.38],
+      [10, 0.38, 0.38]
+    ]
+  },
+
+  "Wind": [
+    ["Altitude", "Zonal", "Meridonal "],
+    ["m", "m/s", "m/s"],
+    [0.0, 0.0, 0.0],
+    [60000.0, 0.0, 0.0],
+    [90000.0, 0.0, 0.0],
+    [150000.0, 0.0, 0.0],
+    [400000.0, 0.0, 0.0]
+  ],
+
+  "Cosmic_case_10_02_s1_1011_Sequence": [
+          {
+              "identity": "ST_1_INI",
+              "trigger": "MISSION_TIME",
+              "value": 0,
+              "reference": "none",
+              "comment": "Stage 1 Started"
+          },
+          {
+              "identity": "M1_IGN",
+              "trigger": "MISSION_TIME",
+              "value": 0,
+              "reference": "none",
+              "comment": "motor-1 ignition"
+          },
+          {
+              "identity": "M1_BURN_OUT",
+              "trigger": "MISSION_TIME",
+              "value": 169.1,              
+              "reference": "none",
+              "comment": "motor-1 burn-out"
+          },
+         
+          {
+              "identity": "ST_1_SEP",
+              "trigger": "PHASE_TIME",
+              "value": 169.1,
+              "reference": "ST_1_INI",
+              "comment": "stage-1 separation"
+          },
+          {
+              "identity": "ST_2_INI",
+              "trigger": "PHASE_TIME",
+              "value": 0.0,
+              "reference": "ST_1_SEP",
+              "comment": "stage-2 started"
+          },
+          {
+              "identity": "M2_IGN",
+              "trigger": "PHASE_TIME",
+      "value": 0.0, //coasting
+              "reference": "ST_1_SEP",
+              "comment": "motor-2 ignition"
+          },
+          {
+              "identity": "M2_BURN_OUT",
+              "trigger": "PHASE_TIME",
+              "value": 288.5,
+              "reference": "M2_IGN",
+              "comment": "motor-2 burn-out"
+          },
+          {
+              "identity": "ST_2_SEP",
+              "trigger": "PHASE_TIME",
+              "value": 288.5,
+              "reference": "M2_IGN",
+              "comment": "stage-2 seperation"
+          },
+         
+          {
+              "identity": "HS_SEP",
+              "trigger": "ALTITUDE",
+              "value": 115000,
+              "reference": "none",
+              "comment": "Heatshield separation"
+          }
+      ],
+   
+  "Cosmic_case_10_02_s1_1011_Steering": {
+    "Steering_Sequence": "213",
+         
+    "steering": [
+        "vertical_ascend",
+        "PITCH_HOLD",
+        "cnst_pitchrate",
+        "Profile_1",
+        "Profile_2"
+    ]
+  },
+
+  "vertical_ascend": {
+    "start": {
+      "identity": "ST_F1",
+      "trigger": "PHASE_TIME",
+      "value": 0,
+      "reference": "ST_1_INI",
+      "comment": "Vertical ascend Started"
+    },
+    "stop": {
+      "identity": "ST_F2",
+      "trigger": "ALTITUDE",
+      "value": 190.0,
+      "reference": "ST_F1",
+      "comment": "Vertical ascend Stopped"
+    },
+    "steering": {
+      "type": "ZERO_RATE",
+      "comment": "Vertical ascend"
+    }
+  },
+
+  "PITCH_HOLD": {
+    "start": {
+      "identity": "PH_01",
+      "trigger": "PHASE_TIME",
+      "value": 0.0,
+      "reference": "ST_F2",
+      "comment": "PITCH HOLD Started"
+    },
+    "stop": {
+      "identity": "PH_02",
+      "trigger": "PHASE_TIME",
+      "value": 5,
+      "reference": "PH_01",
+      "comment": "PITCH HOLD Terminated"
+    },
+    "steering": {
+                  "type": "ZERO_RATE",
+      "comment": "PITCH HOLD"
+    }
+  },
+
+  "cnst_pitchrate": {
+    "start": {
+      "identity": "ST_F3",
+      "trigger": "PHASE_TIME",
+      "value": 0.0,
+      "reference": "PH_02",
+      "comment": "Constant Pitch Started"
+    },
+    "stop": {
+      "identity": "ST_F4",
+      "trigger": "PHASE_TIME",
+      "value": 3.110435508026308,
+      "reference": "ST_F3",
+      "comment": "Constant Pitch Stopped"
+    },
+    "steering": {
+      "type": "CONST_BODYRATE",
+      "axis": "pitch",
+      "value": -4.767241713786673,
+      "comment": "Constant Body Rate"
+    }
+  },
+  "Profile_1": {
+    "start": {
+      "identity": "STAGE_1_PROF_START",
+      "trigger": "PHASE_TIME",
+      "value": 0,
+      "reference": "ST_F4",
+      "comment": "Profile 1 Started"
+    },
+    "stop": {
+      "identity": "STAGE_1_PROF_STOP",
+      "trigger": "PHASE_TIME",
+      "value": 0,
+      "reference": "ST_1_SEP",
+      "comment": "Profile 1 Terminated"
+    },
+    "steering": {
+      "type": "PROFILE",
+      "mode": "normal",
+      "quantity": "EULER_RATE",
+      "ind_variable": "PHASE_TIME",
+
+      "comment": "Profile 1 Turn",
+
+      "value": [
+        ["Time", "ROLL", "YAW", "PITCH"],
+        [0.0, 0.0, 0.0, -0.3345294050537073],
+        [2.0, 0.0, 0.0, 0.2330220742389485],
+        [5.0, 0.0, 0.0, -0.07526461900661618],
+        [10.0, 0.0, 0.0, 0.4039309281829458],
+        [15.0, 0.0, 0.0, 0.08535581353497812],
+        [20.0, 0.0, 0.0, -0.1571497321904264],
+        [30.0, 0.0, 0.0, -0.2479173180423081],
+        [43.9, 0.0, 0.0, -0.488417020318841],
+        [54.0, 0.0, 0.0, -0.342402416619808],
+        [74.1, 0.0, 0.0, -0.2795311264335293],
+        [95.1, 0.0, 0.0, -0.2265612444178776],
+        [120.4, 0.0, 0.0, -0.0671233323025745],
+        [123.0, 0.0, 0.0, -0.1156202422858653],
+        [129.9, 0.0, 0.0, -0.2903064146229017],
+        [140.0, 0.0, 0.0, -0.1184107279453207],
+        [160.0, 0.0, 0.0, -0.2259183380448629],
+        [180.0, 0.0, 0.0, 0.1692765238504166]
+      ]
+    }
+  },
+  "COAST_PHASE": {
+    "start": {
+      "identity": "CF_01",
+      "trigger": "PHASE_TIME",
+      "value": 0,
+      "reference": "ST_1_SEP",
+      "comment": "Coast Phase Started"
+    },
+    "stop": {
+      "identity": "CF_02",
+      "trigger": "PHASE_TIME",
+      "value": 0,
+      "reference": "M2_IGN",
+      "comment": "Coast Phase Terminated"
+    },
+    "steering": {
+      "type": "CONST_BODYRATE",
+      "axis": "pitch",
+      "value": -0.05,
+      "comment": "Constant Body Rate"
+    }
+  },
+
+  "Profile_2": {
+    "start": {
+      "identity": "STAGE_2_PROF_START",
+      "trigger": "PHASE_TIME",
+      "value": 0,
+      "reference": "M2_IGN",
+      "comment": "Profile 2 Started"
+    },
+    "stop": {
+      "identity": "STAGE_2_PROF_STOP",
+      "trigger": "PHASE_TIME",
+      "value": 0,
+      "reference": "ST_2_SEP",
+      "comment": "Profile 2 Terminated"
+    },
+    "steering": {
+      "type": "PROFILE",
+      "mode": "normal",
+      "quantity": "EULER_RATE",
+      "ind_variable": "PROFILE_TIME",
+
+      "comment": "Profile 2 Turn",
+
+      "value": [
+        ["Time", "ROLL", "YAW", "PITCH"],
+        [0, 0.0, 0.06125166842988683, -0.05781799747751915],
+        [5.0, 0.0, 0.1394245640664187, -0.2921352392744131],
+        [20.0, 0.0, -0.0489745104644625, -0.3315555284615928],
+        [30.0, 0.0, 0.1422259729370247, -0.2151453007446337],
+        [43.9, 0.0, -0.08715421094207398, -0.2359076616274102],
+        [54.0, 0.0, 0.1013815588981849, -0.2884674757088678],
+        [74.1, 0.0, -0.06519053630390131, -0.229576481817389],
+        [95.1, 0.0, 0.1315139578468633, -0.2553309495316128],
+        [110.4, 0.0, -0.05280505542771624, -0.01626308124275688],
+        [123.0, 0.0, -0.1807283773722392, -0.3519405149963922],
+        [128.9, 0.0, 0.6999657189998008, -0.2398399261846889],
+        [130.0, 0.0, -0.000618660426123685, -0.4611924831613372],
+        [200.0, 0.0, 0.01793379446648546, -0.2276739094920464],
+        [300.0, 0.0, -0.02785621719393139, -0.2916829567555759],
+        [500.0, 0.0, -0.6474220420077769, -1.896345119971354]
+      ]
+    }
+  },
+
+  "optimization": [
+    {
+      "name": "PAYLOAD_MASS",
+      "value": "null",
+      "type": "OBJECTIVE",
+      "flag": "ST_2_SEP",
+      "factor": -1
+    },
+    {
+      "name": "APOGEE",
+      "value": 500.1,
+      "type": "INEQUALITY",
+      "condition": "LESS_THAN",
+      "flag": "ST_2_SEP",
+      "factor": 1
+    },
+    {
+      "name": "PERIGEE",
+      "value": 499.2,
+      "type": "INEQUALITY",
+      "condition": "GREATER_THAN",
+      "flag": "ST_2_SEP",
+      "factor": 1
+    },
+    {
+      "name": "ECCENTRICITY",
+      "value": 0.001,
+      "type": "INEQUALITY",
+      "condition": "LESS_THAN",
+      "flag": "ST_2_SEP",
+      "factor": 1
+    },
+    {
+      "name": "INCLINATION",
+      "value": 97.35,
+      "type": "EQUALITY",
+      "condition": "GREATER_THAN",
+      "flag": "ST_2_SEP",
+      "factor": 1
+    }
+  ],
+
+  "constraint_tolerence": [0.1, 0.1, 0.01, 0.01],
+
+  "mode": "normal", //normal, archipelago
+
+  "archipelago": {
+    "algorithms": ["SADE", "DE"],
+    "topology": "fully_connected", // ring, unconnected
+    "migration_type": "broadcast", // p2p
+    "migrant_handling": "evict" // preserve
+  },
+
+  "problem_strategy": "ignore_o", // "death penalty", "kuri", "weighted", "ignore_c" or "ignore_o".
+
+    "optimizer": "NLOPT",
+   
+  "map": [0, 1],
+
+  "population": 1,
+
+  "design_variables": "design_variable1",
+
+  "initial_population": [
+        {
+      "population": "initial_control1",
+      "set_population": "YES"
+        }
+    ],	
+
+  "design_variable1": [
+    "optimz_pitchrate",
+    "optiz_profile1",
+    "optiz_profile2",  
+    "optimz_payload_mass"
+    ],
+
+  "optimz_pitchrate": [
+    {
+      "category": "STEERING",
+      "segment": "cnst_pitchrate",
+      "segment_type": "CONST_BODYRATE",
+      "type": [
+        {
+          "control_variable": ["STOP_TIME", "EULER_RATE"],
+          "axis": ["pitch"],
+          "upper_bound": [[6.5, 0.0]],
+          "lower_bound": [[1.0, -5.5]]
+                }
+            ]						
+        }
+    ],
+
+  "optiz_profile1": [
+    {
+      "category": "STEERING",
+      "segment": "Profile_1",
+      "segment_type": "PROFILE",
+      "type": [
+        {
+          "control_variable": ["EULER_RATE"],
+          "axis": ["pitch"],
+          "ind_variable": "PHASE_TIME",
+          "ind_vector": [
+            0.0, 2.0, 5.0, 10.0, 15.0, 20.0, 30.0, 43.9, 54.0, 74.1, 95.1,
+            120.4, 123.0, 129.9, 140.0, 160.0, 180.0
+          ],
+          "upper_bound": [
+            [
+              0.4, 0.4, 0.4, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+              0.5, 0.5, 0.7, 0.7
+            ]
+          ],
+          "lower_bound": [
+            [
+              -0.4, -0.4, -0.4, -0.6, -0.6, -0.6, -0.6, -0.6, -0.6, -0.6, -0.6,
+              -0.6, -0.6, -0.6, -0.6, -0.7, -0.7
+            ]
+          ]
+                }
+            ]
+        }
+    ],
+
+  "optiz_profile2": [
+    {
+      "category": "STEERING",
+      "segment": "Profile_2",
+      "segment_type": "PROFILE",
+      "type": [
+        {
+          "control_variable": ["EULER_RATE"],
+          "axis": ["pitch", "yaw"],
+          "ind_variable": "PROFILE_TIME",
+          "ind_vector": [
+            0.0, 5.0, 20.0, 30.0, 43.9, 54.0, 74.1, 95.1, 110.4, 123.0, 128.9,
+            130.0, 200.0, 300.0, 500.0
+          ],
+          "upper_bound": [
+            [
+              1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0, 3.0, 3.0,
+              3.0, 3.0
+            ],
+            [
+              0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.7, 0.7, 0.7,
+              0.7, 0.7
+            ]
+          ],
+          "lower_bound": [
+            [
+              -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -0.75, -0.9, -3.0,
+              -3.0, -3.0, -3.0, -3.0
+            ],
+            [
+              -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.7,
+              -0.7, -0.7, -0.7, -0.7
+            ]
+          ]
+                }
+            ]
+        }
+    ],
+
+  "optimz_payload_mass": [
+    {
+      "category": "PAYLOAD",
+      "type": [
+        {
+          "control_variable": ["MASS"],
+          "upper_bound": [[900]],
+          "lower_bound": [[600]]
+                }
+            ]
+        }
+    ],
+
+  "optimz_coast_duration": [
+    {
+      "category": "SEQUENCE",
+      "flag": "M2_IGN",
+      "type": [
+        {
+          "control_variable": ["TIME"],
+          "upper_bound": [[100]],
+          "lower_bound": [[0]]
+                }
+            ]
+        }
+    ],
+
+  "optimz_launch_azimuth": [
+    {
+      "category": "AZIMUTH",
+      "type": [
+        {
+          "control_variable": ["Launch_Azimuth"],
+          "upper_bound": [[190]],
+          "lower_bound": [[180]]
+        }
+      ]
+    }
+  ],
+
+  "initial_control1": [
+    4.884940515506283, -3.711763429588466, 0.0337007494288829,
+    -0.3475919495330634, 0.1395265110222434, -0.001937923391499674,
+    -0.4406939121268655, 0.4999999999498331, -0.3109782352835462,
+    -0.307046893793436, -0.3752284464349127, -0.3474205369713673,
+    -0.1946962061349092, -0.1440953049203356, -0.1387767014448276,
+    -0.1664640037934654, -0.158771241952859, -0.17337117475355,
+    -0.3114601216301174, -0.18944295088241, -0.1825878990234963,
+    -0.183617293115939, -0.2163109474280891, -0.2600168308195988,
+    -0.2663356368824724, -0.2517074299492171, -0.2811978454189136,
+    -0.3402686675381866, -0.3860990034418108, -0.2750687307813715,
+    -0.2180115553195683, -0.3692980900354099, -0.1098512400392648,
+    2.301761195056793, 0.4999999999660457, 0.1594739744951134,
+    -0.04847165785679969, 0.02777582872476936, -0.02143218087363397,
+    0.02467543169915376, 0.02918928954690148, 0.006336358156584287,
+    -0.01143719800992604, 0.00319664014443477, -0.08303694812518447,
+    0.01809769538005757, 0.02833757702810835, -0.03564724834332489,
+    0.5793542231382705, 681.541720075556
+  ],
+
+  "SGA": {
+    "generation": 5,
+           "crossover_prob": 0.75,
+    "eta_c": 1.0,
+    "mutation_prob": 0.85,
+    "param_m": 1.0,
+    "param_s": 2,
+    "crossover": "exponential",
+    "mutation": "gaussian",
+    "selection": "tournament",
+    "seed": 600
+  },
+  "DE": {
+    "generation": 100,
+    "variant_adptv": 1, //SADE,pDE
+    "memory": false, //sade
+    "F": 0.8,
+    "CR": 0.9,
+    "variant": 2,
+    "ftol": 1e-6,
+    "xtol": 1e-6,
+    "seed": 9
+  },
+
+  "PSO": {
+    "generation": 100,
+    "omega": 0.8,
+    "eta1": 2.05,
+    "eta2": 2.05,
+    "max_vel": 0.6,
+    "variant": 5,
+    "neighb_type": 2,
+    "neighb_param": 4,
+    "memory": 0,
+    "seed": 9
+  },
+  "IPOPT": {
+    "tol": 100,
+    "linear_solver": "mumps",
+    "dual_inf_tol": 1, //1
+    "constr_viol_tol": 0.0001, //0.0001
+    "compl_inf_tol": 0.0001, //0.0001
+    "bound_relax_factor": 10e-8, //10e-8
+    "acceptable_tol": 10e-6, //10e-06
+    "acceptable_iter": 5, //15
+    "gradient_approximation": "exact" // finite-difference-values
+  },
+
+  "CS": {
+    "max_feval": 500,
+    "start_range": 0.1,
+    "stop_range": 0.0001,
+    "reduction_coeff": 0.5
+  },
+  "NLOPT": {
+    "solver": "slsqp", //slsqp,mma,ccsaq,cobyla
+
+    "stop_val": null, //set to null for disabling this option
+
+    "ftol_rel": 0,
+    "ftol_abs": 0,
+
+    "xtol_rel": 0,
+    "xtol_abs": 1e-6,
+
+    "maxeval": 0,
+    "maxtime": 0
+  },
+
+  "GAGGS": {
+    "Algorithm_1": "PSO",
+    "Algorithm_2": "NLOPT",
+    "Gaggs_generation": 5,
+    "pop_GA": 5
+  },
+
+  "MBH": {
+    "innerr_algorithm": "CS",
+    "runs": 100,
+    "perturb": 1e-2,
+    "seed": "random"
+  },
+
+  "CSTRS": {
+    "innerr_algorithm": "DE",
+    "iters": 1,
+    "seed": "random"
+  },
+
+  "GWO": {
+    "generation": 50,
+    "seed": "random"
+  },
+
+  "IHS": {
+    "phmcr": 0.85,
+    "ppar_min": 0.35,
+    "ppar_max": 0.99,
+    "bw_min": 1e-5,
+    "bw_max": 1.0
+  },
+
+  "AC": {
+    "generation": 1,
+    "ker": 63,
+    "q": 1.0,
+    "oracle": 0.0,
+    "acc": 0.01,
+    "threshold": 1,
+    "n_gen_mark": 7,
+    "impstop": 100000,
+    "evalstop": 100000,
+    "focus": 0.0,
+    "memory": false,
+    "seed": "random"
+  },
+
+  "ABC": {
+    "generation": 1,
+    "limit": 20,
+    "seed": "random"
+  },
+
+  "CMAES": {
+                        "generation": 1,
+                        "cc": -1,
+                        "cs": -1,
+                        "c1": -1,
+                        "cmu": -1,
+                        "sigma0": 0.5,
+                        "ftol": 1e-6,
+                        "xtol": 1e-6,
+                        "memory": false,
+                        "force_bounds": false,
+                        "seed": "random"
+                   },
+               
+  "XNES": {
+    "generation": 1,
+    "eta_mu": -1,
+    "eta_sigma": -1,
+    "eta_b": -1,
+    "sigma0": -1,
+    "ftol": 1e-6,
+    "xtol": 1e-6,
+    "memory": false,
+    "force_bounds": false,
+    "seed": "random"
+  },
+
+  // multi obj
+  "NSGA2": {
+    "generation": 1,
+    "cr": 0.95,
+    "eta_c": 10.0,
+    "m": 0.01,
+    "eta_m": 50.0,
+    "seed": "random"
+  },
+
+  "Outputs": {
+    "DataBase": "OFF",
+    "Generate": "ON",
+    "Format": "csv",
+    "Time_intervel": 0.0, //0.0 for default intervel(step_size)
+

@@ -1,0 +1,298 @@
+{
+  "missionDetails": {
+    "name": "SSPO",
+    "mode": "optimization",
+    "date": "2023-12-31",
+    "time": "10:00:00",
+    "tracking": false
+  },
+  "environment": {
+    "planet": "earth",
+    "atmosModel": "ISA",
+    "order": "0",
+    "degree": "2",
+    "core": "MSL"
+  },
+  "vehicle": {
+    "name": "testcase",
+    "type": "ascend",
+    "payloadName": "jameswebb",
+    "payloadMass": "448.723182559239",
+    "plfMass": "150",
+    "integrationMethod": "RK4",
+    "timeStep": "0.1",
+    "effectiveAlt": "70000",
+    "dataMethod": "launch",
+    "latitude": "8.4038977",
+    "longitude": "78.0197",
+    "azimuth": "187.43",
+    "msl": "10",
+    "lpHeight": "17",
+    "launchAngle": "0",
+    "roll": "0",
+    "pitch": "0",
+    "yaw": "0",
+    "dciss": false
+  },
+  "stages": [
+    {
+      "number": 1,
+      "structuralMass": "6604.0269",
+      "referenceArea": "3.141592654",
+      "burnTime": "169.1",
+      "dciss": false,
+      "coasting": false,
+      "motors": [
+        {
+          "number": 1,
+          "structuralMass": "6604.0269",
+          "propulsionType": "solid",
+          "propulsionMass": "53432.5818",
+          "nozzleDiameter": "1.14"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "structuralMass": "1102.8098",
+      "referenceArea": "3.141592654",
+      "burnTime": "288.5",
+      "dciss": false,
+      "coasting": false,
+      "motors": [
+        {
+          "number": 1,
+          "structuralMass": "1102.8098",
+          "propulsionType": "solid",
+          "propulsionMass": "7380.3422",
+          "nozzleDiameter": "0.83"
+        }
+      ]
+    }
+  ],
+  "sequence": [
+    {
+      "type": "stage-start",
+      "flag": "ST_1_INI",
+      "triggerType": "mission-time",
+      "triggerValue": "0",
+      "reference": "none",
+      "comment": "Stage 1 Started"
+    },
+    {
+      "type": "motor-ignition",
+      "flag": "M1_IGN",
+      "triggerType": "mission-time",
+      "triggerValue": "0",
+      "reference": "none",
+      "comment": "motor-1 ignition"
+    },
+    {
+      "type": "motor-termination",
+      "flag": "M1_BURN_OUT",
+      "triggerType": "mission-time",
+      "triggerValue": "169.1",
+      "reference": "none",
+      "comment": "motor-1 burn-out"
+    },
+    {
+      "type": "stage-separation",
+      "flag": "ST_1_SEP",
+      "triggerType": "phase-time",
+      "triggerValue": "169.1",
+      "reference": "ST_1_INI",
+      "comment": "stage-1 separation"
+    },
+    {
+      "type": "stage-start",
+      "flag": "ST_2_INI",
+      "triggerType": "phase-time",
+      "triggerValue": "0.0",
+      "reference": "ST_1_SEP",
+      "comment": "stage-2 started"
+    },
+    {
+      "type": "motor-ignition",
+      "flag": "M2_IGN",
+      "triggerType": "phase-time",
+      "triggerValue": "0.0",
+      "reference": "ST_1_SEP",
+      "comment": "motor-2 ignition"
+    },
+    {
+      "type": "motor-termination",
+      "flag": "M2_BURN_OUT",
+      "triggerType": "phase-time",
+      "triggerValue": "288.5",
+      "reference": "M2_IGN",
+      "comment": "motor-2 burn-out"
+    },
+    {
+      "type": "stage-separation",
+      "flag": "ST_2_SEP",
+      "triggerType": "phase-time",
+      "triggerValue": "288.5",
+      "reference": "M2_IGN",
+      "comment": "stage-2 seperation"
+    },
+    {
+      "type": "heat-shield-separation",
+      "flag": "HS_SEP",
+      "triggerType": "altitude",
+      "triggerValue": "115000",
+      "reference": "none",
+      "comment": "Heatshield separation"
+    }
+  ],
+  "steering": {
+    "sequence": "213",
+    "components": [
+      {
+        "type": "verticalAscend",
+        "startTriggerType": "time",
+        "startTriggerValue": "0",
+        "startReference": "ST_1_INI",
+        "stopTriggerType": "altitude",
+        "stopTriggerValue": "190.0",
+        "stopReference": "none",
+        "startComment": "Vertical ascend Started",
+        "stopComment": "Vertical ascend Stopped",
+        "steeringType": "zeroRate",
+        "steeringComment": "Vertical ascend"
+      },
+      {
+        "type": "pitchHold",
+        "startTriggerType": "time",
+        "startTriggerValue": "0.0",
+        "startReference": "ST_F2",
+        "stopTriggerType": "time",
+        "stopTriggerValue": "5",
+        "stopReference": "PH_01",
+        "startComment": "PITCH HOLD Started",
+        "stopComment": "PITCH HOLD Terminated",
+        "steeringType": "zeroRate",
+        "steeringComment": "PITCH HOLD"
+      },
+      {
+        "type": "constantPitch",
+        "startTriggerType": "time",
+        "startTriggerValue": "0.0",
+        "startReference": "PH_02",
+        "stopTriggerType": "time",
+        "stopTriggerValue": "3.11",
+        "stopReference": "ST_F3",
+        "startComment": "Constant Pitch Started",
+        "stopComment": "Constant Pitch Stopped",
+        "steeringType": "constantBodyRate",
+        "axis": "pitch",
+        "value": "-4.77",
+        "steeringComment": "Constant Body Rate"
+      },
+      {
+        "type": "profile",
+        "startTriggerType": "time",
+        "startTriggerValue": "0",
+        "startReference": "ST_F4",
+        "stopTriggerType": "time",
+        "stopTriggerValue": "0",
+        "stopReference": "ST_1_SEP",
+        "startComment": "Profile 1 Started",
+        "stopComment": "Profile 1 Terminated",
+        "steeringType": "profile",
+        "mode": "normal",
+        "quantity": "eulerRate",
+        "independentVar": "phaseTime",
+        "steeringComment": "Profile 1 Turn"
+      }
+    ]
+  },
+  "stopping": {
+    "type": "flag",
+    "flag": "ST_2_SEP",
+    "value": "0.1",
+    "condition": "eq"
+  },
+  "optimization": {
+    "objectiveFunctions": [
+      {
+        "name": "PAYLOAD_MASS",
+        "flag": "ST_2_SEP",
+        "factor": -1
+      }
+    ],
+    "constraints": [
+      {
+        "name": "APOGEE",
+        "value": "500.1",
+        "type": "INEQUALITY",
+        "condition": "LESS_THAN",
+        "flag": "ST_2_SEP",
+        "factor": 1,
+        "tolerance": 0.1
+      },
+      {
+        "name": "PERIGEE",
+        "value": "499.2",
+        "type": "INEQUALITY",
+        "condition": "GREATER_THAN",
+        "flag": "ST_2_SEP",
+        "factor": 1,
+        "tolerance": 0.1
+      },
+      {
+        "name": "ECCENTRICITY",
+        "value": "0.001",
+        "type": "INEQUALITY",
+        "condition": "LESS_THAN",
+        "flag": "ST_2_SEP",
+        "factor": 1,
+        "tolerance": 0.01
+      },
+      {
+        "name": "INCLINATION",
+        "value": "97.35",
+        "type": "EQUALITY",
+        "condition": "GREATER_THAN",
+        "flag": "ST_2_SEP",
+        "factor": 1,
+        "tolerance": 0.01
+      }
+    ],
+    "mode": {
+      "type": "normal",
+      "algorithm": "NLOPT",
+      "map": {
+        "lowerBound": 0,
+        "upperBound": 1
+      },
+      "population": 1,
+      "problemStrategy": "ignore_o"
+    },
+    "designVariables": [
+      {
+        "category": "STEERING",
+        "name": "optimz_pitchrate",
+        "segment": "cnst_pitchrate",
+        "segmentType": "CONST_BODYRATE",
+        "controlVariable": ["STOP_TIME", "EULER_RATE"],
+        "axis": ["pitch"],
+        "upperBound": [["6.5", "0.0"]],
+        "lowerBound": [["1.0", "-5.5"]]
+      },
+      {
+        "category": "PAYLOAD",
+        "name": "optimz_payload_mass",
+        "controlVariable": ["MASS"],
+        "upperBound": [["900"]],
+        "lowerBound": [["600"]]
+      },
+      {
+        "category": "AZIMUTH",
+        "name": "optimz_launch_azimuth",
+        "controlVariable": ["Launch_Azimuth"],
+        "upperBound": [["190"]],
+        "lowerBound": [["180"]]
+      }
+    ]
+  }
+}

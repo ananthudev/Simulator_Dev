@@ -1569,3 +1569,11 @@ select.input-field option:checked {
   background-color: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
+
+/* Add disabled field styling for form elements */
+.disabled-field {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f0f0f0;
+  border-color: #ddd;
+}

@@ -1,0 +1,117 @@
+{
+  "missionDetails": {
+    "name": "Fixture Test Mission",
+    "mode": "simulation",
+    "date": "2023-12-31",
+    "time": "10:00:00",
+    "tracking": true
+  },
+  "environment": {
+    "planet": "earth",
+    "atmosModel": "atmos_76",
+    "order": "20",
+    "degree": "20",
+    "core": "RE"
+  },
+  "vehicle": {
+    "name": "Fixture Test Rocket",
+    "type": "ascend",
+    "payloadName": "Test Payload",
+    "payloadMass": "1000",
+    "plfMass": "200",
+    "integrationMethod": "RK4",
+    "timeStep": "0.1",
+    "effectiveAlt": "100000",
+    "dataMethod": "launch",
+    "latitude": "28.5",
+    "longitude": "-80.65",
+    "azimuth": "90",
+    "msl": "0",
+    "lpHeight": "50",
+    "launchAngle": "89",
+    "roll": "0",
+    "pitch": "0",
+    "yaw": "0",
+    "dciss": false
+  },
+  "stages": [
+    {
+      "structuralMass": "2000",
+      "referenceArea": "12",
+      "burnTime": "120",
+      "dciss": false,
+      "coasting": false,
+      "motors": [
+        {
+          "structuralMass": "500",
+          "propulsionType": "Solid",
+          "propulsionMass": "10000",
+          "nozzleDiameter": "2.5"
+        }
+      ]
+    }
+  ],
+  "sequence": [
+    {
+      "type": "stage-start",
+      "flag": "ST_1_INI",
+      "triggerType": "mission-time",
+      "triggerValue": "0",
+      "reference": "none",
+      "comment": "Initial stage start"
+    },
+    {
+      "type": "motor-ignition",
+      "flag": "MOT_1_IGN",
+      "triggerType": "mission-time",
+      "triggerValue": "0.5",
+      "reference": "ST_1_INI",
+      "comment": "Motor ignition"
+    },
+    {
+      "type": "motor-termination",
+      "flag": "MOT_1_TERM",
+      "triggerType": "mission-time",
+      "triggerValue": "120",
+      "reference": "MOT_1_IGN",
+      "comment": "Motor burnout"
+    },
+    {
+      "type": "stage-separation",
+      "flag": "ST_1_SEP",
+      "triggerType": "mission-time",
+      "triggerValue": "125",
+      "reference": "MOT_1_TERM",
+      "comment": "Stage separation"
+    }
+  ],
+  "steering": {
+    "sequence": "123",
+    "components": [
+      {
+        "type": "verticalAscend",
+        "startTriggerType": "time",
+        "startTriggerValue": "0",
+        "stopTriggerType": "time",
+        "stopTriggerValue": "10",
+        "startComment": "Start vertical ascent",
+        "stopComment": "End vertical ascent"
+      },
+      {
+        "type": "gravityTurn",
+        "startTriggerType": "time",
+        "startTriggerValue": "10",
+        "stopTriggerType": "time",
+        "stopTriggerValue": "120",
+        "startComment": "Start gravity turn",
+        "stopComment": "End gravity turn",
+        "steeringType": "clg"
+      }
+    ]
+  },
+  "stopping": {
+    "type": "time",
+    "value": "500",
+    "condition": "eq"
+  }
+}

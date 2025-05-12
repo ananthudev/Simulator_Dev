@@ -2915,12 +2915,15 @@ function saveStoppingConditionToFinalData() {
   );
 
   if (!selectedCriteriaInput) {
-    console.error("No stopping criteria selected.");
-    showError("Please select a stopping criterion (Flag, Time, or Altitude).");
-    return false;
+    isValid = false;
+    errorMessages.push(
+      "Please select a stopping criterion (Flag, Time, or Altitude)."
+    );
   }
 
-  const criteriaType = selectedCriteriaInput.value; // 'flag', 'time', 'altitude'
+  const criteriaType = selectedCriteriaInput
+    ? selectedCriteriaInput.value
+    : null; // 'flag', 'time', 'altitude'
 
   // Add start marker
   window.finalMissionData["_stopping_criteria_start"] =
@@ -3003,9 +3006,10 @@ function saveStoppingConditionToFinalData() {
       break;
 
     default:
-      console.error(`Unknown stopping criteria type: ${criteriaType}`);
-      showError("Invalid stopping criteria type selected.");
-      isValid = false;
+      if (criteriaType !== null) {
+        isValid = false;
+        errorMessages.push("Invalid stopping criteria type selected.");
+      }
       break;
   }
 
@@ -3013,9 +3017,23 @@ function saveStoppingConditionToFinalData() {
     // Add end marker even on error to avoid leaving hanging markers
     window.finalMissionData["_stopping_criteria_end"] =
       "--- Stopping Criteria End ---";
-    showError(
-      `Please fix the following errors:<br><br>${errorMessages.join("<br>")}`
-    );
+    // Show error toast
+    const errorSummary =
+      errorMessages.length > 2
+        ? `${errorMessages.slice(0, 2).join(", ")} and ${
+            errorMessages.length - 2
+          } more issue(s)`
+        : errorMessages.join(", ");
+    if (
+      window.FormValidator &&
+      typeof FormValidator.showToastMessage === "function"
+    ) {
+      FormValidator.showToastMessage(
+        "error",
+        "Stopping Condition Validation Error",
+        `Please fix these issues: ${errorSummary}`
+      );
+    }
     return false; // Stop saving
   }
 
@@ -3876,34 +3894,9 @@ const altitudeInputs = altitudeFields
   ? altitudeFields.querySelectorAll("input, select")
   : [];
 
-// Function to disable form fields
-function disableFields(elements) {
-  elements.forEach((el) => {
-    el.disabled = true;
-    el.classList.add("disabled-field");
-  });
-}
-
-// Function to enable form fields
-function enableFields(elements) {
-  elements.forEach((el) => {
-    el.disabled = false;
-    el.classList.remove("disabled-field");
-  });
-}
-
-// Function to reset stopping condition fields
-function resetStoppingFields() {
-  // Hide all field containers
-  flagFields?.classList.add("hidden");
-  timeFields?.classList.add("hidden");
-  altitudeFields?.classList.add("hidden");
-
-  // Disable all inputs
-  disableFields(flagInputs);
-  disableFields(timeInputs);
-  disableFields(altitudeInputs);
-}
+// NOTE: The functions disableFields, enableFields, and resetStoppingFields
+// are defined in ui-navigation.js and should be used from there
+// to avoid duplication. The implementations were removed from here.
 
 // NOTE: The stoppingRadioButtons event listeners are defined in ui-navigation.js
 // The ui-navigation.js event handlers will call window.populateStoppingFlagDropdown when needed

@@ -2727,9 +2727,37 @@ document.addEventListener("DOMContentLoaded", function () {
               );
               if (lineBoundInput) {
                 try {
-                  // Try to parse as JSON array
+                  // Try to parse as JSON
                   const lineBoundText = lineBoundInput.value.trim();
+
+                  // Check if this is segmented format (with l1, l2, l3...)
                   if (
+                    lineBoundText.startsWith("{") &&
+                    lineBoundText.endsWith("}")
+                  ) {
+                    // Parse the segmented coordinates
+                    const segmentedCoords = JSON.parse(lineBoundText);
+
+                    // Extract all coordinates from all segments into a flat array
+                    const allCoordinates = [];
+                    Object.entries(segmentedCoords).forEach(
+                      ([segmentKey, coordsArray]) => {
+                        if (Array.isArray(coordsArray)) {
+                          // Add each coordinate pair to the array, swapping lat/lon to lon/lat
+                          coordsArray.forEach((point) => {
+                            if (Array.isArray(point) && point.length === 2) {
+                              allCoordinates.push([point[1], point[0]]);
+                            }
+                          });
+                        }
+                      }
+                    );
+
+                    // Use the flat array of coordinates for the Box
+                    constraint.Parameters.Line_Bound = allCoordinates;
+                  }
+                  // Standard array format
+                  else if (
                     lineBoundText.startsWith("[") &&
                     lineBoundText.endsWith("]")
                   ) {
@@ -2945,9 +2973,37 @@ document.addEventListener("DOMContentLoaded", function () {
               );
               if (lineBoundInput) {
                 try {
-                  // Try to parse as JSON array
+                  // Try to parse as JSON
                   const lineBoundText = lineBoundInput.value.trim();
+
+                  // Check if this is segmented format (with l1, l2, l3...)
                   if (
+                    lineBoundText.startsWith("{") &&
+                    lineBoundText.endsWith("}")
+                  ) {
+                    // Parse the segmented coordinates
+                    const segmentedCoords = JSON.parse(lineBoundText);
+
+                    // Extract all coordinates from all segments into a flat array
+                    const allCoordinates = [];
+                    Object.entries(segmentedCoords).forEach(
+                      ([segmentKey, coordsArray]) => {
+                        if (Array.isArray(coordsArray)) {
+                          // Add each coordinate pair to the array, swapping lat/lon to lon/lat
+                          coordsArray.forEach((point) => {
+                            if (Array.isArray(point) && point.length === 2) {
+                              allCoordinates.push([point[1], point[0]]);
+                            }
+                          });
+                        }
+                      }
+                    );
+
+                    // Use the flat array of coordinates for the Box
+                    constraint.Parameters.Line_Bound = allCoordinates;
+                  }
+                  // Standard array format
+                  else if (
                     lineBoundText.startsWith("[") &&
                     lineBoundText.endsWith("]")
                   ) {
@@ -3040,110 +3096,262 @@ document.addEventListener("DOMContentLoaded", function () {
       selectElement.remove(1);
     }
     try {
-      const activeComponents =
-        window.steeringManager?.getActiveComponentIdsAndTypes() || [];
-      if (activeComponents.length === 0) {
+      // Directly use window.steeringState.activeComponents
+      const activeComponentsData = window.steeringState?.activeComponents || {};
+      const activeComponentsArray = Object.values(activeComponentsData);
+
+      if (activeComponentsArray.length === 0) {
         console.warn(
-          "No active steering components found to populate Design Variable segment dropdown."
+          "No active steering components found (from window.steeringState.activeComponents) to populate Design Variable segment dropdown."
         );
-        // Add a dummy option if needed
-        // const option = document.createElement("option");
-        // option.value = "dummy_segment";
-        // option.textContent = "No Segments Defined";
-        // selectElement.appendChild(option);
+        // Add a disabled option indicating no components
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No steering components active";
+        option.disabled = true;
+        // selectElement.appendChild(option); // No need to append if placeholder already exists
         return;
       }
-      activeComponents.forEach((comp) => {
-        const option = document.createElement("option");
-        option.value = comp.id; // Use component ID as value
-        option.textContent = comp.name; // Display user-friendly name (e.g., "Profile 1")
-        option.dataset.segmentType = comp.type; // Store type (PROFILE, CLG etc.) for later use
-        selectElement.appendChild(option);
+      activeComponentsArray.forEach((comp) => {
+        // Ensure comp has id, displayName, and type, which it should if coming from steeringState
+        if (comp && comp.id && comp.displayName && comp.type) {
+          const option = document.createElement("option");
+          option.value = comp.id; // Use the unique component ID as the value
+          // Display name should already be in 'Capitalized_Type_Name_Increment' format e.g. Vertical_Ascend_1
+          option.textContent = comp.displayName;
+          selectElement.appendChild(option);
+        } else {
+          console.warn(
+            "Skipping steering component due to missing data:",
+            comp
+          );
+        }
       });
+      console.log(
+        `Populated STEERING segment dropdown with ${activeComponentsArray.length} components.`
+      );
     } catch (error) {
       console.error("Error populating steering segment dropdown:", error);
+      // Add a disabled option indicating an error
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "Error loading steering segments";
+      option.disabled = true;
+      selectElement.appendChild(option);
     }
   }
 
   // Placeholder for populating propulsion segments (e.g., stages)
   function populateGenericSegmentDropdown(selectElement, category) {
-    if (!selectElement) return;
-    while (selectElement.options.length > 1) {
-      selectElement.remove(1);
-    }
-    // Example: Fetch stage names if category is PROPULSION
+    // Clear current options except the default one
+    selectElement.innerHTML =
+      '<option value="" disabled selected>Select Segment</option>';
+
+    let segments = [];
+    // CRITICAL CHANGE: Only populate with motor names if category is PROPULSION
     if (category === "PROPULSION") {
-      // TODO: Replace with actual logic to get stage names from vehicle configuration
-      const stageNames = ["Stage1", "Stage2", "UpperStage"]; // Placeholder
-      stageNames.forEach((name) => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        selectElement.appendChild(option);
+      // Fetch motor flags from flagRegistry and extract unique motor identifiers
+      const motorIdentifiers = new Set();
+      if (window.flagRegistry && window.flagRegistry.motors) {
+        // Iterate through flags to find motor-related flags
+        // Example flag patterns: S1_MOTOR1_IGNITION, S2_MOTOR1_CUTOFF, etc.
+        // Updated to directly use motor names from the new structure
+        window.flagRegistry.motors.forEach((motorDetail) => {
+          // Construct the motor identifier, e.g., S1_MOTOR1
+          const motorId = `S${motorDetail.stageNumber}_MOTOR${motorDetail.motorNumber}`;
+          motorIdentifiers.add(motorId);
+        });
+      }
+
+      segments = Array.from(motorIdentifiers).sort((a, b) => {
+        // Extract numbers for sorting (e.g., S1_MOTOR1 -> [1, 1])
+        const numsA = a.match(/\d+/g).map(Number);
+        const numsB = b.match(/\d+/g).map(Number);
+        if (numsA[0] !== numsB[0]) return numsA[0] - numsB[0]; // Sort by Stage number
+        return numsA[1] - numsB[1]; // Then by Motor number
       });
+      console.log(
+        `Found ${segments.length} motor identifiers for PROPULSION category.`
+      );
+    } else {
+      // Log if another category is passed here unexpectedly, but don't populate motors.
+      console.warn(
+        `populateGenericSegmentDropdown called with unhandled category: ${category}. Segment dropdown will be empty.`
+      );
+    }
+
+    segments.forEach((segment) => {
+      const option = document.createElement("option");
+      option.value = segment;
+      option.textContent = segment; // Display the raw motor ID like S1_MOTOR1
+      selectElement.appendChild(option);
+    });
+    if (segments.length > 0) {
+      console.log(
+        `Populated ${category} segment dropdown with:`,
+        segments.join(", ")
+      );
     }
   }
 
   // Function to handle Design Variable category changes
   function handleDesignVariableCategoryChange(event) {
     const categorySelect = event.target;
-    const instance = categorySelect.closest(".optimization-instance");
-    if (!instance) return;
-
     const selectedCategory = categorySelect.value;
-    const dynamicFieldsContainer = instance.querySelector(".dv-dynamic-fields");
-    const allCategoryFields = dynamicFieldsContainer.querySelectorAll(
+    const instanceElement = categorySelect.closest(".optimization-instance");
+
+    if (!instanceElement) {
+      console.error("Design variable instance element not found.");
+      return;
+    }
+
+    // Hide all dynamic category fields first
+    const allCategoryFields = instanceElement.querySelectorAll(
       ".dv-category-fields"
     );
-    const nameInput = instance.querySelector(".dv-name");
+    allCategoryFields.forEach((fields) => fields.classList.add("hidden"));
 
-    // Hide all category-specific fields first
-    allCategoryFields.forEach((fieldSet) => fieldSet.classList.add("hidden"));
-
-    // Show fields for the selected category
-    const selectedFieldSet = dynamicFieldsContainer.querySelector(
+    // Find and show the field set for the selected category
+    const selectedFieldSet = instanceElement.querySelector(
       `.dv-category-fields[data-category="${selectedCategory}"]`
     );
+
+    // Remove hidden class from the selected field set
     if (selectedFieldSet) {
       selectedFieldSet.classList.remove("hidden");
-      // Populate necessary dropdowns within this fieldset
-      populateDesignVariableDropdowns(selectedFieldSet);
 
-      // Special handling for STEERING to show sub-type dropdown
+      // Populate dropdowns specific to the selected category
+
+      // For categories like CUT_OFF and SEQUENCE, populate dv-flag
+      if (selectedCategory === "CUT_OFF" || selectedCategory === "SEQUENCE") {
+        const flagSelect = selectedFieldSet.querySelector(".dv-flag");
+        if (flagSelect) {
+          // Assuming populateFlagDropdown can handle a context like 'sequence' or 'all'
+          populateFlagDropdown(flagSelect, "all"); // Use 'all' to get all flags
+        }
+      }
+
+      // For categories like PROPULSION and STEERING, find and populate dv-segment
+      const segmentSelect = selectedFieldSet.querySelector(".dv-segment");
+      if (segmentSelect) {
+        // Check if segmentSelect exists
+        if (selectedCategory === "PROPULSION") {
+          populateGenericSegmentDropdown(segmentSelect, "PROPULSION");
+        } else if (selectedCategory === "STEERING") {
+          populateSteeringSegmentDropdown(segmentSelect);
+        } else {
+          // For other categories, or if no specific segment logic, clear the segment dropdown
+          segmentSelect.innerHTML =
+            '<option value="" disabled selected>Select Segment</option>';
+          console.log(
+            `Segment dropdown cleared for category: ${selectedCategory}`
+          );
+        }
+      }
+
+      // For STEERING category, ensure the segment type dropdown and sub-fields container are visible
+      // Note: Population of dv-segment-type and display of specific sub-fields
+      // happens when a segment is selected via the handleSteeringSegmentChange listener.
       if (selectedCategory === "STEERING") {
-        handleSteeringSegmentChange({
-          target: selectedFieldSet.querySelector(".dv-segment"),
-        }); // Trigger segment change handler
+        const steeringSegmentTypeSelect =
+          selectedFieldSet.querySelector(".dv-segment-type");
+        if (steeringSegmentTypeSelect) {
+          // Although it's inside selectedFieldSet which is shown, ensure visibility just in case
+          steeringSegmentTypeSelect.style.display = ""; // Or remove a 'hidden' class if used
+        }
+        const subFieldsContainer = selectedFieldSet.querySelector(
+          ".dv-steering-sub-fields"
+        );
+        if (subFieldsContainer) {
+          subFieldsContainer.style.display = ""; // Ensure the container for type-specific fields is visible
+        }
+      } else {
+        // Hide steering specific fields if category is not STEERING
+        const steeringSegmentTypeSelect =
+          selectedFieldSet.querySelector(".dv-segment-type");
+        if (steeringSegmentTypeSelect) {
+          steeringSegmentTypeSelect.style.display = "none";
+        }
+        const subFieldsContainer = selectedFieldSet.querySelector(
+          ".dv-steering-sub-fields"
+        );
+        if (subFieldsContainer) {
+          subFieldsContainer.style.display = "none";
+        }
       }
-    }
 
-    // Auto-fill name based on category
-    if (nameInput) {
-      // Define default name patterns for each category
-      const defaultNamePatterns = {
-        CUT_OFF: "opt_cut_off",
-        PAYLOAD: "opt_payload",
-        AZIMUTH: "opt_azimuth",
-        SEQUENCE: "opt_coast_duration",
-        PROPULSION: "opt_propulsion",
-        STEERING: "opt_steering",
-      };
+      // Adjust input types based on selected category and potentially other factors
+      // This function name might be misleading as it's used for non-steering too,
+      // but it handles input type adjustments based on category fields
+      adjustInputTypesForSteering(selectedFieldSet);
 
-      // Get the new default name for the selected category
-      const newDefaultName = defaultNamePatterns[selectedCategory] || "";
+      // Update the name placeholder based on the selected category and instance index
+      const nameInput = instanceElement.querySelector(".dv-name");
+      if (nameInput) {
+        const defaultNamePatterns = {
+          CUT_OFF: "opt_cut_off",
+          PAYLOAD: "opt_payload",
+          AZIMUTH: "opt_azimuth",
+          SEQUENCE: "opt_coast",
+          PROPULSION: "opt_propulsion",
+          STEERING: "opt_steering",
+        };
+        // Get the instance index from the data-index attribute
+        const instanceIndex = instanceElement.dataset.index || "1";
 
-      // Check if the current name matches any of our default patterns
-      const currentValue = nameInput.value || "";
-      const isUsingDefaultName = Object.values(defaultNamePatterns).some(
-        (pattern) =>
-          currentValue === pattern || currentValue.startsWith(pattern + "_")
+        const defaultValue = `${
+          defaultNamePatterns[selectedCategory] || "opt_variable"
+        }_${instanceIndex}`;
+        nameInput.value = defaultValue;
+
+        // Remove the placeholder
+        nameInput.placeholder = "";
+
+        // Optional: Clear the input value if it's still the old default or empty
+        // const currentValue = nameInput.value.trim();
+        // if (!currentValue || Object.values(defaultNamePatterns).some(p => currentValue.startsWith(p))) {
+        //     nameInput.value = '';
+        // }
+      }
+    } else {
+      // Handle case where no category is selected
+      // Ensure all category-specific field sets are hidden
+      const allCategoryFields = instanceElement.querySelectorAll(
+        ".dv-category-fields"
       );
+      allCategoryFields.forEach((fields) => fields.classList.add("hidden"));
 
-      // Update the name if it's empty or matches a default pattern
-      if (!currentValue || isUsingDefaultName) {
-        nameInput.value = newDefaultName;
+      // Ensure segment/flag dropdowns are reset/empty
+      const segmentSelect = instanceElement.querySelector(".dv-segment");
+      if (segmentSelect) {
+        segmentSelect.innerHTML =
+          '<option value="" disabled selected>Select Segment</option>';
+      }
+      const flagSelect = instanceElement.querySelector(".dv-flag");
+      if (flagSelect) {
+        flagSelect.innerHTML =
+          '<option value="" disabled selected>Select Flag</option>';
+      }
+      // Also hide steering specific fields
+      const steeringSegmentTypeSelect =
+        instanceElement.querySelector(".dv-segment-type");
+      if (steeringSegmentTypeSelect) {
+        steeringSegmentTypeSelect.style.display = "none";
+      }
+      const subFieldsContainer = instanceElement.querySelector(
+        ".dv-steering-sub-fields"
+      );
+      if (subFieldsContainer) {
+        subFieldsContainer.style.display = "none";
+      }
+      // Reset placeholder
+      const nameInput = instanceElement.querySelector(".dv-name");
+      if (nameInput) {
+        nameInput.placeholder = "Enter variable name (e.g., opt_variable_1)";
       }
     }
+
+    // The call to updateDesignVariableNamePlaceholder was removed in a prior attempt and should not be here.
   }
 
   // Function to handle Steering Segment selection change
@@ -4247,6 +4455,11 @@ document.addEventListener("DOMContentLoaded", function () {
     updateAlgorithmsCounter,
     toggleModeFields,
     setupAddAlgorithmButton,
+    // Add the new refresh function here
+    refreshAllDesignVariableSegmentDropdowns,
+    saveOptimizationData, // Expose save function
+    initOptimizationModule, // Expose init function for re-initialization if needed
+    algorithmParameters, // Expose algorithm parameters
   };
 
   // --- Design Variables Listeners ---
@@ -4254,27 +4467,317 @@ document.addEventListener("DOMContentLoaded", function () {
     addDesignVariableBtn.addEventListener("click", addDesignVariableInstance);
   }
 
+  // --- NEW: Robust validation for Design Variables Form ---
+  function validateDesignVariablesForm() {
+    const designVariablesData = getDesignVariablesData();
+    let isValid = true;
+    let errors = [];
+    const nameSet = new Set();
+
+    // Helper to show error on a field
+    function showFieldError(input, message) {
+      if (input) {
+        input.classList.add("error-field");
+        if (
+          window.FormValidator &&
+          typeof FormValidator.showError === "function"
+        ) {
+          FormValidator.showError(input, message);
+        }
+      }
+    }
+
+    // Helper to remove error from a field
+    function removeFieldError(input) {
+      if (input) input.classList.remove("error-field");
+    }
+
+    // Validate each instance
+    const instances = designVariablesContainer.querySelectorAll(
+      ".optimization-instance:not(.hidden-template)"
+    );
+
+    instances.forEach((instance, idx) => {
+      const categorySelect = instance.querySelector(".dv-category");
+      const nameInput = instance.querySelector(".dv-name");
+      const category = categorySelect ? categorySelect.value : null;
+      const name = nameInput ? nameInput.value.trim() : null;
+      let localErrors = [];
+
+      // Remove previous error highlights
+      removeFieldError(categorySelect);
+      removeFieldError(nameInput);
+
+      // Category and Name required
+      if (!category) {
+        isValid = false;
+        localErrors.push("Category is required");
+        showFieldError(categorySelect, "Category is required");
+      }
+      if (!name) {
+        isValid = false;
+        localErrors.push("Name is required");
+        showFieldError(nameInput, "Name is required");
+      } else if (nameSet.has(name)) {
+        isValid = false;
+        localErrors.push("Name must be unique");
+        showFieldError(nameInput, "Name must be unique");
+      } else {
+        nameSet.add(name);
+      }
+
+      // Category-specific validation
+      const categoryFields = instance.querySelector(
+        `.dv-category-fields[data-category="${category}"]`
+      );
+      if (categoryFields) {
+        // Helper for number/array validation
+        const isNumber = (v) => !isNaN(parseFloat(v));
+        const isArrayOfNumbers = (arr) =>
+          Array.isArray(arr) && arr.every((v) => isNumber(v));
+        // Common selectors
+        const flagSelect = categoryFields.querySelector(".dv-flag");
+        const controlVarInput = categoryFields.querySelector(
+          ".dv-control-variable"
+        );
+        const lowerBoundInput = categoryFields.querySelector(".dv-lower-bound");
+        const upperBoundInput = categoryFields.querySelector(".dv-upper-bound");
+        const segmentSelect = categoryFields.querySelector(".dv-segment");
+        // For STEERING
+        const segmentTypeSelect =
+          categoryFields.querySelector(".dv-segment-type");
+        // For PROFILE
+        const subTypeFields = categoryFields.querySelector(
+          `.dv-steering-type-fields[data-segment-type="PROFILE"]`
+        );
+        // Remove previous error highlights
+        [
+          flagSelect,
+          controlVarInput,
+          lowerBoundInput,
+          upperBoundInput,
+          segmentSelect,
+          segmentTypeSelect,
+        ].forEach(removeFieldError);
+
+        switch (category) {
+          case "CUT_OFF":
+          case "SEQUENCE":
+            if (flagSelect && !flagSelect.value) {
+              isValid = false;
+              localErrors.push("Flag is required");
+              showFieldError(flagSelect, "Flag is required");
+            }
+            if (controlVarInput && !controlVarInput.value) {
+              isValid = false;
+              localErrors.push("Control Variable is required");
+              showFieldError(controlVarInput, "Control Variable is required");
+            }
+            if (lowerBoundInput && !isNumber(lowerBoundInput.value)) {
+              isValid = false;
+              localErrors.push("Lower Bound must be a number");
+              showFieldError(lowerBoundInput, "Lower Bound must be a number");
+            }
+            if (upperBoundInput && !isNumber(upperBoundInput.value)) {
+              isValid = false;
+              localErrors.push("Upper Bound must be a number");
+              showFieldError(upperBoundInput, "Upper Bound must be a number");
+            }
+            break;
+          case "PAYLOAD":
+          case "AZIMUTH":
+            if (controlVarInput && !controlVarInput.value) {
+              isValid = false;
+              localErrors.push("Control Variable(s) required");
+              showFieldError(controlVarInput, "Control Variable(s) required");
+            }
+            if (lowerBoundInput && lowerBoundInput.value) {
+              const arr = lowerBoundInput.value.split(",").map((v) => v.trim());
+              if (!isArrayOfNumbers(arr)) {
+                isValid = false;
+                localErrors.push("Lower Bound(s) must be numbers");
+                showFieldError(
+                  lowerBoundInput,
+                  "Lower Bound(s) must be numbers"
+                );
+              }
+            }
+            if (upperBoundInput && upperBoundInput.value) {
+              const arr = upperBoundInput.value.split(",").map((v) => v.trim());
+              if (!isArrayOfNumbers(arr)) {
+                isValid = false;
+                localErrors.push("Upper Bound(s) must be numbers");
+                showFieldError(
+                  upperBoundInput,
+                  "Upper Bound(s) must be numbers"
+                );
+              }
+            }
+            break;
+          case "PROPULSION":
+            if (segmentSelect && !segmentSelect.value) {
+              isValid = false;
+              localErrors.push("Segment is required");
+              showFieldError(segmentSelect, "Segment is required");
+            }
+            if (controlVarInput && !controlVarInput.value) {
+              isValid = false;
+              localErrors.push("Control Variable(s) required");
+              showFieldError(controlVarInput, "Control Variable(s) required");
+            }
+            if (lowerBoundInput && lowerBoundInput.value) {
+              const arr = lowerBoundInput.value.split(",").map((v) => v.trim());
+              if (!isArrayOfNumbers(arr)) {
+                isValid = false;
+                localErrors.push("Lower Bound(s) must be numbers");
+                showFieldError(
+                  lowerBoundInput,
+                  "Lower Bound(s) must be numbers"
+                );
+              }
+            }
+            if (upperBoundInput && upperBoundInput.value) {
+              const arr = upperBoundInput.value.split(",").map((v) => v.trim());
+              if (!isArrayOfNumbers(arr)) {
+                isValid = false;
+                localErrors.push("Upper Bound(s) must be numbers");
+                showFieldError(
+                  upperBoundInput,
+                  "Upper Bound(s) must be numbers"
+                );
+              }
+            }
+            break;
+          case "STEERING":
+            if (segmentSelect && !segmentSelect.value) {
+              isValid = false;
+              localErrors.push("Steering Segment is required");
+              showFieldError(segmentSelect, "Steering Segment is required");
+            }
+            if (segmentTypeSelect && !segmentTypeSelect.value) {
+              isValid = false;
+              localErrors.push("Segment Type is required");
+              showFieldError(segmentTypeSelect, "Segment Type is required");
+            }
+            // Validate sub-type fields for PROFILE
+            if (
+              segmentTypeSelect &&
+              segmentTypeSelect.value === "PROFILE" &&
+              subTypeFields
+            ) {
+              const subControlVar = subTypeFields.querySelector(
+                ".dv-control-variable"
+              );
+              const subLowerBound =
+                subTypeFields.querySelector(".dv-lower-bound");
+              const subUpperBound =
+                subTypeFields.querySelector(".dv-upper-bound");
+              const subAxis = subTypeFields.querySelector(".dv-axis");
+              const subIndVar = subTypeFields.querySelector(".dv-ind-variable");
+              const subIndVector =
+                subTypeFields.querySelector(".dv-ind-vector");
+              [
+                subControlVar,
+                subLowerBound,
+                subUpperBound,
+                subAxis,
+                subIndVar,
+                subIndVector,
+              ].forEach(removeFieldError);
+              if (subControlVar && !subControlVar.value) {
+                isValid = false;
+                localErrors.push("Profile Control Variable required");
+                showFieldError(
+                  subControlVar,
+                  "Profile Control Variable required"
+                );
+              }
+              if (subLowerBound && subLowerBound.value) {
+                const arr = subLowerBound.value.split(",").map((v) => v.trim());
+                if (!isArrayOfNumbers(arr)) {
+                  isValid = false;
+                  localErrors.push("Profile Lower Bound(s) must be numbers");
+                  showFieldError(
+                    subLowerBound,
+                    "Profile Lower Bound(s) must be numbers"
+                  );
+                }
+              }
+              if (subUpperBound && subUpperBound.value) {
+                const arr = subUpperBound.value.split(",").map((v) => v.trim());
+                if (!isArrayOfNumbers(arr)) {
+                  isValid = false;
+                  localErrors.push("Profile Upper Bound(s) must be numbers");
+                  showFieldError(
+                    subUpperBound,
+                    "Profile Upper Bound(s) must be numbers"
+                  );
+                }
+              }
+              if (subAxis && !subAxis.value) {
+                isValid = false;
+                localErrors.push("Profile Axis is required");
+                showFieldError(subAxis, "Profile Axis is required");
+              }
+              if (subIndVar && !subIndVar.value) {
+                isValid = false;
+                localErrors.push("Profile Independent Variable is required");
+                showFieldError(
+                  subIndVar,
+                  "Profile Independent Variable is required"
+                );
+              }
+              if (subIndVector && !subIndVector.value) {
+                isValid = false;
+                localErrors.push("Profile Independent Vector Node(s) required");
+                showFieldError(
+                  subIndVector,
+                  "Profile Independent Vector Node(s) required"
+                );
+              }
+            }
+            break;
+          default:
+            break;
+        }
+      }
+
+      if (localErrors.length > 0) {
+        errors.push(`Design Variable ${idx + 1}: ${localErrors.join(", ")}`);
+      }
+    });
+
+    // Show error toast if not valid
+    if (!isValid) {
+      const errorSummary =
+        errors.length > 2
+          ? `${errors.slice(0, 2).join(", ")} and ${
+              errors.length - 2
+            } more issue(s)`
+          : errors.join(", ");
+      if (
+        window.FormValidator &&
+        typeof FormValidator.showToastMessage === "function"
+      ) {
+        FormValidator.showToastMessage(
+          "error",
+          "Design Variables Validation Error",
+          `Please fix these issues: ${errorSummary}`
+        );
+      }
+    }
+    return isValid;
+  }
+  // --- END NEW VALIDATION ---
+
   if (designVariablesForm) {
     designVariablesForm.addEventListener("submit", (event) => {
       event.preventDefault();
       console.log("Design Variables form submitted.");
-      const designVariablesData = getDesignVariablesData();
-
-      // Add validation logic here if needed
-      let isValid = true;
-      // Example validation: Check if names are unique
-      const names = designVariablesData.map((dv) => dv.name);
-      if (new Set(names).size !== names.length) {
-        isValid = false;
-        Swal.fire({
-          icon: "error",
-          title: "Validation Error",
-          text: "Design variable names must be unique.",
-        });
-      }
-      // Add more specific validation per category...
-
+      // Use new validation
+      const isValid = validateDesignVariablesForm();
       if (isValid) {
+        const designVariablesData = getDesignVariablesData();
         saveOptimizationData("designVariables", designVariablesData);
         // Update section state if using state management
         if (window.sectionStates && window.sectionStates["design-variables"]) {
@@ -4915,6 +5418,51 @@ document.addEventListener("DOMContentLoaded", function () {
     return modeData;
   }
 
+  // Function to format mode data for JSON output
+  function formatModeDataForJSON(modeData) {
+    const jsonData = {};
+
+    // Set the mode type
+    jsonData.mode = modeData.type;
+
+    // Format the map array
+    jsonData.map = [modeData.map.lower, modeData.map.upper];
+
+    // Add population
+    jsonData.population = modeData.population;
+
+    if (modeData.type === "normal") {
+      // For normal mode
+      jsonData.problem_strategy = modeData.problemStrategy;
+      jsonData.optimizer = modeData.algorithm;
+
+      // Add algorithm parameters if present
+      if (modeData.algorithm && modeData.parameters) {
+        jsonData[modeData.algorithm] = modeData.parameters;
+      }
+    } else {
+      // For archipelago mode
+      jsonData.archipelago = {
+        algorithms: modeData.algorithms.map((algo) => algo.name),
+        topology: modeData.topology.toLowerCase().replace(" ", "_"),
+        migration_type: modeData.migrationType.toLowerCase(),
+        migrant_handling: modeData.migrationHandling.toLowerCase(),
+      };
+
+      // Add problem strategy
+      jsonData.problem_strategy = "ignore_o"; // Default value for archipelago mode
+
+      // Add algorithm parameters separately
+      modeData.algorithms.forEach((algo) => {
+        if (algo.name && algo.parameters) {
+          jsonData[algo.name] = algo.parameters;
+        }
+      });
+    }
+
+    return jsonData;
+  }
+
   // Initialize the mode form
   function initModeForm() {
     try {
@@ -5286,50 +5834,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch (error) {
       console.error("Error initializing mode form with saved data:", error);
-    }
-  }
-
-  // Function to toggle CSV upload visibility based on toggle state
-  function toggleCsvUploadVisibility(mode) {
-    const toggleElement = document.getElementById(`${mode}-set-population`);
-
-    // Directly target the upload row or group
-    let uploadElement;
-
-    if (mode === "normal") {
-      uploadElement = document.getElementById("normal-upload-row");
-    } else {
-      // For archipelago, try both ID and class selector
-      uploadElement = document.getElementById("archipelago-upload-group");
-      if (!uploadElement) {
-        // Try finding it by form-group with upload-data class
-        uploadElement = document.querySelector(
-          `.form-group.upload-data[id="${mode}-upload-group"]`
-        );
-        if (!uploadElement) {
-          // As a last resort, try finding any upload-data element in the archipelago section
-          uploadElement = document.querySelector(
-            `#archipelago-mode-fields .upload-data`
-          );
-        }
-      }
-    }
-
-    if (toggleElement && uploadElement) {
-      // Use flex for form rows, block for form groups
-      const displayValue = mode === "normal" ? "flex" : "block";
-      uploadElement.style.display = toggleElement.checked
-        ? displayValue
-        : "none";
-      console.log(`Toggle ${mode} CSV visibility: ${toggleElement.checked}`);
-    } else {
-      console.warn(
-        `Could not find elements to toggle CSV visibility for ${mode} mode`
-      );
-      if (!toggleElement)
-        console.warn(`Toggle element '${mode}-set-population' not found`);
-      if (!uploadElement)
-        console.warn(`Upload element for ${mode} mode not found`);
     }
   }
 
@@ -6157,4 +6661,920 @@ document.addEventListener("DOMContentLoaded", function () {
   // Make this function available globally
   window.optimizationHandler.openAlgorithmParamsModal =
     openAlgorithmParamsModal;
+
+  // --- Mode Form Validation ---
+  function validateModeForm() {
+    let isValid = true;
+    let errors = [];
+
+    // Helper to show error on a field
+    function showFieldError(input, message) {
+      if (input) {
+        input.classList.add("error-field");
+        if (
+          window.FormValidator &&
+          typeof FormValidator.showError === "function"
+        ) {
+          FormValidator.showError(input, message);
+        }
+      }
+    }
+    function removeFieldError(input) {
+      if (input) input.classList.remove("error-field");
+    }
+
+    const isNormalMode = document.getElementById("mode-normal").checked;
+
+    if (isNormalMode) {
+      // Normal mode fields
+      const algorithm = document.getElementById("normal-algorithm");
+      const lowerBound = document.getElementById("normal-lower-bound");
+      const upperBound = document.getElementById("normal-upper-bound");
+      const population = document.getElementById("normal-population");
+      const setPopulation = document.getElementById("normal-set-population");
+      const problemStrategy = document.getElementById(
+        "normal-problem-strategy"
+      );
+
+      [algorithm, lowerBound, upperBound, population, problemStrategy].forEach(
+        removeFieldError
+      );
+
+      if (!algorithm.value) {
+        isValid = false;
+        errors.push("Algorithm is required");
+        showFieldError(algorithm, "Algorithm is required");
+      }
+      if (!lowerBound.value || isNaN(parseFloat(lowerBound.value))) {
+        isValid = false;
+        errors.push("Lower Bound must be a number");
+        showFieldError(lowerBound, "Lower Bound must be a number");
+      }
+      if (!upperBound.value || isNaN(parseFloat(upperBound.value))) {
+        isValid = false;
+        errors.push("Upper Bound must be a number");
+        showFieldError(upperBound, "Upper Bound must be a number");
+      }
+      if (!population.value || isNaN(parseInt(population.value))) {
+        isValid = false;
+        errors.push("Population must be a number");
+        showFieldError(population, "Population must be a number");
+      }
+      if (!problemStrategy.value) {
+        isValid = false;
+        errors.push("Problem Strategy is required");
+        showFieldError(problemStrategy, "Problem Strategy is required");
+      }
+      // If setPopulation is checked, check for file
+      if (setPopulation.checked && !window.optimizationHandler.normalCsvFile) {
+        isValid = false;
+        errors.push(
+          "Initial Control Variable CSV is required when Set Population is enabled"
+        );
+        const filenameInput = document.getElementById("normal-csv-filename");
+        showFieldError(filenameInput, "CSV file required");
+      }
+      // Algorithm parameters (if any)
+      const paramsContainer = document.getElementById(
+        "normal-algorithm-params"
+      );
+      if (paramsContainer && algorithm.value) {
+        const paramInputs = paramsContainer.querySelectorAll(
+          ".algorithm-param-input"
+        );
+        paramInputs.forEach((input) => {
+          removeFieldError(input);
+          if (
+            input.required &&
+            (!input.value ||
+              (input.type === "number" && isNaN(parseFloat(input.value))))
+          ) {
+            isValid = false;
+            errors.push(
+              `${
+                input.dataset.parameter || input.name || "Algorithm parameter"
+              } is required`
+            );
+            showFieldError(
+              input,
+              `${
+                input.dataset.parameter || input.name || "Algorithm parameter"
+              } is required`
+            );
+          }
+        });
+      }
+    } else {
+      // Archipelago mode fields
+      const topology = document.getElementById("archipelago-topology");
+      const migrationType = document.getElementById(
+        "archipelago-migration-type"
+      );
+      const migrationHandling = document.getElementById(
+        "archipelago-migration-handling"
+      );
+      const lowerBound = document.getElementById("archipelago-lower-bound");
+      const upperBound = document.getElementById("archipelago-upper-bound");
+      const population = document.getElementById("archipelago-population");
+      const setPopulation = document.getElementById(
+        "archipelago-set-population"
+      );
+      const selectedAlgorithmsContainer = document.getElementById(
+        "selected-algorithms-container"
+      );
+
+      [
+        topology,
+        migrationType,
+        migrationHandling,
+        lowerBound,
+        upperBound,
+        population,
+      ].forEach(removeFieldError);
+
+      if (!topology.value) {
+        isValid = false;
+        errors.push("Topology is required");
+        showFieldError(topology, "Topology is required");
+      }
+      if (!migrationType.value) {
+        isValid = false;
+        errors.push("Migration Type is required");
+        showFieldError(migrationType, "Migration Type is required");
+      }
+      if (!migrationHandling.value) {
+        isValid = false;
+        errors.push("Migration Handling is required");
+        showFieldError(migrationHandling, "Migration Handling is required");
+      }
+      if (!lowerBound.value || isNaN(parseFloat(lowerBound.value))) {
+        isValid = false;
+        errors.push("Lower Bound must be a number");
+        showFieldError(lowerBound, "Lower Bound must be a number");
+      }
+      if (!upperBound.value || isNaN(parseFloat(upperBound.value))) {
+        isValid = false;
+        errors.push("Upper Bound must be a number");
+        showFieldError(upperBound, "Upper Bound must be a number");
+      }
+      if (!population.value || isNaN(parseInt(population.value))) {
+        isValid = false;
+        errors.push("Population must be a number");
+        showFieldError(population, "Population must be a number");
+      }
+      // If setPopulation is checked, check for file
+      if (
+        setPopulation.checked &&
+        !window.optimizationHandler.archipelagoCsvFile
+      ) {
+        isValid = false;
+        errors.push(
+          "Initial Control Variable CSV is required when Set Population is enabled"
+        );
+        const filenameInput = document.getElementById(
+          "archipelago-csv-filename"
+        );
+        showFieldError(filenameInput, "CSV file required");
+      }
+      // At least one algorithm must be selected
+      const algorithmTags =
+        selectedAlgorithmsContainer.querySelectorAll(".algorithm-tag");
+      if (!algorithmTags.length) {
+        isValid = false;
+        errors.push("At least one algorithm must be selected");
+        showFieldError(
+          selectedAlgorithmsContainer,
+          "At least one algorithm must be selected"
+        );
+      }
+      // Algorithm parameters (if any)
+      if (window.optimizationHandler.archipelagoParamsStore) {
+        Object.values(
+          window.optimizationHandler.archipelagoParamsStore
+        ).forEach((params) => {
+          Object.entries(params).forEach(([key, value]) => {
+            if (
+              value === undefined ||
+              value === null ||
+              value === "" ||
+              (typeof value === "number" && isNaN(value))
+            ) {
+              isValid = false;
+              errors.push(`Algorithm parameter '${key}' is required`);
+            }
+          });
+        });
+      }
+    }
+
+    if (!isValid) {
+      const errorSummary =
+        errors.length > 2
+          ? `${errors.slice(0, 2).join(", ")} and ${
+              errors.length - 2
+            } more issue(s)`
+          : errors.join(", ");
+      if (
+        window.FormValidator &&
+        typeof FormValidator.showToastMessage === "function"
+      ) {
+        FormValidator.showToastMessage(
+          "error",
+          "Mode Validation Error",
+          `Please fix these issues: ${errorSummary}`
+        );
+      }
+    }
+    return isValid;
+  }
+  // --- END Mode Form Validation ---
+
+  if (modeForm) {
+    modeForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      // Use new validation
+      const isValid = validateModeForm();
+      if (isValid) {
+        const modeData = getModeData();
+        saveOptimizationData("mode", modeData);
+
+        // Format mode data for JSON and add to finalMissionData
+        if (window.finalMissionData) {
+          const jsonModeData = formatModeDataForJSON(modeData);
+
+          // First, clean up any existing mode properties
+          const modeProperties = [
+            "mode",
+            "map",
+            "population",
+            "problem_strategy",
+            "optimizer",
+            "archipelago",
+          ];
+          // Also remove any algorithm-specific properties
+          const algorithmProperties = [
+            "DE",
+            "SADE",
+            "pDE",
+            "PSO",
+            "IPOPT",
+            "CS",
+            "NLOPT",
+            "GAGGS",
+            "MBH",
+            "CSTRS",
+            "GWO",
+            "IHS",
+            "AC",
+            "ABC",
+            "CMAES",
+            "XNES",
+            "NSGA2",
+            "SGA",
+          ];
+
+          // Remove existing properties
+          [...modeProperties, ...algorithmProperties].forEach((prop) => {
+            if (prop in window.finalMissionData) {
+              delete window.finalMissionData[prop];
+            }
+          });
+
+          // Add each property from jsonModeData to finalMissionData
+          Object.keys(jsonModeData).forEach((key) => {
+            window.finalMissionData[key] = jsonModeData[key];
+          });
+
+          console.log("Mode data added to finalMissionData");
+        }
+
+        // Update section state if using state management
+        if (window.sectionStates && window.sectionStates["mode"]) {
+          window.sectionStates["mode"].isSaved = true;
+          if (typeof updateSidebarStates === "function") {
+            updateSidebarStates();
+          }
+        }
+      }
+    });
+  }
+
+  // Function to refresh all segment dropdowns in Design Variables
+  function refreshAllDesignVariableSegmentDropdowns() {
+    console.log("Attempting to refresh all design variable segment dropdowns.");
+    const designVariableInstances = document.querySelectorAll(
+      "#design-variables-container .design-variable-instance:not(.hidden-template)"
+    );
+
+    designVariableInstances.forEach((instance) => {
+      const categorySelect = instance.querySelector(".dv-category");
+      const segmentSelect = instance.querySelector(".dv-segment");
+
+      if (categorySelect && segmentSelect) {
+        const selectedCategory = categorySelect.value;
+        console.log(
+          `Refreshing segment for DV instance with category: ${selectedCategory}`
+        );
+        if (selectedCategory === "PROPULSION") {
+          populateGenericSegmentDropdown(segmentSelect, "PROPULSION");
+        } else if (selectedCategory === "STEERING") {
+          populateSteeringSegmentDropdown(segmentSelect);
+        } else {
+          // Clear segment dropdown if category is not PROPULSION or STEERING
+          segmentSelect.innerHTML =
+            '<option value="" disabled selected>Select Segment</option>';
+        }
+      } else {
+        console.warn(
+          "Could not find category or segment select in DV instance:",
+          instance
+        );
+      }
+    });
+    console.log(
+      `Finished refreshing ${designVariableInstances.length} design variable segment dropdowns.`
+    );
+  }
+
+  // Function to initialize the core optimization module UI components
+  function initOptimizationModule() {
+    console.log("Initializing Optimization Module UI components...");
+
+    // Automatically create initial objective function form
+    console.log(
+      "Automatically creating initial objective function form on page load"
+    );
+    if (typeof addObjectiveFunctionForm === "function") {
+      addObjectiveFunctionForm();
+    } else {
+      console.error(
+        "addObjectiveFunctionForm is not defined at the point of calling initOptimizationModule"
+      );
+    }
+
+    // Automatically create initial constraint form
+    console.log("Automatically creating initial constraint form on page load");
+    if (typeof addConstraintInstance === "function") {
+      addConstraintInstance(); // Creates the first constraint instance
+      if (typeof populateAllConstraintNameDropdowns === "function") {
+        populateAllConstraintNameDropdowns(); // Populate its name dropdown and any others
+      } else {
+        console.error("populateAllConstraintNameDropdowns is not defined.");
+      }
+    } else {
+      console.error(
+        "addConstraintInstance is not defined at the point of calling initOptimizationModule"
+      );
+    }
+
+    // Automatically create initial design variable form
+    console.log("Automatically creating initial design variable form on load");
+    if (typeof addDesignVariableInstance === "function") {
+      addDesignVariableInstance();
+    } else {
+      console.error(
+        "addDesignVariableInstance is not defined at the point of calling initOptimizationModule"
+      );
+    }
+
+    // Any other initial setup tasks for the optimization module can go here.
+    console.log("Optimization Module UI components initialization complete.");
+  }
+
+  // Call the initialization function after it's defined.
+  // This is likely what line 4446 in the original error was referring to or should be.
+  // Ensure this call happens after all necessary helper functions are defined.
+  initOptimizationModule();
+
+  // =========================================
+  // EXPOSE HANDLERS TO GLOBAL SCOPE
+  // =========================================
+  window.optimizationHandler = {
+    getObjectiveFunctionData,
+    getConstraintsData,
+    getDesignVariablesData,
+    getModeData,
+    populateObjectiveFlagDropdown: (selectElement) =>
+      populateFlagDropdown(selectElement, "Objective"),
+    populateConstraintFlagDropdown: (selectElement) =>
+      populateFlagDropdown(selectElement, "Constraint"),
+    populateDesignVariableDropdowns,
+    populateSteeringSegmentDropdown,
+    populateGenericSegmentDropdown,
+    populateConstraintNameDropdown,
+    populateAllConstraintNameDropdowns,
+    addObjectiveFunctionForm,
+    addConstraintInstance,
+    addDesignVariableInstance,
+    renumberDesignVariables,
+    handleDesignVariableCategoryChange,
+    handleSteeringSegmentTypeChange,
+    clearDesignVariablesForm,
+    setupFileUpload,
+    createAlgorithmTag,
+    updateAlgorithmsCounter,
+    toggleModeFields,
+    setupAddAlgorithmButton,
+    refreshAllDesignVariableSegmentDropdowns,
+    saveOptimizationData,
+    initOptimizationModule, // Expose the defined init function
+    algorithmParameters, // Expose algorithm parameters
+  };
+
+  // Any remaining top-level DOMContentLoaded logic that isn't part of initOptimizationModule
+  // For example, code that was previously here:
+  // addObjectiveFunctionForm(); // MOVED into initOptimizationModule
+  // addConstraintInstance(); // MOVED into initOptimizationModule
+  // populateAllConstraintNameDropdowns(); // MOVED into initOptimizationModule
+  // addDesignVariableInstance(); // MOVED into initOptimizationModule
+  // initializeExistingObjectiveFunctions(); // This should be called within initOptimizationModule if needed
+  // initializeExistingConstraints(); // This should be called within initOptimizationModule if needed
+  // initializeExistingDesignVariables(); // This should be called within initOptimizationModule if needed
+  // initModeForm(); // This should be called within initOptimizationModule if needed
+  // setupAllEventListeners(); // This should be called within initOptimizationModule if needed
+
+  // --- Per-Axis Bounds for PROFILE and CONST_BODYRATE ---
+
+  /**
+   * Dynamically manage per-axis bounds fields for PROFILE and CONST_BODYRATE steering types.
+   * @param {HTMLElement} categoryFields - The .dv-category-fields[data-category="STEERING"] element
+   * @param {HTMLElement} typeFields - The .dv-steering-type-fields[data-segment-type] element
+   */
+  function setupPerAxisBounds(categoryFields, typeFields) {
+    console.debug("Setting up per-axis bounds", typeFields);
+    const boundsContainer = typeFields.querySelector(
+      ".dv-axis-bounds-container"
+    );
+    const axisCheckboxes = typeFields.querySelectorAll(".dv-axis-select-cb");
+
+    if (!boundsContainer) {
+      console.error("Bounds container not found!", typeFields);
+      return;
+    }
+
+    if (!axisCheckboxes.length) {
+      console.error("Axis checkboxes not found!", typeFields);
+      return;
+    }
+
+    console.debug(
+      `Found ${axisCheckboxes.length} checkboxes and bounds container`
+    );
+
+    // Helper: Axis label map
+    const axisLabels = { roll: "Roll", pitch: "Pitch", yaw: "Yaw" };
+
+    // Create all possible bounds fields once (if they don't exist)
+    const existingAxes = boundsContainer.querySelectorAll(
+      ".per-axis-bounds-section"
+    );
+    if (existingAxes.length === 0) {
+      console.debug("Creating initial bounds fields for all axes");
+      for (const axis of ["roll", "pitch", "yaw"]) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "per-axis-bounds-section";
+        wrapper.dataset.axis = axis;
+        wrapper.style.display = "none"; // Hidden by default
+        wrapper.innerHTML = `
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label">Lower Bound (${axisLabels[axis]}):</label>
+              <input type="text" class="input-field dv-lower-bound" data-axis="${axis}" placeholder="e.g., -1.0,-0.5,0.0" />
+              <small class="input-help">Comma-separated values for ${axisLabels[axis]}</small>
+            </div>
+            <div class="form-group">
+              <label class="label">Upper Bound (${axisLabels[axis]}):</label>
+              <input type="text" class="input-field dv-upper-bound" data-axis="${axis}" placeholder="e.g., 1.0,0.5,0.0" />
+              <small class="input-help">Comma-separated values for ${axisLabels[axis]}</small>
+            </div>
+          </div>
+        `;
+        boundsContainer.appendChild(wrapper);
+      }
+    }
+
+    // Simplified direct handler that just shows/hides existing fields
+    function directCheckboxHandler(event) {
+      const checkbox = event.target;
+      const axis = checkbox.value;
+      console.debug(`Checkbox for ${axis} changed to ${checkbox.checked}`);
+
+      const boundsSection = boundsContainer.querySelector(
+        `.per-axis-bounds-section[data-axis="${axis}"]`
+      );
+      if (boundsSection) {
+        console.debug(
+          `Found bounds section for ${axis}, setting display to ${
+            checkbox.checked ? "block" : "none"
+          }`
+        );
+        boundsSection.style.display = checkbox.checked ? "block" : "none";
+      } else {
+        console.error(`Could not find bounds section for ${axis}`);
+      }
+    }
+
+    // Detach existing listeners to avoid duplicates
+    axisCheckboxes.forEach((cb) => {
+      cb.removeEventListener("change", directCheckboxHandler);
+      cb.addEventListener("change", directCheckboxHandler);
+      console.debug(`Attached change handler to ${cb.value} checkbox`);
+
+      // Initial visibility state
+      const boundsSection = boundsContainer.querySelector(
+        `.per-axis-bounds-section[data-axis="${cb.value}"]`
+      );
+      if (boundsSection) {
+        boundsSection.style.display = cb.checked ? "block" : "none";
+        console.debug(
+          `Set initial visibility for ${cb.value} to ${
+            cb.checked ? "visible" : "hidden"
+          }`
+        );
+      }
+    });
+  }
+
+  // --- Patch handleSteeringSegmentTypeChange to support per-axis bounds ---
+  const originalHandleSteeringSegmentTypeChange =
+    handleSteeringSegmentTypeChange;
+  function patchedHandleSteeringSegmentTypeChange(event) {
+    originalHandleSteeringSegmentTypeChange(event);
+    const typeSelect = event.target;
+    const instance = typeSelect.closest(
+      '.dv-category-fields[data-category="STEERING"]'
+    );
+    if (!instance) return;
+    const selectedType = typeSelect.value;
+    const typeFields = instance.querySelector(
+      `.dv-steering-type-fields[data-segment-type="${selectedType}"]`
+    );
+    if (!typeFields) return;
+    if (["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(selectedType)) {
+      console.log(
+        `Setting up per-axis bounds for ${selectedType} segment type`
+      );
+      setupPerAxisBounds(instance, typeFields);
+    }
+  }
+  // Patch the event handler
+  window.handleSteeringSegmentTypeChange =
+    patchedHandleSteeringSegmentTypeChange;
+
+  // --- Patch addDesignVariableInstance to use patched handler ---
+  const originalAddDesignVariableInstance = addDesignVariableInstance;
+  function patchedAddDesignVariableInstance() {
+    const newInstance = originalAddDesignVariableInstance();
+    // Patch steering type change event for new instance
+    const steeringTypeSelect = newInstance.querySelector(".dv-segment-type");
+    if (steeringTypeSelect) {
+      steeringTypeSelect.removeEventListener(
+        "change",
+        handleSteeringSegmentTypeChange
+      );
+      steeringTypeSelect.addEventListener(
+        "change",
+        patchedHandleSteeringSegmentTypeChange
+      );
+
+      // If STEERING category is already selected, initialize segment dropdown
+      const categorySelect = newInstance.querySelector(".dv-category");
+      if (categorySelect && categorySelect.value === "STEERING") {
+        // Populate steering segment dropdown for the new instance
+        const steeringSegmentDropdown = newInstance.querySelector(
+          '.dv-segment[data-category="STEERING"]'
+        );
+        if (steeringSegmentDropdown) {
+          populateSteeringSegmentDropdown(steeringSegmentDropdown);
+        }
+
+        // If segment type is already selected, setup per-axis bounds
+        if (steeringTypeSelect.value) {
+          const categoryFields = newInstance.querySelector(
+            '.dv-category-fields[data-category="STEERING"]'
+          );
+          const typeFields = categoryFields.querySelector(
+            `.dv-steering-type-fields[data-segment-type="${steeringTypeSelect.value}"]`
+          );
+          if (
+            typeFields &&
+            ["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(
+              steeringTypeSelect.value
+            )
+          ) {
+            console.log(
+              `Setting up per-axis bounds for new ${steeringTypeSelect.value} instance`
+            );
+            setupPerAxisBounds(categoryFields, typeFields);
+          }
+        }
+      }
+    }
+    return newInstance;
+  }
+  addDesignVariableInstance = patchedAddDesignVariableInstance;
+
+  // --- Add CSS for per-axis bounds styling ---
+  function addPerAxisBoundsStyling() {
+    const style = document.createElement("style");
+    style.textContent = `
+      .per-axis-bounds-section {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .axis-checkboxes {
+        display: flex;
+        gap: 15px;
+        margin: 8px 0;
+      }
+      .axis-checkboxes label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+      }
+      .axis-checkboxes input[type="checkbox"] {
+        cursor: pointer;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // --- Initialize existing design variable instances ---
+  function initExistingPerAxisBounds() {
+    console.log("Initializing existing per-axis bounds");
+    const instances = document.querySelectorAll(
+      ".optimization-instance:not(.hidden-template)"
+    );
+    instances.forEach((instance, index) => {
+      console.log(`Processing instance ${index}`);
+      const categorySelect = instance.querySelector(".dv-category");
+      const category = categorySelect ? categorySelect.value : null;
+
+      if (category === "STEERING") {
+        const categoryFields = instance.querySelector(
+          '.dv-category-fields[data-category="STEERING"]'
+        );
+        if (!categoryFields) return;
+
+        const segmentTypeSelect =
+          categoryFields.querySelector(".dv-segment-type");
+        const segmentType = segmentTypeSelect ? segmentTypeSelect.value : null;
+
+        if (
+          segmentType &&
+          ["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(segmentType)
+        ) {
+          console.log(`Instance ${index} has segment type ${segmentType}`);
+          const typeFields = categoryFields.querySelector(
+            `.dv-steering-type-fields[data-segment-type="${segmentType}"]`
+          );
+          if (typeFields) {
+            console.log(
+              `Setting up per-axis bounds for existing ${segmentType} instance`
+            );
+            setupPerAxisBounds(categoryFields, typeFields);
+
+            // Ensure type fields are visible
+            typeFields.classList.remove("hidden");
+          }
+        }
+      }
+    });
+  }
+
+  // --- Initialization function for the module ---
+  const originalInitOptimizationModule = initOptimizationModule;
+  function patchedInitOptimizationModule() {
+    console.log(
+      "Initializing optimization module with per-axis bounds support"
+    );
+    // Call original init
+    originalInitOptimizationModule();
+
+    // Add custom styling
+    addPerAxisBoundsStyling();
+
+    // Setup existing instances
+    setTimeout(initExistingPerAxisBounds, 500); // Small delay to ensure DOM is ready
+
+    // Patch all existing steering segment type selects
+    const steeringTypeSelects = document.querySelectorAll(".dv-segment-type");
+    steeringTypeSelects.forEach((select) => {
+      select.removeEventListener("change", handleSteeringSegmentTypeChange);
+      select.addEventListener("change", patchedHandleSteeringSegmentTypeChange);
+    });
+
+    console.log("Per-axis bounds module initialization complete");
+  }
+  initOptimizationModule = patchedInitOptimizationModule;
+
+  // Ensure initialization happens, especially if the page is already loaded
+  if (document.readyState === "complete") {
+    console.log("Document already loaded, initializing per-axis bounds");
+    addPerAxisBoundsStyling();
+    initExistingPerAxisBounds();
+  }
+
+  // --- Patch getDesignVariablesData to collect per-axis bounds ---
+  const originalGetDesignVariablesData = getDesignVariablesData;
+  function patchedGetDesignVariablesData() {
+    const designVariablesData = [];
+    const instances = designVariablesContainer.querySelectorAll(
+      ".optimization-instance:not(.hidden-template)"
+    );
+    instances.forEach((instance) => {
+      const categorySelect = instance.querySelector(".dv-category");
+      const nameInput = instance.querySelector(".dv-name");
+      const category = categorySelect ? categorySelect.value : null;
+      const name = nameInput ? nameInput.value : null;
+      if (category && name) {
+        const dv = { name: name, category: category, type: {} };
+        const categoryFields = instance.querySelector(
+          `.dv-category-fields[data-category="${category}"]`
+        );
+        if (categoryFields) {
+          const segmentTypeSelect =
+            categoryFields.querySelector(".dv-segment-type");
+          const segmentType = segmentTypeSelect
+            ? segmentTypeSelect.value
+            : null;
+          if (
+            ["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(segmentType)
+          ) {
+            // Per-axis bounds logic
+            const typeFields = categoryFields.querySelector(
+              `.dv-steering-type-fields[data-segment-type="${segmentType}"]`
+            );
+            if (typeFields) {
+              // Collect selected axes
+              const axisCheckboxes = typeFields.querySelectorAll(
+                ".dv-axis-select-cb:checked"
+              );
+              const axes = Array.from(axisCheckboxes).map((cb) => cb.value);
+              dv.type.axis = axes;
+              // Collect bounds for each axis
+              const lowerBounds = [];
+              const upperBounds = [];
+              axes.forEach((axis) => {
+                const lowerInput = typeFields.querySelector(
+                  `.dv-lower-bound[data-axis="${axis}"]`
+                );
+                const upperInput = typeFields.querySelector(
+                  `.dv-upper-bound[data-axis="${axis}"]`
+                );
+                const parseArr = (input) =>
+                  input && input.value
+                    ? input.value
+                        .split(",")
+                        .map((v) => parseFloat(v.trim()))
+                        .filter((v) => !isNaN(v))
+                    : [];
+                lowerBounds.push(parseArr(lowerInput));
+                upperBounds.push(parseArr(upperInput));
+              });
+              dv.type.lower_bound = lowerBounds;
+              dv.type.upper_bound = upperBounds;
+              // Collect other fields as before
+              const controlVarInput = typeFields.querySelector(
+                ".dv-control-variable"
+              );
+              if (controlVarInput)
+                dv.type.control_variable = controlVarInput.value;
+              if (segmentType === "PROFILE") {
+                const indVar = typeFields.querySelector(".dv-ind-variable");
+                const indVector = typeFields.querySelector(".dv-ind-vector");
+                if (indVar) dv.type.ind_variable = indVar.value;
+                if (indVector)
+                  dv.type.ind_vector = indVector.value
+                    .split(",")
+                    .map((v) => parseFloat(v.trim()))
+                    .filter((v) => !isNaN(v));
+              }
+            }
+          } else {
+            // Use original logic for other segment types
+            // This will need to be expanded if you have other segment types
+            // For now, ensure we don't lose data for other types
+            const controlVarInput = categoryFields.querySelector(
+              ".dv-control-variable"
+            );
+            const axisInput = categoryFields.querySelector(".dv-axis");
+            const lowerBoundInput =
+              categoryFields.querySelector(".dv-lower-bound");
+            const upperBoundInput =
+              categoryFields.querySelector(".dv-upper-bound");
+
+            if (controlVarInput)
+              dv.type.control_variable = controlVarInput.value;
+            if (axisInput) {
+              // Handle both <select> and <input> for axis
+              if (axisInput.tagName === "SELECT") {
+                dv.type.axis = axisInput.value;
+              } else {
+                dv.type.axis = axisInput.value
+                  .split(",")
+                  .map((a) => a.trim())
+                  .filter((a) => a);
+              }
+            }
+            if (lowerBoundInput) {
+              const val = lowerBoundInput.value;
+              dv.type.lower_bound = val.includes(",")
+                ? val
+                    .split(",")
+                    .map((v) => parseFloat(v.trim()))
+                    .filter((v) => !isNaN(v))
+                : parseFloat(val);
+            }
+            if (upperBoundInput) {
+              const val = upperBoundInput.value;
+              dv.type.upper_bound = val.includes(",")
+                ? val
+                    .split(",")
+                    .map((v) => parseFloat(v.trim()))
+                    .filter((v) => !isNaN(v))
+                : parseFloat(val);
+            }
+
+            // For PROFILE segment type, add specific fields
+            if (segmentType === "PROFILE") {
+              const indVar = categoryFields.querySelector(".dv-ind-variable");
+              const indVector = categoryFields.querySelector(".dv-ind-vector");
+              if (indVar) dv.type.ind_variable = indVar.value;
+              if (indVector)
+                dv.type.ind_vector = indVector.value
+                  .split(",")
+                  .map((v) => parseFloat(v.trim()))
+                  .filter((v) => !isNaN(v));
+            }
+          }
+        }
+        designVariablesData.push(dv);
+      }
+    });
+    console.log("Collected design variables data:", designVariablesData);
+    return designVariablesData;
+  }
+  getDesignVariablesData = patchedGetDesignVariablesData;
+
+  // --- Fix scope/access issues in our patches ---
+  function fixScope() {
+    // Make sure our patched functions are properly exposed
+    window.handleSteeringSegmentTypeChange =
+      patchedHandleSteeringSegmentTypeChange;
+    window.addDesignVariableInstance = patchedAddDesignVariableInstance;
+    window.getDesignVariablesData = patchedGetDesignVariablesData;
+    window.initOptimizationModule = patchedInitOptimizationModule;
+
+    // Also expose our new helper functions if needed
+    window.setupPerAxisBounds = setupPerAxisBounds;
+    window.initExistingPerAxisBounds = initExistingPerAxisBounds;
+    window.addPerAxisBoundsStyling = addPerAxisBoundsStyling;
+  }
+
+  // Call this after everything else
+  setTimeout(fixScope, 0);
+
+  // Add a direct manual initialization that runs after everything else
+  window.addEventListener("load", function () {
+    console.debug("Window load event - initializing per-axis bounds");
+
+    // Force a timeout to ensure DOM is fully ready
+    setTimeout(() => {
+      console.debug("Delayed initialization starting");
+
+      // Force initialization for all PROFILE and CONST_BODYRATE fields
+      document
+        .querySelectorAll(
+          '.dv-steering-type-fields[data-segment-type="PROFILE"], .dv-steering-type-fields[data-segment-type="CONST_BODYRATE"], .dv-steering-type-fields[data-segment-type="ZERO_RATE"]'
+        )
+        .forEach((typeFields) => {
+          if (typeFields.closest(".hidden-template")) {
+            console.debug("Skipping template field");
+            return; // Skip template
+          }
+
+          const categoryFields = typeFields.closest(
+            '.dv-category-fields[data-category="STEERING"]'
+          );
+          if (categoryFields) {
+            console.debug("Setting up bounds for:", typeFields);
+            setupPerAxisBounds(categoryFields, typeFields);
+
+            // Force a manual checkbox change event on all checkboxes to ensure fields update
+            typeFields.querySelectorAll(".dv-axis-select-cb").forEach((cb) => {
+              const event = new Event("change");
+              cb.dispatchEvent(event);
+              console.debug(`Dispatched change event to ${cb.value} checkbox`);
+            });
+          }
+        });
+
+      console.debug("Delayed initialization complete");
+    }, 1000);
+  });
 });
