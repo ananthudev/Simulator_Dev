@@ -1039,6 +1039,30 @@ const algorithmParameters = {
 // Make algorithm parameters globally available
 window.algorithmParameters = algorithmParameters;
 
+// Control Variable options for each design variable category
+const designVariableControlOptions = {
+  CUT_OFF: ["Time"],
+  PAYLOAD: ["Mass"],
+  AZIMUTH: ["Launch_Azimuth"],
+  SEQUENCE: ["Time"],
+  PROPULSION: ["Propellant"],
+  STEERING: {
+    CLG: ["Euler_Rate", "Body_Rate", "Euler_Angle", "Body_Angle"],
+    ZERO_RATE: ["Stop_Time"],
+    PROFILE: ["Euler_Rate", "Body_Rate", "Euler_Angle", "Body_Angle"],
+    CONST_BODYRATE: [
+      "Stop_Time",
+      "Euler_Rate",
+      "Body_Rate",
+      "Euler_Angle",
+      "Body_Angle",
+    ],
+  },
+};
+
+// Make control options globally available
+window.designVariableControlOptions = designVariableControlOptions;
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Optimization module loaded");
 
@@ -3197,161 +3221,152 @@ document.addEventListener("DOMContentLoaded", function () {
   // Function to handle Design Variable category changes
   function handleDesignVariableCategoryChange(event) {
     const categorySelect = event.target;
-    const selectedCategory = categorySelect.value;
-    const instanceElement = categorySelect.closest(".optimization-instance");
+    const instance = categorySelect.closest(".optimization-instance");
+    const category = categorySelect.value;
 
-    if (!instanceElement) {
-      console.error("Design variable instance element not found.");
-      return;
-    }
+    // Hide all category-specific fields first
+    instance.querySelectorAll(".dv-category-fields").forEach((fields) => {
+      fields.classList.add("hidden");
+    });
 
-    // Hide all dynamic category fields first
-    const allCategoryFields = instanceElement.querySelectorAll(
-      ".dv-category-fields"
+    if (!category) return;
+
+    // Show fields for selected category
+    const categoryFields = instance.querySelector(
+      `.dv-category-fields[data-category="${category}"]`
     );
-    allCategoryFields.forEach((fields) => fields.classList.add("hidden"));
+    if (categoryFields) {
+      categoryFields.classList.remove("hidden");
 
-    // Find and show the field set for the selected category
-    const selectedFieldSet = instanceElement.querySelector(
-      `.dv-category-fields[data-category="${selectedCategory}"]`
-    );
-
-    // Remove hidden class from the selected field set
-    if (selectedFieldSet) {
-      selectedFieldSet.classList.remove("hidden");
-
-      // Populate dropdowns specific to the selected category
-
-      // For categories like CUT_OFF and SEQUENCE, populate dv-flag
-      if (selectedCategory === "CUT_OFF" || selectedCategory === "SEQUENCE") {
-        const flagSelect = selectedFieldSet.querySelector(".dv-flag");
-        if (flagSelect) {
-          // Assuming populateFlagDropdown can handle a context like 'sequence' or 'all'
-          populateFlagDropdown(flagSelect, "all"); // Use 'all' to get all flags
-        }
-      }
-
-      // For categories like PROPULSION and STEERING, find and populate dv-segment
-      const segmentSelect = selectedFieldSet.querySelector(".dv-segment");
-      if (segmentSelect) {
-        // Check if segmentSelect exists
-        if (selectedCategory === "PROPULSION") {
-          populateGenericSegmentDropdown(segmentSelect, "PROPULSION");
-        } else if (selectedCategory === "STEERING") {
-          populateSteeringSegmentDropdown(segmentSelect);
-        } else {
-          // For other categories, or if no specific segment logic, clear the segment dropdown
-          segmentSelect.innerHTML =
-            '<option value="" disabled selected>Select Segment</option>';
-          console.log(
-            `Segment dropdown cleared for category: ${selectedCategory}`
-          );
-        }
-      }
-
-      // For STEERING category, ensure the segment type dropdown and sub-fields container are visible
-      // Note: Population of dv-segment-type and display of specific sub-fields
-      // happens when a segment is selected via the handleSteeringSegmentChange listener.
-      if (selectedCategory === "STEERING") {
-        const steeringSegmentTypeSelect =
-          selectedFieldSet.querySelector(".dv-segment-type");
-        if (steeringSegmentTypeSelect) {
-          // Although it's inside selectedFieldSet which is shown, ensure visibility just in case
-          steeringSegmentTypeSelect.style.display = ""; // Or remove a 'hidden' class if used
-        }
-        const subFieldsContainer = selectedFieldSet.querySelector(
-          ".dv-steering-sub-fields"
-        );
-        if (subFieldsContainer) {
-          subFieldsContainer.style.display = ""; // Ensure the container for type-specific fields is visible
-        }
-      } else {
-        // Hide steering specific fields if category is not STEERING
-        const steeringSegmentTypeSelect =
-          selectedFieldSet.querySelector(".dv-segment-type");
-        if (steeringSegmentTypeSelect) {
-          steeringSegmentTypeSelect.style.display = "none";
-        }
-        const subFieldsContainer = selectedFieldSet.querySelector(
-          ".dv-steering-sub-fields"
-        );
-        if (subFieldsContainer) {
-          subFieldsContainer.style.display = "none";
-        }
-      }
-
-      // Adjust input types based on selected category and potentially other factors
-      // This function name might be misleading as it's used for non-steering too,
-      // but it handles input type adjustments based on category fields
-      adjustInputTypesForSteering(selectedFieldSet);
-
-      // Update the name placeholder based on the selected category and instance index
-      const nameInput = instanceElement.querySelector(".dv-name");
-      if (nameInput) {
-        const defaultNamePatterns = {
-          CUT_OFF: "opt_cut_off",
-          PAYLOAD: "opt_payload",
-          AZIMUTH: "opt_azimuth",
-          SEQUENCE: "opt_coast",
-          PROPULSION: "opt_propulsion",
-          STEERING: "opt_steering",
-        };
-        // Get the instance index from the data-index attribute
-        const instanceIndex = instanceElement.dataset.index || "1";
-
-        const defaultValue = `${
-          defaultNamePatterns[selectedCategory] || "opt_variable"
-        }_${instanceIndex}`;
-        nameInput.value = defaultValue;
-
-        // Remove the placeholder
-        nameInput.placeholder = "";
-
-        // Optional: Clear the input value if it's still the old default or empty
-        // const currentValue = nameInput.value.trim();
-        // if (!currentValue || Object.values(defaultNamePatterns).some(p => currentValue.startsWith(p))) {
-        //     nameInput.value = '';
-        // }
-      }
-    } else {
-      // Handle case where no category is selected
-      // Ensure all category-specific field sets are hidden
-      const allCategoryFields = instanceElement.querySelectorAll(
-        ".dv-category-fields"
+      // Populate control variable dropdown based on category
+      const controlVarSelect = categoryFields.querySelector(
+        ".dv-control-variable"
       );
-      allCategoryFields.forEach((fields) => fields.classList.add("hidden"));
+      if (
+        controlVarSelect &&
+        !controlVarSelect.classList.contains("dv-control-variable-cb")
+      ) {
+        // Clear existing options
+        controlVarSelect.innerHTML =
+          '<option value="" disabled selected>Select Control Variable</option>';
 
-      // Ensure segment/flag dropdowns are reset/empty
-      const segmentSelect = instanceElement.querySelector(".dv-segment");
-      if (segmentSelect) {
-        segmentSelect.innerHTML =
-          '<option value="" disabled selected>Select Segment</option>';
+        // Get options for this category
+        const options = designVariableControlOptions[category];
+        if (Array.isArray(options)) {
+          // For non-steering categories
+          options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option;
+            optionElement.textContent = option.replace(/_/g, " ");
+            controlVarSelect.appendChild(optionElement);
+          });
+        }
       }
-      const flagSelect = instanceElement.querySelector(".dv-flag");
+
+      // Special handling for steering category
+      if (category === "STEERING") {
+        // Add event listener for segment type change if not already added
+        const segmentTypeSelect =
+          categoryFields.querySelector(".dv-segment-type");
+        if (segmentTypeSelect) {
+          segmentTypeSelect.addEventListener("change", function (e) {
+            const segmentType = e.target.value;
+            const steeringTypeFields = instance.querySelectorAll(
+              ".dv-steering-type-fields"
+            );
+
+            // Hide all steering type fields first
+            steeringTypeFields.forEach((field) =>
+              field.classList.add("hidden")
+            );
+
+            // Show selected type fields
+            const selectedTypeFields = instance.querySelector(
+              `.dv-steering-type-fields[data-segment-type="${segmentType}"]`
+            );
+
+            if (selectedTypeFields) {
+              selectedTypeFields.classList.remove("hidden");
+
+              // Handle control variable options based on segment type
+              if (segmentType === "CONST_BODYRATE") {
+                // For CONST_BODYRATE, we already have checkboxes in the HTML
+                const checkboxContainer = selectedTypeFields.querySelector(
+                  ".control-variable-checkboxes"
+                );
+                if (checkboxContainer) {
+                  // Add event listeners to handle checkbox logic
+                  const checkboxes = checkboxContainer.querySelectorAll(
+                    ".dv-control-variable-cb"
+                  );
+                  checkboxes.forEach((checkbox) => {
+                    checkbox.addEventListener("change", function () {
+                      if (this.value === "Stop_Time") {
+                        // If Stop_Time is checked, user can only select one more option
+                        const otherChecked = Array.from(checkboxes).filter(
+                          (cb) => cb !== this && cb.checked
+                        ).length;
+
+                        if (this.checked && otherChecked > 1) {
+                          // Uncheck all except Stop_Time and the first checked option
+                          let foundFirst = false;
+                          checkboxes.forEach((cb) => {
+                            if (cb !== this && cb.checked) {
+                              if (!foundFirst) {
+                                foundFirst = true;
+                              } else {
+                                cb.checked = false;
+                              }
+                            }
+                          });
+                        }
+                      } else {
+                        // If Stop_Time is checked, only allow one other option
+                        const stopTimeChecked = checkboxContainer.querySelector(
+                          'input[value="Stop_Time"]'
+                        ).checked;
+                        if (stopTimeChecked) {
+                          const otherChecked = Array.from(checkboxes).filter(
+                            (cb) => cb.value !== "Stop_Time" && cb.checked
+                          ).length;
+
+                          if (otherChecked > 1) {
+                            this.checked = false;
+                          }
+                        }
+                      }
+                    });
+                  });
+                }
+              } else {
+                // For other steering types, populate the dropdown
+                const controlVarSelect = selectedTypeFields.querySelector(
+                  ".dv-control-variable"
+                );
+                if (controlVarSelect) {
+                  controlVarSelect.innerHTML =
+                    '<option value="" disabled selected>Select Control Variable</option>';
+                  const options =
+                    designVariableControlOptions.STEERING[segmentType] || [];
+                  options.forEach((option) => {
+                    const optionElement = document.createElement("option");
+                    optionElement.value = option;
+                    optionElement.textContent = option.replace(/_/g, " ");
+                    controlVarSelect.appendChild(optionElement);
+                  });
+                }
+              }
+            }
+          });
+        }
+      }
+
+      // Populate flag dropdown if it exists
+      const flagSelect = categoryFields.querySelector(".dv-flag");
       if (flagSelect) {
-        flagSelect.innerHTML =
-          '<option value="" disabled selected>Select Flag</option>';
-      }
-      // Also hide steering specific fields
-      const steeringSegmentTypeSelect =
-        instanceElement.querySelector(".dv-segment-type");
-      if (steeringSegmentTypeSelect) {
-        steeringSegmentTypeSelect.style.display = "none";
-      }
-      const subFieldsContainer = instanceElement.querySelector(
-        ".dv-steering-sub-fields"
-      );
-      if (subFieldsContainer) {
-        subFieldsContainer.style.display = "none";
-      }
-      // Reset placeholder
-      const nameInput = instanceElement.querySelector(".dv-name");
-      if (nameInput) {
-        nameInput.placeholder = "Enter variable name (e.g., opt_variable_1)";
+        populateFlagDropdown(flagSelect, `Design Variable - ${category}`);
       }
     }
-
-    // The call to updateDesignVariableNamePlaceholder was removed in a prior attempt and should not be here.
   }
 
   // Function to handle Steering Segment selection change
@@ -4810,286 +4825,159 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to initialize existing design variables
   function initializeExistingDesignVariables() {
-    try {
-      const missionData = JSON.parse(localStorage.getItem("missionData")) || {};
-      const designVariablesData =
-        missionData.optimization?.designVariables || [];
+    console.debug("Initializing existing design variable instances...");
+    const instances = designVariablesContainer.querySelectorAll(
+      ".optimization-instance:not(.hidden-template)"
+    );
+    instances.forEach((instance, index) => {
+      console.debug(`Initializing instance ${index + 1}:`, instance);
+      const categorySelect = instance.querySelector(".dv-category");
+      const typeSelect = instance.querySelector(".dv-steering-segment-type");
 
-      if (designVariablesData.length > 0) {
-        // Clear existing instances
-        designVariablesContainer.innerHTML = "";
-        designVariableCounter = 0;
+      // Restore data if available (e.g., from a loaded file)
+      // This part is highly dependent on how data is stored and passed for initialization
+      const instanceData = instance.dataset.initialData // Assuming data is passed via dataset
+        ? JSON.parse(instance.dataset.initialData)
+        : {};
 
-        // Create instances for each design variable
-        designVariablesData.forEach((dvData) => {
-          addDesignVariableInstance();
+      if (categorySelect) {
+        if (instanceData.category) categorySelect.value = instanceData.category;
+        handleCategoryChange({ target: categorySelect });
+      }
 
-          // Get the last created instance
-          const newInstance = designVariablesContainer.querySelector(
-            `.optimization-instance:last-child`
-          );
+      const nameInput = instance.querySelector(".dv-name");
+      if (nameInput && instanceData.name) {
+        nameInput.value = instanceData.name;
+      }
 
-          if (newInstance) {
-            // Set basic fields
-            const categorySelect = newInstance.querySelector(".dv-category");
-            const nameInput = newInstance.querySelector(".dv-name");
+      if (categorySelect && categorySelect.value === "STEERING" && typeSelect) {
+        if (instanceData.segment_type)
+          typeSelect.value = instanceData.segment_type;
+        handleSteeringSegmentTypeChange({ target: typeSelect });
 
-            if (categorySelect) {
-              categorySelect.value = dvData.category;
-              categorySelect.dispatchEvent(new Event("change"));
+        const segmentType = typeSelect.value;
+        const categoryFields = instance.querySelector(
+          '.dv-category-fields[data-category="STEERING"]'
+        );
+        const typeFields =
+          categoryFields?.querySelector(
+            `.dv-steering-type-fields[data-segment-type="${segmentType}"]`
+          ) ?? null;
+
+        if (typeFields) {
+          if (["PROFILE", "CONST_BODYRATE", "CLG"].includes(segmentType)) {
+            setupPerAxisBounds(categoryFields, typeFields); // This also handles pre-selecting checkboxes
+            // Pre-fill bounds if data exists
+            if (instanceData.axes && instanceData.axes.length > 0) {
+              instanceData.axes.forEach((axis, axisIndex) => {
+                const axisCb = typeFields.querySelector(
+                  `.dv-axis-select-cb[value="${axis}"]`
+                );
+                if (axisCb) axisCb.checked = true; // Check the box
+
+                // Simulate a change event on the checkbox to trigger bound field visibility and population
+                const event = new Event("change", { bubbles: true });
+                axisCb.dispatchEvent(event);
+
+                const lbInput = typeFields.querySelector(
+                  `.dv-lower-bound-${axis.toLowerCase()}`
+                );
+                const ubInput = typeFields.querySelector(
+                  `.dv-upper-bound-${axis.toLowerCase()}`
+                );
+
+                if (
+                  lbInput &&
+                  instanceData.lower_bound &&
+                  instanceData.lower_bound[axisIndex] !== undefined
+                ) {
+                  lbInput.value = instanceData.lower_bound[axisIndex];
+                }
+                if (
+                  ubInput &&
+                  instanceData.upper_bound &&
+                  instanceData.upper_bound[axisIndex] !== undefined
+                ) {
+                  ubInput.value = instanceData.upper_bound[axisIndex];
+                }
+              });
             }
-
-            if (nameInput) {
-              nameInput.value = dvData.name || "";
-            }
-
-            // Set category-specific fields
-            const categoryFields = newInstance.querySelector(
-              `.dv-category-fields[data-category="${dvData.category}"]`
+            // Pre-fill other common fields for these types
+            const controlVarInput = typeFields.querySelector(
+              ".dv-control-variable"
             );
-            if (categoryFields) {
-              const controlVarInput = categoryFields.querySelector(
-                ".dv-control-variable"
-              );
-              const lowerBoundInput =
-                categoryFields.querySelector(".dv-lower-bound");
-              const upperBoundInput =
-                categoryFields.querySelector(".dv-upper-bound");
-              const flagSelect = categoryFields.querySelector(".dv-flag");
-              const segmentSelect = categoryFields.querySelector(".dv-segment");
+            if (controlVarInput && instanceData.control_variable)
+              controlVarInput.value = instanceData.control_variable;
 
-              // Helper to set input value (handles arrays)
-              const setInputValue = (input, value) => {
-                if (!input || value === undefined || value === null) return;
-                if (Array.isArray(value)) {
-                  input.value = value.join(",");
-                } else {
-                  input.value = value;
-                }
-              };
+            if (segmentType === "PROFILE") {
+              const indVarSelect = typeFields.querySelector(".dv-ind-variable");
+              const indVecInput = typeFields.querySelector(".dv-ind-vector");
+              if (indVarSelect && instanceData.independent_variable)
+                indVarSelect.value = instanceData.independent_variable;
+              if (indVecInput && instanceData.independent_vector_nodes)
+                indVecInput.value =
+                  instanceData.independent_vector_nodes.join(", ");
+            }
+          } else if (segmentType === "ZERO_RATE") {
+            const controlVarInput = typeFields.querySelector(
+              ".dv-control-variable"
+            );
+            const lowerBoundInput = typeFields.querySelector(".dv-lower-bound");
+            const upperBoundInput = typeFields.querySelector(".dv-upper-bound");
 
-              // Set control variables
-              if (
-                controlVarInput &&
-                dvData.type &&
-                dvData.type.control_variable
-              ) {
-                setInputValue(controlVarInput, dvData.type.control_variable);
-              }
-
-              // Set bounds
-              if (
-                lowerBoundInput &&
-                dvData.type &&
-                dvData.type.lower_bound !== undefined
-              ) {
-                setInputValue(lowerBoundInput, dvData.type.lower_bound);
-              }
-
-              if (
-                upperBoundInput &&
-                dvData.type &&
-                dvData.type.upper_bound !== undefined
-              ) {
-                setInputValue(upperBoundInput, dvData.type.upper_bound);
-              }
-
-              // Set flag if applicable
-              if (flagSelect && dvData.flag) {
-                flagSelect.value = dvData.flag;
-              }
-
-              // Set segment if applicable
-              if (segmentSelect && dvData.segment) {
-                segmentSelect.value = dvData.segment;
-              }
-
-              // Special handling for STEERING category
-              if (dvData.category === "STEERING" && dvData.segment_type) {
-                const segmentTypeSelect =
-                  categoryFields.querySelector(".dv-segment-type");
-                if (segmentTypeSelect) {
-                  segmentTypeSelect.value = dvData.segment_type;
-                  segmentTypeSelect.dispatchEvent(new Event("change"));
-
-                  // Find and populate the specific steering type fields
-                  const steeringTypeFields = categoryFields.querySelector(
-                    `.dv-steering-type-fields[data-segment-type="${dvData.segment_type}"]`
-                  );
-
-                  if (steeringTypeFields) {
-                    const typeAxisSelect =
-                      steeringTypeFields.querySelector(".dv-axis");
-
-                    if (typeAxisSelect) {
-                      if (typeAxisSelect.tagName === "SELECT") {
-                        // For dropdown selects (e.g., CLG)
-                        if (dvData.type && dvData.type.axis) {
-                          typeAxisSelect.value = dvData.type.axis;
-                        }
-                      } else if (typeAxisSelect.tagName === "INPUT") {
-                        // For text inputs (multi-axis)
-                        setInputValue(
-                          typeAxisSelect,
-                          dvData.type && dvData.type.axis
-                        );
-                      }
-                    }
-
-                    // For PROFILE type, set additional fields
-                    if (dvData.segment_type === "PROFILE") {
-                      const indVarSelect =
-                        steeringTypeFields.querySelector(".dv-ind-variable");
-                      const indVectorInput =
-                        steeringTypeFields.querySelector(".dv-ind-vector");
-
-                      if (
-                        indVarSelect &&
-                        dvData.type &&
-                        dvData.type.ind_variable
-                      ) {
-                        indVarSelect.value = dvData.type.ind_variable;
-                      }
-
-                      if (
-                        indVectorInput &&
-                        dvData.type &&
-                        dvData.type.ind_vector
-                      ) {
-                        setInputValue(indVectorInput, dvData.type.ind_vector);
-                      }
-                    }
-                  }
-                }
-              }
+            if (controlVarInput && instanceData.control_variable) {
+              controlVarInput.value = instanceData.control_variable;
+            }
+            if (lowerBoundInput && instanceData.lower_bound) {
+              lowerBoundInput.value = instanceData.lower_bound;
+            }
+            if (upperBoundInput && instanceData.upper_bound) {
+              upperBoundInput.value = instanceData.upper_bound;
             }
           }
-        });
-
-        console.log(
-          `Initialized ${designVariablesData.length} existing design variables`
-        );
+        }
       }
-    } catch (error) {
-      console.error("Error initializing existing design variables:", error);
-    }
+
+      const paramTable = instance.querySelector(
+        ".optimization-parameters-table"
+      );
+      const toggleButton = instance.querySelector(".toggle-params-btn");
+      if (paramTable && toggleButton) {
+        const isTableVisible = !paramTable.classList.contains("hidden");
+        toggleButton.textContent = isTableVisible
+          ? "Hide Parameters"
+          : "Show Parameters";
+      }
+    });
+    console.debug("Finished initializing existing design variables.");
   }
 
-  // Call this on page load
-  initializeExistingConstraints();
+  // Make sure this is called after the DOM is fully loaded
+  // if it's not already handled elsewhere.
+  // window.addEventListener('load', initializeExistingDesignVariables);
 
-  // Also need to initialize design variables if they exist
-  initializeExistingDesignVariables();
+  // --- END OF PATCHED SECTION for initializeExistingDesignVariables ---
 
-  // Add design variable specific styles
-  const designVariableStyles = `
-    /* Design Variable styles */
-    #design-variables-container .optimization-instance {
-      background: rgba(30, 30, 30, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-      border-radius: 5px;
-      padding: 15px;
-      position: relative;
-    }
-    
-    #design-variables-container .optimization-instance:hover {
-      background: rgba(40, 40, 40, 0.7);
-      border-color: rgba(255, 255, 255, 0.25);
-    }
-    
-    /* Colored borders for different design variables */
-    #design-variables-container .optimization-instance:nth-child(6n+1) {
-      border-left: 4px solid #4a90e2; /* Blue */
-    }
-    
-    #design-variables-container .optimization-instance:nth-child(6n+2) {
-      border-left: 4px solid #50e3c2; /* Teal */
-    }
-    
-    #design-variables-container .optimization-instance:nth-child(6n+3) {
-      border-left: 4px solid #e6a545; /* Orange */
-    }
-    
-    #design-variables-container .optimization-instance:nth-child(6n+4) {
-      border-left: 4px solid #bd10e0; /* Purple */
-    }
-    
-    #design-variables-container .optimization-instance:nth-child(6n+5) {
-      border-left: 4px solid #e3506f; /* Pink */
-    }
-    
-    #design-variables-container .optimization-instance:nth-child(6n+6) {
-      border-left: 4px solid #67c23a; /* Green */
-    }
-    
-    /* Add color coding classes by index */
-    .design-var-color-1 { border-left: 4px solid #4a90e2 !important; } /* Blue */
-    .design-var-color-2 { border-left: 4px solid #50e3c2 !important; } /* Teal */
-    .design-var-color-3 { border-left: 4px solid #e6a545 !important; } /* Orange */
-    .design-var-color-4 { border-left: 4px solid #bd10e0 !important; } /* Purple */
-    .design-var-color-5 { border-left: 4px solid #e3506f !important; } /* Pink */
-    .design-var-color-6 { border-left: 4px solid #67c23a !important; } /* Green */
-    
-    /* Divider between design variable instances */
-    .design-variable-divider {
-      height: 15px;
-      margin-bottom: 20px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.2);
-      position: relative;
-    }
-    
-    .design-variable-divider:after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: -8px;
-      transform: translateX(-50%);
-      width: 40px;
-      height: 15px;
-      background: #1e1e1e;
-      border-radius: 10px;
-    }
-    
-    .instance-title {
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #ffffff;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-      padding-bottom: 10px;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    
-    .dv-dynamic-fields {
-      margin-top: 15px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.1);
-    }
-    
-    .dv-category-fields {
-      margin-bottom: 10px;
-    }
-    
-    .dv-steering-sub-fields {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dotted rgba(255, 255, 255, 0.1);
-    }
-    
-    .dv-steering-type-fields {
-      margin-top: 10px;
-    }
-  `;
+  // Simplified window.onload, focusing on initializing existing DV if any and general setup
+  window.addEventListener("load", () => {
+    console.log("Window loaded. Initializing optimization UI components.");
 
-  // Add the design variable styles to the document
-  const dvStyleSheet = document.createElement("style");
-  dvStyleSheet.type = "text/css";
-  dvStyleSheet.textContent = designVariableStyles;
-  document.head.appendChild(dvStyleSheet);
+    // Setup for existing Design Variable instances
+    initializeExistingDesignVariables(); // This will handle category and type changes internally
+
+    // Add event listener for adding new design variables
+    const addDvButton = document.getElementById("add-dv-btn");
+    if (addDvButton) {
+      addDvButton.addEventListener("click", patchedAddDesignVariableInstance);
+    } else {
+      console.error("Add Design Variable button not found.");
+    }
+
+    // Other initializations
+    setupGlobalEventListeners(); // For delete buttons, etc.
+    updateDesignVariablesJsonOutput(); // Initial update
+    // Any other on-load setup tasks
+  });
 
   // =========================================
   // MODE FORM FUNCTIONS
@@ -7210,7 +7098,8 @@ document.addEventListener("DOMContentLoaded", function () {
       `.dv-steering-type-fields[data-segment-type="${selectedType}"]`
     );
     if (!typeFields) return;
-    if (["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(selectedType)) {
+    // Updated list: PROFILE, CONST_BODYRATE, CLG
+    if (["PROFILE", "CONST_BODYRATE", "CLG"].includes(selectedType)) {
       console.log(
         `Setting up per-axis bounds for ${selectedType} segment type`
       );
@@ -7256,9 +7145,10 @@ document.addEventListener("DOMContentLoaded", function () {
           const typeFields = categoryFields.querySelector(
             `.dv-steering-type-fields[data-segment-type="${steeringTypeSelect.value}"]`
           );
+          // Updated list: PROFILE, CONST_BODYRATE, CLG
           if (
             typeFields &&
-            ["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(
+            ["PROFILE", "CONST_BODYRATE", "CLG"].includes(
               steeringTypeSelect.value
             )
           ) {
@@ -7324,9 +7214,10 @@ document.addEventListener("DOMContentLoaded", function () {
           categoryFields.querySelector(".dv-segment-type");
         const segmentType = segmentTypeSelect ? segmentTypeSelect.value : null;
 
+        // Updated list: PROFILE, CONST_BODYRATE, CLG
         if (
           segmentType &&
-          ["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(segmentType)
+          ["PROFILE", "CONST_BODYRATE", "CLG"].includes(segmentType)
         ) {
           console.log(`Instance ${index} has segment type ${segmentType}`);
           const typeFields = categoryFields.querySelector(
@@ -7402,9 +7293,8 @@ document.addEventListener("DOMContentLoaded", function () {
           const segmentType = segmentTypeSelect
             ? segmentTypeSelect.value
             : null;
-          if (
-            ["PROFILE", "CONST_BODYRATE", "ZERO_RATE"].includes(segmentType)
-          ) {
+          // Updated list: PROFILE, CONST_BODYRATE, CLG
+          if (["PROFILE", "CONST_BODYRATE", "CLG"].includes(segmentType)) {
             // Per-axis bounds logic
             const typeFields = categoryFields.querySelector(
               `.dv-steering-type-fields[data-segment-type="${segmentType}"]`
@@ -7456,22 +7346,22 @@ document.addEventListener("DOMContentLoaded", function () {
               }
             }
           } else {
-            // Use original logic for other segment types
-            // This will need to be expanded if you have other segment types
-            // For now, ensure we don't lose data for other types
+            // Use original logic for other segment types (e.g. ZERO_RATE)
             const controlVarInput = categoryFields.querySelector(
               ".dv-control-variable"
             );
-            const axisInput = categoryFields.querySelector(".dv-axis");
+            const axisInput = categoryFields.querySelector(".dv-axis"); // May not exist for ZERO_RATE
             const lowerBoundInput =
-              categoryFields.querySelector(".dv-lower-bound");
+              categoryFields.querySelector(".dv-lower-bound"); // May not exist for ZERO_RATE
             const upperBoundInput =
-              categoryFields.querySelector(".dv-upper-bound");
+              categoryFields.querySelector(".dv-upper-bound"); // May not exist for ZERO_RATE
 
-            if (controlVarInput)
+            if (controlVarInput) {
               dv.type.control_variable = controlVarInput.value;
+            }
+            // For types like ZERO_RATE that now don't have axis/bounds in this specific UI,
+            // ensure we don't try to read them if they aren't there.
             if (axisInput) {
-              // Handle both <select> and <input> for axis
               if (axisInput.tagName === "SELECT") {
                 dv.type.axis = axisInput.value;
               } else {
@@ -7500,7 +7390,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 : parseFloat(val);
             }
 
-            // For PROFILE segment type, add specific fields
+            // For PROFILE segment type (should not hit here if PROFILE is in the per-axis list)
             if (segmentType === "PROFILE") {
               const indVar = categoryFields.querySelector(".dv-ind-variable");
               const indVector = categoryFields.querySelector(".dv-ind-vector");
@@ -7547,10 +7437,10 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => {
       console.debug("Delayed initialization starting");
 
-      // Force initialization for all PROFILE and CONST_BODYRATE fields
+      // Force initialization for all PROFILE, CONST_BODYRATE, and CLG fields
       document
         .querySelectorAll(
-          '.dv-steering-type-fields[data-segment-type="PROFILE"], .dv-steering-type-fields[data-segment-type="CONST_BODYRATE"], .dv-steering-type-fields[data-segment-type="ZERO_RATE"]'
+          '.dv-steering-type-fields[data-segment-type="PROFILE"], .dv-steering-type-fields[data-segment-type="CONST_BODYRATE"], .dv-steering-type-fields[data-segment-type="CLG"]'
         )
         .forEach((typeFields) => {
           if (typeFields.closest(".hidden-template")) {

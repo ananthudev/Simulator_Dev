@@ -2750,11 +2750,12 @@
                 <label class="label dv-control-variable-label"
                   >Control Variable:</label
                 >
-                <input
-                  type="text"
-                  class="input-field dv-control-variable"
-                  placeholder="e.g., TIME"
-                />
+                <select class="input-field dv-control-variable">
+                  <option value="" disabled selected>
+                    Select Control Variable
+                  </option>
+                  <!-- Options populated by JS -->
+                </select>
               </div>
             </div>
             <div class="form-row">
@@ -2784,34 +2785,33 @@
             <div class="form-row">
               <div class="form-group full-width">
                 <label class="label dv-control-variable-label"
-                  >Control Variable(s):</label
+                  >Control Variable:</label
                 >
-                <input
-                  type="text"
-                  class="input-field dv-control-variable"
-                  placeholder="e.g., MASS (comma-separated if multiple)"
-                />
+                <select class="input-field dv-control-variable">
+                  <option value="" disabled selected>
+                    Select Control Variable
+                  </option>
+                  <!-- Options populated by JS -->
+                </select>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label"
-                  >Lower Bound(s):</label
-                >
+                <label class="label dv-lower-bound-label">Lower Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-lower-bound"
-                  placeholder="e.g., 1000 (comma-separated)"
+                  placeholder="Enter lower bound"
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label"
-                  >Upper Bound(s):</label
-                >
+                <label class="label dv-upper-bound-label">Upper Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-upper-bound"
-                  placeholder="e.g., 5000 (comma-separated)"
+                  placeholder="Enter upper bound"
                 />
               </div>
             </div>
@@ -2822,34 +2822,33 @@
             <div class="form-row">
               <div class="form-group full-width">
                 <label class="label dv-control-variable-label"
-                  >Control Variable(s):</label
+                  >Control Variable:</label
                 >
-                <input
-                  type="text"
-                  class="input-field dv-control-variable"
-                  placeholder="e.g., AZIMUTH_ANGLE (comma-separated)"
-                />
+                <select class="input-field dv-control-variable">
+                  <option value="" disabled selected>
+                    Select Control Variable
+                  </option>
+                  <!-- Options populated by JS -->
+                </select>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label"
-                  >Lower Bound(s) (deg):</label
-                >
+                <label class="label dv-lower-bound-label">Lower Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-lower-bound"
-                  placeholder="e.g., 0 (comma-separated)"
+                  placeholder="Enter lower bound"
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label"
-                  >Upper Bound(s) (deg):</label
-                >
+                <label class="label dv-upper-bound-label">Upper Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-upper-bound"
-                  placeholder="e.g., 360 (comma-separated)"
+                  placeholder="Enter upper bound"
                 />
               </div>
             </div>
@@ -2867,34 +2866,33 @@
               </div>
               <div class="form-group">
                 <label class="label dv-control-variable-label"
-                  >Control Variable(s):</label
+                  >Control Variable:</label
                 >
-                <input
-                  type="text"
-                  class="input-field dv-control-variable"
-                  placeholder="e.g., DURATION (comma-separated)"
-                />
+                <select class="input-field dv-control-variable">
+                  <option value="" disabled selected>
+                    Select Control Variable
+                  </option>
+                  <!-- Options populated by JS -->
+                </select>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label"
-                  >Lower Bound(s):</label
-                >
+                <label class="label dv-lower-bound-label">Lower Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-lower-bound"
-                  placeholder="e.g., 10 (comma-separated)"
+                  placeholder="Enter lower bound"
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label"
-                  >Upper Bound(s):</label
-                >
+                <label class="label dv-upper-bound-label">Upper Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-upper-bound"
-                  placeholder="e.g., 100 (comma-separated)"
+                  placeholder="Enter upper bound"
                 />
               </div>
             </div>
@@ -2907,39 +2905,38 @@
                 <label class="label dv-segment-label">Segment:</label>
                 <select class="input-field dv-segment reference-dropdown">
                   <option value="" disabled selected>Select Segment</option>
-                  <!-- Options populated by JS (e.g., Stage names) -->
+                  <!-- Options populated by JS -->
                 </select>
               </div>
               <div class="form-group">
                 <label class="label dv-control-variable-label"
-                  >Control Variable(s):</label
+                  >Control Variable:</label
                 >
-                <input
-                  type="text"
-                  class="input-field dv-control-variable"
-                  placeholder="e.g., THRUST_SCALE (comma-separated)"
-                />
+                <select class="input-field dv-control-variable">
+                  <option value="" disabled selected>
+                    Select Control Variable
+                  </option>
+                  <!-- Options populated by JS -->
+                </select>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label"
-                  >Lower Bound(s):</label
-                >
+                <label class="label dv-lower-bound-label">Lower Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-lower-bound"
-                  placeholder="e.g., 0.8 (comma-separated)"
+                  placeholder="Enter lower bound"
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label"
-                  >Upper Bound(s):</label
-                >
+                <label class="label dv-upper-bound-label">Upper Bound:</label>
                 <input
-                  type="text"
+                  type="number"
+                  step="any"
                   class="input-field dv-upper-bound"
-                  placeholder="e.g., 1.2 (comma-separated)"
+                  placeholder="Enter upper bound"
                 />
               </div>
             </div>
@@ -2978,76 +2975,18 @@
               >
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="label dv-axis-label">Axis:</label>
-                    <select class="input-field dv-axis">
-                      <option value="" disabled selected>Select Axis</option>
-                      <option value="pitch">Pitch</option>
-                      <option value="yaw">Yaw</option>
-                      <!-- Add other relevant axes -->
-                    </select>
-                  </div>
-                  <div class="form-group">
                     <label class="label dv-control-variable-label"
                       >Control Variable:</label
                     >
-                    <input
-                      type="text"
-                      class="input-field dv-control-variable"
-                      placeholder="e.g., GAIN"
-                    />
+                    <select class="input-field dv-control-variable">
+                      <option value="" disabled selected>
+                        Select Control Variable
+                      </option>
+                      <!-- Options populated by JS -->
+                    </select>
                   </div>
                 </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="label dv-lower-bound-label"
-                      >Lower Bound:</label
-                    >
-                    <input
-                      type="number"
-                      step="any"
-                      class="input-field dv-lower-bound"
-                      placeholder="Enter lower bound"
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label class="label dv-upper-bound-label"
-                      >Upper Bound:</label
-                    >
-                    <input
-                      type="number"
-                      step="any"
-                      class="input-field dv-upper-bound"
-                      placeholder="Enter upper bound"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Steering: ZERO_RATE -->
-              <div
-                class="dv-steering-type-fields hidden"
-                data-segment-type="ZERO_RATE"
-              >
-                <!-- Original ZERO_RATE specific controls if any (e.g., a general duration or control variable) -->
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="label" for="dv-zerorate-control-variable"
-                      >Control Variable (Duration/General):</label
-                    >
-                    <input
-                      type="text"
-                      class="input-field dv-control-variable"
-                      id="dv-zerorate-control-variable"
-                      placeholder="e.g., Duration value or parameter name"
-                    />
-                    <small class="input-help"
-                      >General control variable if applicable, bounds per axis
-                      below.</small
-                    >
-                  </div>
-                </div>
-
-                <!-- New Axis Selection Checkboxes -->
+                <!-- New Axis Selection Checkboxes for CLG -->
                 <div class="form-group dv-axis-checkbox-group">
                   <label class="label">Axes (Select at least one):</label>
                   <div class="axis-checkboxes">
@@ -3083,10 +3022,56 @@
                     At least one axis must be selected.
                   </div>
                 </div>
-
-                <!-- Container for Dynamic Per-Axis Bounds -->
+                <!-- Container for Dynamic Per-Axis Bounds for CLG -->
                 <div class="dv-axis-bounds-container">
                   <!-- Dynamically injected bounds sections will go here -->
+                </div>
+              </div>
+
+              <!-- Steering: ZERO_RATE -->
+              <div
+                class="dv-steering-type-fields hidden"
+                data-segment-type="ZERO_RATE"
+              >
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-control-variable-label"
+                      >Control Variable:</label
+                    >
+                    <select class="input-field dv-control-variable">
+                      <option value="" disabled selected>
+                        Select Control Variable
+                      </option>
+                      <!-- Options populated by JS -->
+                    </select>
+                  </div>
+                </div>
+                <!-- Add Lower Bound and Upper Bound fields for ZERO_RATE -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-lower-bound-label"
+                      >Lower Bound:</label
+                    >
+                    <input
+                      type="number"
+                      step="any"
+                      class="input-field dv-lower-bound"
+                      placeholder="e.g., 0"
+                    />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="label dv-upper-bound-label"
+                      >Upper Bound:</label
+                    >
+                    <input
+                      type="number"
+                      step="any"
+                      class="input-field dv-upper-bound"
+                      placeholder="e.g., 100"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -3100,11 +3085,48 @@
                     <label class="label dv-control-variable-label"
                       >Control Variable(s):</label
                     >
-                    <input
-                      type="text"
-                      class="input-field dv-control-variable"
-                      placeholder="e.g., RATE (comma-separated)"
-                    />
+                    <div class="control-variable-checkboxes">
+                      <label
+                        ><input
+                          type="checkbox"
+                          value="Stop_Time"
+                          class="dv-control-variable-cb"
+                        />
+                        Stop Time</label
+                      >
+                      <label
+                        ><input
+                          type="checkbox"
+                          value="Euler_Rate"
+                          class="dv-control-variable-cb"
+                        />
+                        Euler Rate</label
+                      >
+                      <label
+                        ><input
+                          type="checkbox"
+                          value="Body_Rate"
+                          class="dv-control-variable-cb"
+                        />
+                        Body Rate</label
+                      >
+                      <label
+                        ><input
+                          type="checkbox"
+                          value="Euler_Angle"
+                          class="dv-control-variable-cb"
+                        />
+                        Euler Angle</label
+                      >
+                      <label
+                        ><input
+                          type="checkbox"
+                          value="Body_Angle"
+                          class="dv-control-variable-cb"
+                        />
+                        Body Angle</label
+                      >
+                    </div>
                   </div>
                 </div>
                 <!-- New Axis Selection Checkboxes -->
@@ -3159,11 +3181,12 @@
                     <label class="label dv-control-variable-label"
                       >Control Variable:</label
                     >
-                    <input
-                      type="text"
-                      class="input-field dv-control-variable"
-                      placeholder="e.g., PROFILE_VALUE"
-                    />
+                    <select class="input-field dv-control-variable">
+                      <option value="" disabled selected>
+                        Select Control Variable
+                      </option>
+                      <!-- Options populated by JS -->
+                    </select>
                   </div>
                 </div>
                 <!-- New Axis Selection Checkboxes -->
