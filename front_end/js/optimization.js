@@ -3364,42 +3364,70 @@ document.addEventListener("DOMContentLoaded", function () {
                   const checkboxes = checkboxContainer.querySelectorAll(
                     ".dv-control-variable-cb"
                   );
+
+                  const mutuallyExclusiveGroupValues = [
+                    "Euler_Rate",
+                    "Body_Rate",
+                    "Euler_Angle",
+                    "Body_Angle",
+                  ];
+
                   checkboxes.forEach((checkbox) => {
                     checkbox.addEventListener("change", function () {
-                      if (this.value === "Stop_Time") {
-                        // If Stop_Time is checked, user can only select one more option
-                        const otherChecked = Array.from(checkboxes).filter(
-                          (cb) => cb !== this && cb.checked
-                        ).length;
+                      const clickedCheckbox = this;
+                      const clickedValue = clickedCheckbox.value;
+                      const isClickedRateAngle =
+                        mutuallyExclusiveGroupValues.includes(clickedValue);
 
-                        if (this.checked && otherChecked > 1) {
-                          // Uncheck all except Stop_Time and the first checked option
-                          let foundFirst = false;
+                      if (clickedCheckbox.checked) {
+                        if (isClickedRateAngle) {
+                          // Uncheck other Rate/Angle checkboxes
                           checkboxes.forEach((cb) => {
-                            if (cb !== this && cb.checked) {
-                              if (!foundFirst) {
-                                foundFirst = true;
-                              } else {
-                                cb.checked = false;
-                              }
+                            if (
+                              cb !== clickedCheckbox &&
+                              mutuallyExclusiveGroupValues.includes(cb.value)
+                            ) {
+                              cb.checked = false;
                             }
                           });
                         }
-                      } else {
-                        // If Stop_Time is checked, only allow one other option
-                        const stopTimeChecked = checkboxContainer.querySelector(
-                          'input[value="Stop_Time"]'
-                        ).checked;
-                        if (stopTimeChecked) {
-                          const otherChecked = Array.from(checkboxes).filter(
-                            (cb) => cb.value !== "Stop_Time" && cb.checked
-                          ).length;
 
-                          if (otherChecked > 1) {
-                            this.checked = false;
+                        // Validate overall selection
+                        const stopTimeCheckbox = Array.from(checkboxes).find(
+                          (cb) => cb.value === "Stop_Time"
+                        );
+                        const checkedRateAngleCheckboxes = Array.from(
+                          checkboxes
+                        ).filter(
+                          (cb) =>
+                            mutuallyExclusiveGroupValues.includes(cb.value) &&
+                            cb.checked
+                        );
+
+                        if (
+                          stopTimeCheckbox &&
+                          stopTimeCheckbox.checked &&
+                          checkedRateAngleCheckboxes.length > 1
+                        ) {
+                          // This case implies Stop_Time is checked, and the user tried to check a second Rate/Angle.
+                          // The just-clicked item (which is a Rate/Angle one) should be unchecked.
+                          if (isClickedRateAngle) {
+                            // Ensure the clicked one was indeed Rate/Angle
+                            clickedCheckbox.checked = false;
+                            if (typeof showWarning === "function") {
+                              showWarning(
+                                "You can select Stop Time with only one of Euler Rate, Body Rate, Euler Angle, or Body Angle."
+                              );
+                            } else {
+                              console.warn(
+                                "showWarning function not available. Cannot display warning."
+                              );
+                            }
                           }
                         }
                       }
+                      // No specific action needed on uncheck for these rules,
+                      // as unchecking doesn't create an invalid state from a valid one.
                     });
                   });
                 }
@@ -3723,7 +3751,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Set the instance title
     const titleElement = newInstance.querySelector(".instance-title span");
     if (titleElement) {
-      titleElement.textContent = `#${designVariableCounter}`;
+      titleElement.textContent = designVariableCounter;
     }
 
     // Get the name input field and set its initial state
@@ -3732,6 +3760,15 @@ document.addEventListener("DOMContentLoaded", function () {
       nameInput.disabled = true;
       nameInput.placeholder = "Select Category to Generate Name";
     }
+
+    // Style the new instance before appending
+    const existingDvInstances = designVariablesContainer.querySelectorAll(
+      ".optimization-instance:not(.hidden-template)"
+    );
+    const newIndex = existingDvInstances.length; // Index for the new instance
+    applyOptimizationInstanceStyling(newInstance, newIndex, "design-variable");
+
+    return newInstance; // Added return statement
   }
 
   // Function to renumber design variables after deletion
@@ -4376,6 +4413,58 @@ document.addEventListener("DOMContentLoaded", function () {
       font-size: 12px;
       margin-top: 4px;
   }
+
+  /* Design Variable form styles with increased specificity */
+  #design-variables-container .optimization-instance {
+      background: rgba(30, 30, 30, 0.5) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16) !important;
+      transition: all 0.3s ease !important;
+      margin-bottom: 20px !important;
+      border-radius: 5px !important;
+      padding: 15px !important;
+      position: relative !important;
+  }
+  
+  #design-variables-container .optimization-instance:hover {
+      background: rgba(40, 40, 40, 0.7) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+  }
+  
+  #design-variables-container .design-variable-form-1 {
+      border-left: 4px solid #4a90e2 !important; /* Blue */
+  }
+  
+  #design-variables-container .design-variable-form-2 {
+      border-left: 4px solid #50e3c2 !important; /* Teal */
+  }
+  
+  #design-variables-container .design-variable-form-3 {
+      border-left: 4px solid #e6a545 !important; /* Orange */
+  }
+  
+  #design-variables-container .design-variable-form-4 {
+      border-left: 4px solid #bd10e0 !important; /* Purple */
+  }
+  
+  #design-variables-container .design-variable-form-5 {
+      border-left: 4px solid #e3506f !important; /* Pink */
+  }
+  
+  #design-variables-container .design-variable-form-6 {
+      border-left: 4px solid #67c23a !important; /* Green */
+  }
+  
+  #design-variables-container .design-variable-heading {
+      margin-top: 0 !important;
+      margin-bottom: 18px !important;
+      color: #ffffff !important;
+      font-size: 18px !important;
+      font-weight: 600 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Copied from constraint-heading for consistency */
+      padding-bottom: 10px !important; /* Copied from constraint-heading for consistency */
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  }
   `;
 
   // Apply the styles more directly to ensure they take effect
@@ -4383,6 +4472,31 @@ document.addEventListener("DOMContentLoaded", function () {
   styleSheet.type = "text/css";
   styleSheet.textContent = optimizationStyles; // Use textContent instead of innerText
   document.head.appendChild(styleSheet);
+
+  // Helper function to apply styling to optimization instances (constraints, design variables, etc.)
+  function applyOptimizationInstanceStyling(instance, index, typePrefix) {
+    const colorIndex = (index + 1) % 6 || 6; // Cycle 1-6
+
+    // Remove any existing color-specific classes for this type to prevent accumulation
+    for (let i = 1; i <= 6; i++) {
+      instance.classList.remove(`${typePrefix}-form-${i}`);
+    }
+    instance.classList.add(`${typePrefix}-form-${colorIndex}`);
+
+    // Direct style for border-left is applied by the CSS class with !important
+    // but we ensure the class is present.
+
+    const heading = instance.querySelector(".instance-title"); // Common class for title element
+    if (heading) {
+      // Remove other potential heading classes to avoid conflicts if type changes (though unlikely here)
+      heading.classList.remove(
+        "constraint-heading",
+        "design-variable-heading",
+        "objective-heading"
+      );
+      heading.classList.add(`${typePrefix}-heading`);
+    }
+  }
 
   // Also add initialization for existing constraints
   function initializeExistingConstraints() {
@@ -4395,26 +4509,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     existingConstraints.forEach((instance, index) => {
-      // Add the class and direct styling
-      const colorIndex = (index + 1) % 6 || 6;
-      instance.classList.add(`constraint-form-${colorIndex}`);
-
-      // Apply direct color with inline style
-      const borderColors = {
-        1: "#4a90e2", // Blue
-        2: "#50e3c2", // Teal
-        3: "#e6a545", // Orange
-        4: "#bd10e0", // Purple
-        5: "#e3506f", // Pink
-        6: "#67c23a", // Green
-      };
-      instance.style.borderLeft = `4px solid ${borderColors[colorIndex]}`;
-
-      // Make the heading more prominent
-      const heading = instance.querySelector(".instance-title");
-      if (heading) {
-        heading.classList.add("constraint-heading");
-      }
+      applyOptimizationInstanceStyling(instance, index, "constraint");
 
       // Check if flag dropdown should be disabled for this constraint
       const nameSelect = instance.querySelector(".constraint-name");

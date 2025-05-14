@@ -11,3 +11,4 @@
    - Validate each step works with existing components
    - Keep code modular and maintainable 
 8. update the @TODO.md file, when every tasks is completed
+9. Dont break CSS, alignment or margins

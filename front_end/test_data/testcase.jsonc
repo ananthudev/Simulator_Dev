@@ -965,5 +965,6 @@
     "DataBase": "OFF",
     "Generate": "ON",
     "Format": "csv",
-    "Time_intervel": 0.0, //0.0 for default intervel(step_size)
-
+    "Time_intervel": 0.0, 
+    "Time_step": 0.0,
+  },
