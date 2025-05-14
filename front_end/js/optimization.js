@@ -3229,7 +3229,21 @@ document.addEventListener("DOMContentLoaded", function () {
       fields.classList.add("hidden");
     });
 
-    if (!category) return;
+    if (!category) {
+      // If no category is selected, ensure name input is disabled and placeholder is set
+      const nameInput = instance.querySelector(".dv-name");
+      if (nameInput) {
+        nameInput.disabled = true;
+        nameInput.value = "";
+        nameInput.placeholder = "Select Category to Generate Name";
+      }
+      // Clear all segment dropdowns in this instance if no category is selected
+      instance.querySelectorAll(".dv-segment").forEach((s) => {
+        s.innerHTML =
+          '<option value="" disabled selected>Select Segment</option>';
+      });
+      return;
+    }
 
     // Show fields for selected category
     const categoryFields = instance.querySelector(
@@ -3237,6 +3251,29 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     if (categoryFields) {
       categoryFields.classList.remove("hidden");
+
+      // Populate/Clear segment dropdown based on category
+      const segmentSelect = categoryFields.querySelector(".dv-segment");
+      if (segmentSelect) {
+        if (category === "PROPULSION") {
+          console.log(
+            `Populating PROPULSION segment for DV: ${instance.dataset.index}`
+          );
+          populateGenericSegmentDropdown(segmentSelect, "PROPULSION");
+        } else if (category === "STEERING") {
+          console.log(
+            `Populating STEERING segment for DV: ${instance.dataset.index}`
+          );
+          populateSteeringSegmentDropdown(segmentSelect);
+        } else {
+          // Clear segment dropdown for other categories if it exists in their specific fields
+          segmentSelect.innerHTML =
+            '<option value="" disabled selected>Select Segment</option>';
+        }
+      } else {
+        // If this category (e.g. PAYLOAD) doesn't have a segment dropdown in its specific fields, this is fine.
+        // We ensure any segment dropdowns from other categories (now hidden) don't interfere.
+      }
 
       // Populate control variable dropdown based on category
       const controlVarSelect = categoryFields.querySelector(
@@ -3289,7 +3326,35 @@ document.addEventListener("DOMContentLoaded", function () {
               selectedTypeFields.classList.remove("hidden");
 
               // Handle control variable options based on segment type
-              if (segmentType === "CONST_BODYRATE") {
+              if (segmentType === "PROFILE") {
+                // Ensure per-axis bounds are set up for the PROFILE type
+                // categoryFields here is the main .dv-category-fields[data-category="STEERING"]
+                // selectedTypeFields is the .dv-steering-type-fields[data-segment-type="PROFILE"]
+                if (typeof setupPerAxisBounds === "function") {
+                  setupPerAxisBounds(categoryFields, selectedTypeFields);
+                } else {
+                  console.error(
+                    "setupPerAxisBounds function is not defined. Cannot set up axis bounds."
+                  );
+                }
+
+                // Populate control variable dropdown for PROFILE
+                const controlVarSelect = selectedTypeFields.querySelector(
+                  ".dv-control-variable"
+                );
+                if (controlVarSelect) {
+                  controlVarSelect.innerHTML =
+                    '<option value="" disabled selected>Select Control Variable</option>';
+                  const options =
+                    designVariableControlOptions.STEERING[segmentType] || [];
+                  options.forEach((option) => {
+                    const optionElement = document.createElement("option");
+                    optionElement.value = option;
+                    optionElement.textContent = option.replace(/_/g, " ");
+                    controlVarSelect.appendChild(optionElement);
+                  });
+                }
+              } else if (segmentType === "CONST_BODYRATE") {
                 // For CONST_BODYRATE, we already have checkboxes in the HTML
                 const checkboxContainer = selectedTypeFields.querySelector(
                   ".control-variable-checkboxes"
@@ -3366,6 +3431,51 @@ document.addEventListener("DOMContentLoaded", function () {
       if (flagSelect) {
         populateFlagDropdown(flagSelect, `Design Variable - ${category}`);
       }
+
+      // Restore dynamic name generation
+      const nameInput = instance.querySelector(".dv-name");
+      if (nameInput) {
+        if (category) {
+          // A category is selected
+          nameInput.disabled = false;
+          const defaultNamePatterns = {
+            CUT_OFF: "opt_cut_off",
+            PAYLOAD: "opt_payload",
+            AZIMUTH: "opt_azimuth",
+            SEQUENCE: "opt_coast",
+            PROPULSION: "opt_propulsion",
+            STEERING: "opt_steering",
+          };
+          const instanceIndex =
+            instance.dataset.index ||
+            Array.from(
+              designVariablesContainer.querySelectorAll(
+                ".optimization-instance"
+              )
+            ).indexOf(instance) + 1;
+          const baseName = defaultNamePatterns[category] || "opt_variable";
+          nameInput.value = `${baseName}_${instanceIndex}`;
+          nameInput.placeholder = ""; // Clear placeholder as value is set
+        } else {
+          // No category is selected (e.g., "Select Category" was chosen)
+          nameInput.disabled = true;
+          nameInput.value = "";
+          nameInput.placeholder = "Select Category to Generate Name";
+        }
+      }
+    } else {
+      // No category selected, or category fieldset not found
+      const nameInput = instance.querySelector(".dv-name");
+      if (nameInput) {
+        nameInput.disabled = true;
+        nameInput.value = "";
+        nameInput.placeholder = "Select Category to Generate Name";
+      }
+      // Ensure any segment dropdowns in any (now hidden) category fields are cleared
+      instance.querySelectorAll(".dv-segment").forEach((s) => {
+        s.innerHTML =
+          '<option value="" disabled selected>Select Segment</option>';
+      });
     }
   }
 
@@ -3609,6 +3719,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Populate dropdowns for the new instance AFTER it's added to the DOM
     populateDesignVariableDropdowns(newInstance);
+
+    // Set the instance title
+    const titleElement = newInstance.querySelector(".instance-title span");
+    if (titleElement) {
+      titleElement.textContent = `#${designVariableCounter}`;
+    }
+
+    // Get the name input field and set its initial state
+    const nameInput = newInstance.querySelector(".dv-name");
+    if (nameInput) {
+      nameInput.disabled = true;
+      nameInput.placeholder = "Select Category to Generate Name";
+    }
   }
 
   // Function to renumber design variables after deletion
@@ -4842,7 +4965,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (categorySelect) {
         if (instanceData.category) categorySelect.value = instanceData.category;
-        handleCategoryChange({ target: categorySelect });
+        handleDesignVariableCategoryChange({ target: categorySelect }); // Corrected function name
       }
 
       const nameInput = instance.querySelector(".dv-name");
@@ -4966,7 +5089,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeExistingDesignVariables(); // This will handle category and type changes internally
 
     // Add event listener for adding new design variables
-    const addDvButton = document.getElementById("add-dv-btn");
+    const addDvButton = document.getElementById("add-design-variable-btn"); // Corrected ID
     if (addDvButton) {
       addDvButton.addEventListener("click", patchedAddDesignVariableInstance);
     } else {
@@ -4974,8 +5097,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Other initializations
-    setupGlobalEventListeners(); // For delete buttons, etc.
-    updateDesignVariablesJsonOutput(); // Initial update
+    // setupGlobalEventListeners(); // For delete buttons, etc. - Commented out as function is not defined
+    // updateDesignVariablesJsonOutput(); // Initial update - Commented out as function is not defined
     // Any other on-load setup tasks
   });
 
@@ -6851,32 +6974,66 @@ document.addEventListener("DOMContentLoaded", function () {
   function refreshAllDesignVariableSegmentDropdowns() {
     console.log("Attempting to refresh all design variable segment dropdowns.");
     const designVariableInstances = document.querySelectorAll(
-      "#design-variables-container .design-variable-instance:not(.hidden-template)"
+      "#design-variables-container .optimization-instance:not(.hidden-template)"
     );
 
     designVariableInstances.forEach((instance) => {
       const categorySelect = instance.querySelector(".dv-category");
-      const segmentSelect = instance.querySelector(".dv-segment");
-
-      if (categorySelect && segmentSelect) {
-        const selectedCategory = categorySelect.value;
-        console.log(
-          `Refreshing segment for DV instance with category: ${selectedCategory}`
-        );
-        if (selectedCategory === "PROPULSION") {
-          populateGenericSegmentDropdown(segmentSelect, "PROPULSION");
-        } else if (selectedCategory === "STEERING") {
-          populateSteeringSegmentDropdown(segmentSelect);
-        } else {
-          // Clear segment dropdown if category is not PROPULSION or STEERING
-          segmentSelect.innerHTML =
-            '<option value="" disabled selected>Select Segment</option>';
-        }
-      } else {
+      if (!categorySelect) {
         console.warn(
-          "Could not find category or segment select in DV instance:",
+          "Could not find category select in DV instance:",
           instance
         );
+        // Clear all segment dropdowns in this instance as a fallback
+        instance.querySelectorAll(".dv-segment").forEach((s) => {
+          s.innerHTML =
+            '<option value="" disabled selected>Select Segment</option>';
+        });
+        return;
+      }
+
+      const selectedCategory = categorySelect.value;
+      console.log(
+        `Refreshing segment for DV instance ${
+          instance.dataset.index || "N/A"
+        } with category: ${selectedCategory}`
+      );
+
+      // Find the segment select within the specific category's fields.
+      // These fields should be the only ones visible for .dv-segment due to handleDesignVariableCategoryChange logic.
+      const categoryFields = instance.querySelector(
+        `.dv-category-fields[data-category="${selectedCategory}"]`
+      );
+
+      if (categoryFields && !categoryFields.classList.contains("hidden")) {
+        const segmentSelect = categoryFields.querySelector(".dv-segment");
+        if (segmentSelect) {
+          if (selectedCategory === "PROPULSION") {
+            populateGenericSegmentDropdown(segmentSelect, "PROPULSION");
+          } else if (selectedCategory === "STEERING") {
+            populateSteeringSegmentDropdown(segmentSelect);
+          } else {
+            // For other categories, ensure the segment dropdown (if it exists in this category's HTML) is cleared.
+            segmentSelect.innerHTML =
+              '<option value="" disabled selected>Select Segment</option>';
+          }
+        } else {
+          // If the current active category (e.g. "PAYLOAD") doesn't have a ".dv-segment", this is fine.
+          // We don't need to do anything for its non-existent segment dropdown.
+          // console.warn(`No .dv-segment found within active category fields for ${selectedCategory} in DV instance:`, instance.dataset.index || 'N/A');
+        }
+      } else {
+        // If no category is selected, or if the selected category's fields are unexpectedly hidden.
+        // Clear all segment dropdowns in this instance as a safety measure.
+        console.warn(
+          `No active/visible category-specific fields found for "${selectedCategory}" in DV instance: ${
+            instance.dataset.index || "N/A"
+          }. Clearing all segments.`
+        );
+        instance.querySelectorAll(".dv-segment").forEach((s) => {
+          s.innerHTML =
+            '<option value="" disabled selected>Select Segment</option>';
+        });
       }
     });
     console.log(

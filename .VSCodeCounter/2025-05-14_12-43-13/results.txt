@@ -1,0 +1,120 @@
+Date : 2025-05-14 12:43:13
+Directory : c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui
+Total : 72 files,  66288 codes, 10103 comments, 8575 blanks, all 84966 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| JavaScript         |         25 |     37,279 |      9,737 |      7,199 |     54,215 |
+| JSON               |         14 |     13,214 |          9 |         10 |     13,233 |
+| JSON with Comments |          4 |      5,259 |         12 |        184 |      5,455 |
+| CSS                |          5 |      3,981 |        203 |        523 |      4,707 |
+| HTML               |          2 |      3,055 |        136 |        111 |      3,302 |
+| Markdown           |         12 |      2,071 |          0 |        531 |      2,602 |
+| CSV                |          8 |      1,353 |          0 |          8 |      1,361 |
+| Batch              |          1 |         62 |          1 |          5 |         68 |
+| YAML               |          1 |         14 |          5 |          4 |         23 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                   | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                      |         72 |     66,288 |     10,103 |      8,575 |     84,966 |
+| . (Files)                                                                                                              |          1 |         14 |          5 |          4 |         23 |
+| Instructions                                                                                                           |          9 |      1,655 |          0 |        393 |      2,048 |
+| front_end                                                                                                              |         62 |     64,619 |     10,098 |      8,178 |     82,895 |
+| front_end (Files)                                                                                                      |          7 |      7,595 |        139 |        177 |      7,911 |
+| front_end\css                                                                                                          |          4 |      3,403 |        176 |        466 |      4,045 |
+| front_end\js                                                                                                           |         14 |     36,460 |      9,393 |      6,941 |     52,794 |
+| front_end\js (Files)                                                                                                   |         10 |     16,978 |      2,128 |      2,057 |     21,163 |
+| front_end\js\leaflet                                                                                                   |          4 |     19,482 |      7,265 |      4,884 |     31,631 |
+| front_end\test_data                                                                                                    |         17 |     10,965 |         21 |        193 |     11,179 |
+| front_end\tests                                                                                                        |         20 |      6,196 |        369 |        401 |      6,966 |
+| front_end\tests (Files)                                                                                                |          5 |      2,921 |          4 |         67 |      2,992 |
+| front_end\tests\cypress                                                                                                |         11 |      1,828 |        343 |        273 |      2,444 |
+| front_end\tests\cypress\e2e                                                                                            |          6 |        772 |        196 |        172 |      1,140 |
+| front_end\tests\cypress\fixtures                                                                                       |          3 |        630 |          0 |          3 |        633 |
+| front_end\tests\cypress\support                                                                                        |          2 |        426 |        147 |         98 |        671 |
+| front_end\tests\mock-server                                                                                            |          4 |      1,447 |         22 |         61 |      1,530 |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                                                               | language           | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\.gitlab-ci.yml                                                 | YAML               |         14 |          5 |          4 |         23 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\DESIGN VARIABLES_format_GUI.md                    | Markdown           |         81 |          0 |         16 |         97 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\MAPtodo.md                                        | Markdown           |        102 |          0 |         36 |        138 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\TODO.md                                           | Markdown           |        285 |          0 |         66 |        351 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\mode_algorithms (2).md                            | Markdown           |        164 |          0 |         31 |        195 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\mode_requiements.md                               | Markdown           |        323 |          0 |         81 |        404 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\opt_GUI_ObjFn_Constraints_Format.md               | Markdown           |        233 |          0 |         18 |        251 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\optimization (2).md                               | Markdown           |        219 |          0 |         71 |        290 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\parameter_comparison.md                           | Markdown           |        173 |          0 |         55 |        228 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\Instructions\steering-axis.md                                  | Markdown           |         75 |          0 |         19 |         94 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\README.md                                            | Markdown           |        233 |          0 |         54 |        287 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\css\desktop-theme.css                                | CSS                |      1,708 |         65 |        199 |      1,972 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\css\gmat-theme.css                                   | CSS                |        366 |         20 |         56 |        442 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\css\main.css                                         | CSS                |      1,286 |         91 |        203 |      1,580 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\css\test-ui.css                                      | CSS                |         43 |          0 |          8 |         51 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\formHandler.js                                    | JavaScript         |      3,028 |        529 |        421 |      3,978 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\leaflet\leaflet-src.esm.js                        | JavaScript         |      9,397 |      3,615 |      2,412 |     15,424 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\leaflet\leaflet-src.js                            | JavaScript         |      9,506 |      3,618 |      2,415 |     15,539 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\leaflet\leaflet.css                               | CSS                |        578 |         27 |         57 |        662 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\leaflet\leaflet.js                                | JavaScript         |          1 |          5 |          0 |          6 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\map-component.js                                  | JavaScript         |        448 |         85 |         81 |        614 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\missionDataHandler.js                             | JavaScript         |        149 |         25 |         24 |        198 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\optimization.js                                   | JavaScript         |      6,159 |        689 |        676 |      7,524 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\steering-module.js                                | JavaScript         |      1,603 |        103 |        155 |      1,861 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\test-data.js                                      | JavaScript         |        469 |         20 |         14 |        503 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\test-helpers.js                                   | JavaScript         |      1,576 |        211 |        239 |      2,026 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\test-ui.js                                        | JavaScript         |        380 |         19 |         21 |        420 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\ui-navigation.js                                  | JavaScript         |      1,580 |        300 |        250 |      2,130 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\js\validation.js                                     | JavaScript         |      1,586 |        147 |        176 |      1,909 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\main.js                                              | JavaScript         |         35 |          3 |          9 |         47 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\mission.html                                         | HTML               |      3,027 |        136 |        107 |      3,270 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\package-lock.json                                    | JSON               |      4,209 |          0 |          1 |      4,210 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\package.json                                         | JSON               |         60 |          0 |          1 |         61 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\renderer.js                                          | JavaScript         |          3 |          0 |          1 |          4 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\splash.html                                          | HTML               |         28 |          0 |          4 |         32 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\Atmos (2).csv                              | CSV                |      1,264 |          0 |          1 |      1,265 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\Garuda_orginal - Copy.json                 | JSON               |      1,805 |          9 |          1 |      1,815 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\Garuda_orginal.jsonc                       | JSON with Comments |      3,475 |          8 |          0 |      3,483 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\aero data.csv                              | CSV                |         15 |          0 |          1 |         16 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\details_to_constraints.json                | JSON               |        747 |          0 |          0 |        747 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\dummy_input (2).jsonc                      | JSON with Comments |        695 |          1 |          0 |        696 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\dummy_input.jsonc                          | JSON with Comments |        217 |          1 |         88 |        306 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\mission_data_2025-04-21T23-51-36-706Z.json | JSON               |        744 |          0 |          0 |        744 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\profile_normal.csv                         | CSV                |         16 |          0 |          1 |         17 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\profile_step.csv                           | CSV                |          6 |          0 |          1 |          7 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\test2.json                                 | JSON               |        681 |          0 |          0 |        681 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\test_suite.json                            | JSON               |        376 |          0 |          0 |        376 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\testcase.jsonc                             | JSON with Comments |        872 |          2 |         96 |        970 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\thrust_data.csv                            | CSV                |         19 |          0 |          1 |         20 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\thrust_data_stage2.csv                     | CSV                |         19 |          0 |          1 |         20 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\wind_sample - Copy.csv                     | CSV                |          7 |          0 |          1 |          8 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\test_data\wind_sample.csv                            | CSV                |          7 |          0 |          1 |          8 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\README.md                                      | Markdown           |        124 |          0 |         57 |        181 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress.config.js                              | JavaScript         |         29 |          3 |          3 |         35 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\e2e\01-mission.cy.js                   | JavaScript         |         58 |         18 |         18 |         94 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\e2e\02-environment.cy.js               | JavaScript         |         61 |         31 |         20 |        112 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\e2e\03-end-to-end.cy.js                | JavaScript         |        140 |         32 |         26 |        198 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\e2e\04-api-tests.cy.js                 | JavaScript         |        164 |         24 |         20 |        208 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\e2e\05-simulation-mode.cy.js           | JavaScript         |        127 |         32 |         31 |        190 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\e2e\06-optimization-mode.cy.js         | JavaScript         |        222 |         59 |         57 |        338 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\fixtures\example.json                  | JSON               |        117 |          0 |          1 |        118 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\fixtures\optimization-mission.json     | JSON               |        298 |          0 |          1 |        299 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\fixtures\simulation-mission.json       | JSON               |        215 |          0 |          1 |        216 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\support\commands.js                    | JavaScript         |        407 |        137 |         93 |        637 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\cypress\support\e2e.js                         | JavaScript         |         19 |         10 |          5 |         34 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\mock-server\README.md                          | Markdown           |         59 |          0 |         27 |         86 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\mock-server\package-lock.json                  | JSON               |      1,236 |          0 |          1 |      1,237 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\mock-server\package.json                       | JSON               |         20 |          0 |          1 |         21 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\mock-server\server.js                          | JavaScript         |        132 |         22 |         32 |        186 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\package-lock.json                              | JSON               |      2,684 |          0 |          1 |      2,685 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\package.json                                   | JSON               |         22 |          0 |          1 |         23 |
+| c:\Users\SPACELABS\Desktop\Projects\Astra GUI\astra-gui\front_end\tests\run-tests.bat                                  | Batch              |         62 |          1 |          5 |         68 |
+| Total                                                                                                                  |                    |     66,288 |     10,103 |      8,575 |     84,966 |
++------------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
