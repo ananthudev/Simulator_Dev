@@ -1,5 +1,5 @@
 {
-    "Software": "ASTRA", //SARAS // ASTRA
+  "Software": "ASTRA", //SARAS // ASTRA
 
   "mission": {
     "mission_name": "SSPO",
@@ -45,11 +45,11 @@
   "EARTH": {
     "atmos_model": "ISA", //"atmos_76",NRLMSISE-00 // or atmos(profile)// JB2008 // ISA (INDIAN STANDARD ATMOSPHERE)
     "Gravity_param": {
-           //j2 model order = 0,degree = 2
-           
+      //j2 model order = 0,degree = 2
+
       "order": 0,
-           "degree": 2
-       },
+      "degree": 2
+    },
     "coe_info": {
       "component": "MSL" //RE,PERIGEE_GC_LATITUDE,MSL
     }
@@ -117,9 +117,9 @@
     "strapon": null,
     "descend_drag": "descent_aero1",
     "DCISS": "OFF",
-                       "coasting": "OFF"
-                   },
-           
+    "coasting": "OFF"
+  },
+
   "Cosmic_M1": {
     "str_mass": 6604.0269,
 
@@ -323,82 +323,82 @@
   ],
 
   "Cosmic_case_10_02_s1_1011_Sequence": [
-          {
-              "identity": "ST_1_INI",
-              "trigger": "MISSION_TIME",
-              "value": 0,
-              "reference": "none",
-              "comment": "Stage 1 Started"
-          },
-          {
-              "identity": "M1_IGN",
-              "trigger": "MISSION_TIME",
-              "value": 0,
-              "reference": "none",
-              "comment": "motor-1 ignition"
-          },
-          {
-              "identity": "M1_BURN_OUT",
-              "trigger": "MISSION_TIME",
-              "value": 169.1,              
-              "reference": "none",
-              "comment": "motor-1 burn-out"
-          },
-         
-          {
-              "identity": "ST_1_SEP",
-              "trigger": "PHASE_TIME",
-              "value": 169.1,
-              "reference": "ST_1_INI",
-              "comment": "stage-1 separation"
-          },
-          {
-              "identity": "ST_2_INI",
-              "trigger": "PHASE_TIME",
-              "value": 0.0,
-              "reference": "ST_1_SEP",
-              "comment": "stage-2 started"
-          },
-          {
-              "identity": "M2_IGN",
-              "trigger": "PHASE_TIME",
+    {
+      "identity": "ST_1_INI",
+      "trigger": "MISSION_TIME",
+      "value": 0,
+      "reference": "none",
+      "comment": "Stage 1 Started"
+    },
+    {
+      "identity": "M1_IGN",
+      "trigger": "MISSION_TIME",
+      "value": 0,
+      "reference": "none",
+      "comment": "motor-1 ignition"
+    },
+    {
+      "identity": "M1_BURN_OUT",
+      "trigger": "MISSION_TIME",
+      "value": 169.1,
+      "reference": "none",
+      "comment": "motor-1 burn-out"
+    },
+
+    {
+      "identity": "ST_1_SEP",
+      "trigger": "PHASE_TIME",
+      "value": 169.1,
+      "reference": "ST_1_INI",
+      "comment": "stage-1 separation"
+    },
+    {
+      "identity": "ST_2_INI",
+      "trigger": "PHASE_TIME",
+      "value": 0.0,
+      "reference": "ST_1_SEP",
+      "comment": "stage-2 started"
+    },
+    {
+      "identity": "M2_IGN",
+      "trigger": "PHASE_TIME",
       "value": 0.0, //coasting
-              "reference": "ST_1_SEP",
-              "comment": "motor-2 ignition"
-          },
-          {
-              "identity": "M2_BURN_OUT",
-              "trigger": "PHASE_TIME",
-              "value": 288.5,
-              "reference": "M2_IGN",
-              "comment": "motor-2 burn-out"
-          },
-          {
-              "identity": "ST_2_SEP",
-              "trigger": "PHASE_TIME",
-              "value": 288.5,
-              "reference": "M2_IGN",
-              "comment": "stage-2 seperation"
-          },
-         
-          {
-              "identity": "HS_SEP",
-              "trigger": "ALTITUDE",
-              "value": 115000,
-              "reference": "none",
-              "comment": "Heatshield separation"
-          }
-      ],
-   
+      "reference": "ST_1_SEP",
+      "comment": "motor-2 ignition"
+    },
+    {
+      "identity": "M2_BURN_OUT",
+      "trigger": "PHASE_TIME",
+      "value": 288.5,
+      "reference": "M2_IGN",
+      "comment": "motor-2 burn-out"
+    },
+    {
+      "identity": "ST_2_SEP",
+      "trigger": "PHASE_TIME",
+      "value": 288.5,
+      "reference": "M2_IGN",
+      "comment": "stage-2 seperation"
+    },
+
+    {
+      "identity": "HS_SEP",
+      "trigger": "ALTITUDE",
+      "value": 115000,
+      "reference": "none",
+      "comment": "Heatshield separation"
+    }
+  ],
+
   "Cosmic_case_10_02_s1_1011_Steering": {
     "Steering_Sequence": "213",
-         
+
     "steering": [
-        "vertical_ascend",
-        "PITCH_HOLD",
-        "cnst_pitchrate",
-        "Profile_1",
-        "Profile_2"
+      "vertical_ascend",
+      "PITCH_HOLD",
+      "cnst_pitchrate",
+      "Profile_1",
+      "Profile_2"
     ]
   },
 
@@ -439,7 +439,7 @@
       "comment": "PITCH HOLD Terminated"
     },
     "steering": {
-                  "type": "ZERO_RATE",
+      "type": "ZERO_RATE",
       "comment": "PITCH HOLD"
     }
   },
@@ -633,8 +633,8 @@
 
   "problem_strategy": "ignore_o", // "death penalty", "kuri", "weighted", "ignore_c" or "ignore_o".
 
-    "optimizer": "NLOPT",
-   
+  "optimizer": "NLOPT",
+
   "map": [0, 1],
 
   "population": 1,
@@ -642,18 +642,18 @@
   "design_variables": "design_variable1",
 
   "initial_population": [
-        {
+    {
       "population": "initial_control1",
       "set_population": "YES"
-        }
-    ],	
+    }
+  ],
 
   "design_variable1": [
     "optimz_pitchrate",
     "optiz_profile1",
-    "optiz_profile2",  
+    "optiz_profile2",
     "optimz_payload_mass"
-    ],
+  ],
 
   "optimz_pitchrate": [
     {
@@ -666,10 +666,10 @@
           "axis": ["pitch"],
           "upper_bound": [[6.5, 0.0]],
           "lower_bound": [[1.0, -5.5]]
-                }
-            ]						
         }
-    ],
+      ]
+    }
+  ],
 
   "optiz_profile1": [
     {
@@ -697,10 +697,10 @@
               -0.6, -0.6, -0.6, -0.6, -0.7, -0.7
             ]
           ]
-                }
-            ]
         }
-    ],
+      ]
+    }
+  ],
 
   "optiz_profile2": [
     {
@@ -736,10 +736,10 @@
               -0.7, -0.7, -0.7, -0.7
             ]
           ]
-                }
-            ]
         }
-    ],
+      ]
+    }
+  ],
 
   "optimz_payload_mass": [
     {
@@ -749,10 +749,10 @@
           "control_variable": ["MASS"],
           "upper_bound": [[900]],
           "lower_bound": [[600]]
-                }
-            ]
         }
-    ],
+      ]
+    }
+  ],
 
   "optimz_coast_duration": [
     {
@@ -763,24 +763,9 @@
           "control_variable": ["TIME"],
           "upper_bound": [[100]],
           "lower_bound": [[0]]
-                }
-            ]
-        }
-    ],
-
-  "optimz_launch_azimuth": [
-    {
-      "category": "AZIMUTH",
-      "type": [
-        {
-          "control_variable": ["Launch_Azimuth"],
-          "upper_bound": [[190]],
-          "lower_bound": [[180]]
         }
       ]
     }
-  ],
-
   "initial_control1": [
     4.884940515506283, -3.711763429588466, 0.0337007494288829,
     -0.3475919495330634, 0.1395265110222434, -0.001937923391499674,
@@ -803,7 +788,7 @@
 
   "SGA": {
     "generation": 5,
-           "crossover_prob": 0.75,
+    "crossover_prob": 0.75,
     "eta_c": 1.0,
     "mutation_prob": 0.85,
     "param_m": 1.0,
@@ -925,19 +910,19 @@
   },
 
   "CMAES": {
-                        "generation": 1,
-                        "cc": -1,
-                        "cs": -1,
-                        "c1": -1,
-                        "cmu": -1,
-                        "sigma0": 0.5,
-                        "ftol": 1e-6,
-                        "xtol": 1e-6,
-                        "memory": false,
-                        "force_bounds": false,
-                        "seed": "random"
-                   },
-               
+    "generation": 1,
+    "cc": -1,
+    "cs": -1,
+    "c1": -1,
+    "cmu": -1,
+    "sigma0": 0.5,
+    "ftol": 1e-6,
+    "xtol": 1e-6,
+    "memory": false,
+    "force_bounds": false,
+    "seed": "random"
+  },
+
   "XNES": {
     "generation": 1,
     "eta_mu": -1,
@@ -965,6 +950,7 @@
     "DataBase": "OFF",
     "Generate": "ON",
     "Format": "csv",
-    "Time_intervel": 0.0, 
-    "Time_step": 0.0,
-  },
+    "Time_intervel": 0.0,
+    "Time_step": 0.0
+  }
+}

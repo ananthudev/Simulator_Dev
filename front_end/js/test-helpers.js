@@ -507,6 +507,126 @@ function runAllTests() {
         if (submitButton) submitButton.click();
       })
     )
+    .then(() =>
+      runStep("Fill Stage 1 Details", () => {
+        document.getElementById("stage-btn").click();
+        // Wait for the stage button's click handler to complete
+        setTimeout(() => {
+          // Select Stage 1 tab if not already selected
+          const stage1Tab = document.querySelector('a[href="#stage1-form"]');
+          if (stage1Tab) stage1Tab.click();
+
+          // Fill stage 1 data
+          fillTestStageData(1);
+
+          // Fill aero data for stage 1
+          fillTestAeroData(1);
+
+          // Submit stage form
+          const submitButton = document.querySelector(
+            "#stage1-form button[type='submit']"
+          );
+          if (submitButton) submitButton.click();
+        }, 300);
+      })
+    )
+    .then(() =>
+      runStep("Fill Stage 2 Details", () => {
+        // Select Stage 2 tab
+        const stage2Tab = document.querySelector('a[href="#stage2-form"]');
+        if (stage2Tab) stage2Tab.click();
+
+        // Fill stage 2 data
+        fillTestStageData(2);
+
+        // Fill aero data for stage 2
+        fillTestAeroData(2);
+
+        // Submit stage form
+        const submitButton = document.querySelector(
+          "#stage2-form button[type='submit']"
+        );
+        if (submitButton) submitButton.click();
+      })
+    )
+    .then(() =>
+      runStep("Fill Motor 1_1 Details", () => {
+        // Go to motors tab
+        document.getElementById("motor-btn").click();
+
+        // Wait for the motor button's click handler to complete
+        setTimeout(() => {
+          // Select Stage 1 Motor 1 tab
+          const motor1_1Tab = document.querySelector(
+            'a[href="#stage1-motor1-form"]'
+          );
+          if (motor1_1Tab) motor1_1Tab.click();
+
+          // Fill motor data
+          fillTestMotorData(1, 1);
+
+          // Fill thrust data
+          fillTestThrustData(1, 1);
+
+          // Submit motor form
+          const submitButton = document.querySelector(
+            "#stage1-motor1-form button[type='submit']"
+          );
+          if (submitButton) submitButton.click();
+        }, 300);
+      })
+    )
+    .then(() =>
+      runStep("Fill Motor 2_1 Details", () => {
+        // Select Stage 2 Motor 1 tab
+        const motor2_1Tab = document.querySelector(
+          'a[href="#stage2-motor1-form"]'
+        );
+        if (motor2_1Tab) motor2_1Tab.click();
+
+        // Fill motor data
+        fillTestMotorData(2, 1);
+
+        // Fill thrust data
+        fillTestThrustData(2, 1);
+
+        // Submit motor form
+        const submitButton = document.querySelector(
+          "#stage2-motor1-form button[type='submit']"
+        );
+        if (submitButton) submitButton.click();
+      })
+    )
+    .then(() =>
+      runStep("Fill Sequence Details", () => {
+        document.getElementById("sequence-btn").click();
+        fillTestSequenceData();
+        const submitButton = document.querySelector(
+          "#sequence-form button[type='submit']"
+        );
+        if (submitButton) submitButton.click();
+      })
+    )
+    .then(() =>
+      runStep("Fill Steering Details", () => {
+        document.getElementById("steering-btn").click();
+        fillTestSteeringData();
+        const submitButton = document.querySelector(
+          "#steering-form button[type='submit']"
+        );
+        if (submitButton) submitButton.click();
+      })
+    )
+    .then(() =>
+      runStep("Fill Stopping Condition", () => {
+        document.getElementById("stopping-btn").click();
+        fillTestStoppingConditionData();
+        const submitButton = document.querySelector(
+          "#stopping-form button[type='submit']"
+        );
+        if (submitButton) submitButton.click();
+      })
+    )
     .then(() => {
       console.log("✓ All automated tests completed!");
       // Update final status if indicator exists

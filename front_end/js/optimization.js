@@ -1,5 +1,52 @@
 // Optimization Module for Astra GUI
 
+// Global state to track CSV file content for both modes
+window.optimizationHandler = window.optimizationHandler || {};
+window.optimizationHandler.normalCsvData = null;
+window.optimizationHandler.normalCsvFile = null;
+window.optimizationHandler.archipelagoCsvData = null;
+window.optimizationHandler.archipelagoCsvFile = null;
+
+// Add a CSV parse function to parse initial population data
+function parseInitialPopulationCSV(csvString) {
+  if (!csvString) return null;
+
+  try {
+    // Clean and prepare the string
+    const trimmedString = csvString.trim();
+    const lines = trimmedString.split("\n");
+
+    if (lines.length === 0) return null;
+
+    // Initialize array to hold values
+    const result = [];
+
+    lines.forEach((line) => {
+      const trimmedLine = line.trim();
+      if (trimmedLine) {
+        // Split by comma and parse each value as a number
+        const values = trimmedLine.split(",").map((value) => {
+          const cleanedValue = value.trim();
+          const numValue = parseFloat(cleanedValue);
+          return isNaN(numValue) ? cleanedValue : numValue;
+        });
+
+        // Add all valid numeric values to the result array
+        values
+          .filter((val) => typeof val === "number" && !isNaN(val))
+          .forEach((val) => {
+            result.push(val);
+          });
+      }
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Error parsing initial population CSV:", error);
+    return null;
+  }
+}
+
 // Algorithm parameters definition for optimization
 const algorithmParameters = {
   SGA: {
@@ -1196,6 +1243,86 @@ document.addEventListener("DOMContentLoaded", function () {
     } else if (archipelagoSetPopToggle) {
       console.warn("Archipelago upload element not found");
     }
+
+    // Setup file upload handlers
+    setupNormalCsvUpload();
+    setupArchipelagoCsvUpload();
+  }
+
+  // Setup normal mode CSV upload
+  function setupNormalCsvUpload() {
+    const uploadBtn = document.getElementById("normal-csv-upload-btn");
+    const clearBtn = document.getElementById("normal-csv-clear-btn");
+    const fileInput = document.getElementById("normal-csv-upload");
+    const filenameDisplay = document.getElementById("normal-csv-filename");
+
+    if (!uploadBtn || !fileInput || !filenameDisplay) {
+      console.warn("Missing normal mode CSV upload elements");
+      return;
+    }
+
+    // File store callback
+    const fileStoreCallback = (fileContent, filename) => {
+      if (fileContent && filename) {
+        window.optimizationHandler.normalCsvFile = {
+          name: filename,
+          content: fileContent,
+        };
+        window.optimizationHandler.normalCsvData =
+          parseInitialPopulationCSV(fileContent);
+        console.log("Normal mode CSV data parsed and stored");
+      } else {
+        window.optimizationHandler.normalCsvFile = null;
+        window.optimizationHandler.normalCsvData = null;
+        console.log("Normal mode CSV data cleared");
+      }
+    };
+
+    setupFileUpload(
+      uploadBtn,
+      clearBtn,
+      fileInput,
+      filenameDisplay,
+      fileStoreCallback
+    );
+  }
+
+  // Setup archipelago mode CSV upload
+  function setupArchipelagoCsvUpload() {
+    const uploadBtn = document.getElementById("archipelago-csv-upload-btn");
+    const clearBtn = document.getElementById("archipelago-csv-clear-btn");
+    const fileInput = document.getElementById("archipelago-csv-upload");
+    const filenameDisplay = document.getElementById("archipelago-csv-filename");
+
+    if (!uploadBtn || !fileInput || !filenameDisplay) {
+      console.warn("Missing archipelago mode CSV upload elements");
+      return;
+    }
+
+    // File store callback
+    const fileStoreCallback = (fileContent, filename) => {
+      if (fileContent && filename) {
+        window.optimizationHandler.archipelagoCsvFile = {
+          name: filename,
+          content: fileContent,
+        };
+        window.optimizationHandler.archipelagoCsvData =
+          parseInitialPopulationCSV(fileContent);
+        console.log("Archipelago mode CSV data parsed and stored");
+      } else {
+        window.optimizationHandler.archipelagoCsvFile = null;
+        window.optimizationHandler.archipelagoCsvData = null;
+        console.log("Archipelago mode CSV data cleared");
+      }
+    };
+
+    setupFileUpload(
+      uploadBtn,
+      clearBtn,
+      fileInput,
+      filenameDisplay,
+      fileStoreCallback
+    );
   }
 
   // Call this after a short delay to ensure the DOM is fully loaded
@@ -1756,6 +1883,29 @@ document.addEventListener("DOMContentLoaded", function () {
           // Add objective functions to optimization array
           window.finalMissionData.optimization.push(...data);
         }
+      } else if (section === "designVariables") {
+        // For design variables, transform to the required format and add to finalMissionData
+        console.log("Processing design variables for final mission data", data);
+        try {
+          const transformedData = transformDesignVariablesForOutput(data);
+          console.log("Transformed design variables data:", transformedData);
+
+          // Add the transformed data directly to finalMissionData
+          Object.keys(transformedData).forEach((key) => {
+            window.finalMissionData[key] = transformedData[key];
+            console.log(`Added ${key} to finalMissionData`);
+          });
+
+          console.log(
+            `Updated finalMissionData with design variables data`,
+            window.finalMissionData
+          );
+        } catch (error) {
+          console.error(
+            "Error transforming or saving design variables:",
+            error
+          );
+        }
       } else {
         // For other sections, maintain original structure
         if (!window.finalMissionData.optimization) {
@@ -1809,6 +1959,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             missionData.optimization.push(...data);
           }
+        } else if (section === "designVariables") {
+          // Transform design variables for localStorage too
+          const transformedData = transformDesignVariablesForOutput(data);
+
+          // Add the transformed data to localStorage mission data
+          Object.keys(transformedData).forEach((key) => {
+            missionData[key] = transformedData[key];
+          });
         } else {
           if (!missionData.optimization) {
             missionData.optimization = {};
@@ -3591,33 +3749,49 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       lowerBoundInputs.forEach((input) => {
         input.type = "text";
-        input.placeholder = input.placeholder.replace(
-          "numeric",
-          "comma-separated"
-        );
+        if (input.placeholder && typeof input.placeholder === "string") {
+          input.placeholder = input.placeholder.replace(
+            "numeric",
+            "comma-separated"
+          );
+        } else {
+          input.placeholder = "Enter comma-separated values";
+        }
       });
       upperBoundInputs.forEach((input) => {
         input.type = "text";
-        input.placeholder = input.placeholder.replace(
-          "numeric",
-          "comma-separated"
-        );
+        if (input.placeholder && typeof input.placeholder === "string") {
+          input.placeholder = input.placeholder.replace(
+            "numeric",
+            "comma-separated"
+          );
+        } else {
+          input.placeholder = "Enter comma-separated values";
+        }
       });
       controlVarInputs.forEach((input) => {
         input.type = "text";
-        input.placeholder = input.placeholder.replace(
-          "numeric",
-          "comma-separated"
-        );
+        if (input.placeholder && typeof input.placeholder === "string") {
+          input.placeholder = input.placeholder.replace(
+            "numeric",
+            "comma-separated"
+          );
+        } else {
+          input.placeholder = "Enter control variables";
+        }
       });
       axisInputs.forEach((input) => {
         if (input.tagName === "INPUT") {
           // Only change input fields, not selects
           input.type = "text";
-          input.placeholder = input.placeholder.replace(
-            "numeric",
-            "comma-separated"
-          );
+          if (input.placeholder && typeof input.placeholder === "string") {
+            input.placeholder = input.placeholder.replace(
+              "numeric",
+              "comma-separated"
+            );
+          } else {
+            input.placeholder = "Enter axis values";
+          }
         }
       });
     }
@@ -3630,10 +3804,14 @@ document.addEventListener("DOMContentLoaded", function () {
         .querySelectorAll(".dv-lower-bound, .dv-upper-bound")
         .forEach((input) => {
           input.type = "text";
-          input.placeholder = input.placeholder.replace(
-            "numeric",
-            "comma-separated"
-          );
+          if (input.placeholder && typeof input.placeholder === "string") {
+            input.placeholder = input.placeholder.replace(
+              "numeric",
+              "comma-separated"
+            );
+          } else {
+            input.placeholder = "Enter comma-separated values";
+          }
         });
     }
   }
@@ -3839,7 +4017,16 @@ document.addEventListener("DOMContentLoaded", function () {
             categoryFields.querySelector(".dv-lower-bound");
           const upperBoundInput =
             categoryFields.querySelector(".dv-upper-bound");
-          const segmentSelect = categoryFields.querySelector(".dv-segment"); // Could be for PROPULSION or STEERING
+
+          // Add segment for propulsion and steering categories
+          if (["PROPULSION", "STEERING"].includes(category)) {
+            const segmentSelect = categoryFields.querySelector(".dv-segment");
+            if (segmentSelect && segmentSelect.value) {
+              dv.segment = segmentSelect.value;
+            } else {
+              console.warn(`Missing segment for ${category} variable: ${name}`);
+            }
+          }
 
           // Helper to parse comma-separated string to array of numbers/strings
           const parseArray = (inputElement) => {
@@ -3875,7 +4062,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (upperBoundInput)
               dv.type.upper_bound = parseArray(upperBoundInput);
           } else if (category === "PROPULSION") {
-            if (segmentSelect) dv.segment = segmentSelect.value || null;
             if (controlVarInput)
               dv.type.control_variable = parseArray(controlVarInput);
             if (lowerBoundInput)
@@ -3885,12 +4071,17 @@ document.addEventListener("DOMContentLoaded", function () {
           } else if (category === "STEERING") {
             const segmentTypeSelect =
               categoryFields.querySelector(".dv-segment-type");
-            const segmentType = segmentTypeSelect
-              ? segmentTypeSelect.value
-              : null;
 
-            if (segmentSelect) dv.segment = segmentSelect.value || null;
-            if (segmentType) dv.segment_type = segmentType;
+            // Add segment_type for steering category
+            if (segmentTypeSelect && segmentTypeSelect.value) {
+              dv.segment_type = segmentTypeSelect.value;
+            } else {
+              console.warn(
+                `Missing segment_type for STEERING variable: ${name}`
+              );
+            }
+
+            const segmentType = dv.segment_type || null;
 
             const subTypeFields = categoryFields.querySelector(
               `.dv-steering-type-fields[data-segment-type="${segmentType}"]`
@@ -5420,6 +5611,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (setPopulation && window.optimizationHandler.normalCsvFile) {
         modeData.initialPopulationFile =
           window.optimizationHandler.normalCsvFile.name;
+        modeData.initialPopulationData =
+          window.optimizationHandler.normalCsvData;
       }
 
       // Collect algorithm parameters
@@ -5492,6 +5685,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (setPopulation && window.optimizationHandler.archipelagoCsvFile) {
         modeData.initialPopulationFile =
           window.optimizationHandler.archipelagoCsvFile.name;
+        modeData.initialPopulationData =
+          window.optimizationHandler.archipelagoCsvData;
       }
 
       // Get selected algorithms with their parameters
@@ -5536,6 +5731,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Add population
     jsonData.population = modeData.population;
+
+    // Add initial population configuration if setPopulation is enabled
+    const initialPopulationKey = "initial_control1"; // Default name as specified in requirements
+
+    if (modeData.setPopulation) {
+      jsonData.initial_population = [
+        {
+          population: initialPopulationKey,
+          set_population: "YES",
+        },
+      ];
+
+      // Include CSV data if available
+      if (
+        modeData.initialPopulationData &&
+        Array.isArray(modeData.initialPopulationData)
+      ) {
+        jsonData[initialPopulationKey] = modeData.initialPopulationData;
+      }
+    } else {
+      // Still include the structure but with empty population and set_population: "OFF"
+      jsonData.initial_population = [
+        {
+          population: "",
+          set_population: "NO",
+        },
+      ];
+    }
 
     if (modeData.type === "normal") {
       // For normal mode
@@ -7194,6 +7417,8 @@ document.addEventListener("DOMContentLoaded", function () {
     getConstraintsData,
     getDesignVariablesData,
     getModeData,
+    formatModeDataForJSON,
+    parseInitialPopulationCSV,
     populateObjectiveFlagDropdown: (selectElement) =>
       populateFlagDropdown(selectElement, "Objective"),
     populateConstraintFlagDropdown: (selectElement) =>
@@ -7540,11 +7765,27 @@ document.addEventListener("DOMContentLoaded", function () {
           `.dv-category-fields[data-category="${category}"]`
         );
         if (categoryFields) {
+          // Add segment for propulsion and steering categories
+          if (["PROPULSION", "STEERING"].includes(category)) {
+            const segmentSelect = categoryFields.querySelector(".dv-segment");
+            if (segmentSelect && segmentSelect.value) {
+              dv.segment = segmentSelect.value;
+            } else {
+              console.warn(`Missing segment for ${category} variable: ${name}`);
+            }
+          }
+
           const segmentTypeSelect =
             categoryFields.querySelector(".dv-segment-type");
           const segmentType = segmentTypeSelect
             ? segmentTypeSelect.value
             : null;
+
+          // Set segment_type for steering category
+          if (category === "STEERING" && segmentType) {
+            dv.segment_type = segmentType;
+          }
+
           // Updated list: PROFILE, CONST_BODYRATE, CLG
           if (["PROFILE", "CONST_BODYRATE", "CLG"].includes(segmentType)) {
             // Per-axis bounds logic
@@ -7671,11 +7912,93 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addDesignVariableInstance = patchedAddDesignVariableInstance;
     window.getDesignVariablesData = patchedGetDesignVariablesData;
     window.initOptimizationModule = patchedInitOptimizationModule;
+    window.transformDesignVariablesForOutput =
+      transformDesignVariablesForOutput;
 
     // Also expose our new helper functions if needed
     window.setupPerAxisBounds = setupPerAxisBounds;
     window.initExistingPerAxisBounds = initExistingPerAxisBounds;
     window.addPerAxisBoundsStyling = addPerAxisBoundsStyling;
+
+    // Add direct click handler for the save design variables button
+    const saveDesignVariablesBtn = document.getElementById(
+      "save-design-variables-btn"
+    );
+    if (saveDesignVariablesBtn) {
+      // Remove any existing handlers to avoid duplicates
+      saveDesignVariablesBtn.removeEventListener(
+        "click",
+        handleSaveDesignVariables
+      );
+      // Add the click handler
+      saveDesignVariablesBtn.addEventListener(
+        "click",
+        handleSaveDesignVariables
+      );
+      console.log("Added explicit save handler for design variables button");
+    }
+  }
+
+  // Function to handle saving design variables
+  function handleSaveDesignVariables(event) {
+    event.preventDefault();
+    console.log("Save Design Variables button clicked directly");
+
+    // Check if the transform function exists
+    if (typeof transformDesignVariablesForOutput !== "function") {
+      console.error(
+        "transformDesignVariablesForOutput function is not defined!"
+      );
+      console.log(
+        "Available window functions:",
+        Object.keys(window)
+          .filter((key) => typeof window[key] === "function")
+          .slice(0, 50)
+      );
+
+      // Try to use it from the window object if available
+      if (typeof window.transformDesignVariablesForOutput === "function") {
+        console.log(
+          "Found transform function on window object, using that instead"
+        );
+      } else {
+        alert(
+          "Failed to save design variables: transformation function not found. Please refresh the page and try again."
+        );
+        return;
+      }
+    }
+
+    // Validate form
+    if (
+      typeof validateDesignVariablesForm === "function" &&
+      !validateDesignVariablesForm()
+    ) {
+      console.log("Design variables form validation failed");
+      return;
+    }
+
+    // Get and save data
+    const designVariablesData = getDesignVariablesData();
+    console.log("Design variables data collected:", designVariablesData);
+
+    // Call the save function
+    saveOptimizationData("designVariables", designVariablesData);
+
+    // Show a confirmation message
+    if (typeof Swal !== "undefined") {
+      Swal.fire({
+        icon: "success",
+        title: "Saved",
+        text: "Design variables data saved successfully!",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    }
+
+    console.log("Design variables saved to finalMissionData");
   }
 
   // Call this after everything else
@@ -7719,4 +8042,179 @@ document.addEventListener("DOMContentLoaded", function () {
       console.debug("Delayed initialization complete");
     }, 1000);
   });
+
+  // Transform design variables data to the required final mission data JSON format
+  function transformDesignVariablesForOutput(designVariablesData) {
+    const dvNames = designVariablesData.map((dv) => dv.name);
+
+    const result = {
+      design_variables: "design_variable1",
+      design_variable1: dvNames,
+    };
+
+    const availableMotors = [];
+    // Get available steering segments in the correct format
+    const availableSteeringSegments = [];
+
+    if (window.finalMissionData) {
+      // Get motors
+      Object.keys(window.finalMissionData).forEach((key) => {
+        if (
+          key.startsWith("Stage_") &&
+          window.finalMissionData[key] &&
+          window.finalMissionData[key].motor
+        ) {
+          availableMotors.push(...window.finalMissionData[key].motor);
+        }
+      });
+
+      // Get steering segments in the correct format (with capital letters and underscores)
+      if (
+        window.finalMissionData.Garuda_Steering &&
+        Array.isArray(window.finalMissionData.Garuda_Steering.steering)
+      ) {
+        availableSteeringSegments.push(
+          ...window.finalMissionData.Garuda_Steering.steering
+        );
+      }
+    }
+
+    designVariablesData.forEach((dv) => {
+      const dvEntry = [
+        {
+          category: dv.category,
+        },
+      ];
+
+      // Add segment with proper formatting based on category
+      if (dv.segment) {
+        if (dv.category === "STEERING") {
+          // Try to find the properly formatted segment name from available steering segments
+          const formattedSegment = availableSteeringSegments.find(
+            (segment) =>
+              segment.toLowerCase().replace(/_/g, "") ===
+              dv.segment.toLowerCase().replace(/_/g, "")
+          );
+
+          // Use the properly formatted name if found, otherwise use the original
+          dvEntry[0].segment = formattedSegment || dv.segment;
+        } else {
+          // For other categories, use the segment as is
+          dvEntry[0].segment = dv.segment;
+        }
+      } else if (dv.category === "PROPULSION") {
+        if (availableMotors.length > 0) {
+          dvEntry[0].segment = availableMotors[0];
+        } else {
+          dvEntry[0].segment = "S1_MOTOR1";
+        }
+      }
+
+      // Add segment_type for STEERING only if it exists in dv object
+      if (dv.category === "STEERING" && dv.segment_type) {
+        dvEntry[0].segment_type = dv.segment_type;
+      }
+
+      if (dv.flag) {
+        dvEntry[0].flag = dv.flag;
+      }
+
+      // Construct the typeObject carefully from dv.type
+      const typeObject = {};
+      const sourceDvType = dv.type || {}; // Ensure dv.type exists
+
+      // control_variable: must be an array. If single string, convert. If undefined/null, use empty array.
+      if (Array.isArray(sourceDvType.control_variable)) {
+        typeObject.control_variable = sourceDvType.control_variable;
+      } else if (typeof sourceDvType.control_variable === "string") {
+        typeObject.control_variable = sourceDvType.control_variable
+          ? [sourceDvType.control_variable]
+          : [];
+      } else {
+        typeObject.control_variable = [];
+      }
+
+      // Ensure control_variable is never an empty array for STEERING category
+      if (
+        dv.category === "STEERING" &&
+        typeObject.control_variable.length === 0
+      ) {
+        // Add a default control variable based on segment_type
+        if (dv.segment_type === "CLG") {
+          typeObject.control_variable = ["GAIN"];
+        } else if (dv.segment_type === "PROFILE") {
+          typeObject.control_variable = ["PROFILE"];
+        } else if (dv.segment_type === "ZERO_RATE") {
+          typeObject.control_variable = ["ZERO_RATE"];
+        } else if (dv.segment_type === "CONST_BODYRATE") {
+          typeObject.control_variable = ["BODYRATE"];
+        }
+      }
+
+      // axis: only if present in sourceDvType. Must be an array.
+      if (sourceDvType.axis !== undefined) {
+        typeObject.axis = Array.isArray(sourceDvType.axis)
+          ? sourceDvType.axis
+          : [sourceDvType.axis];
+      }
+
+      // PROFILE specific fields for STEERING: only if present in sourceDvType
+      if (dv.category === "STEERING" && dv.segment_type === "PROFILE") {
+        if (sourceDvType.ind_variable !== undefined) {
+          typeObject.ind_variable = sourceDvType.ind_variable;
+        }
+        if (sourceDvType.ind_vector !== undefined) {
+          typeObject.ind_vector = Array.isArray(sourceDvType.ind_vector)
+            ? sourceDvType.ind_vector
+            : [sourceDvType.ind_vector];
+        }
+      }
+
+      // upper_bound: only if present. Ensure correct nesting.
+      if (
+        sourceDvType.upper_bound !== undefined &&
+        sourceDvType.upper_bound !== null
+      ) {
+        if (Array.isArray(sourceDvType.upper_bound)) {
+          if (
+            sourceDvType.upper_bound.length === 0 ||
+            Array.isArray(sourceDvType.upper_bound[0])
+          ) {
+            typeObject.upper_bound = sourceDvType.upper_bound;
+          } else {
+            typeObject.upper_bound = [sourceDvType.upper_bound];
+          }
+        } else {
+          typeObject.upper_bound = [[sourceDvType.upper_bound]];
+        }
+      }
+
+      // lower_bound: only if present. Ensure correct nesting.
+      if (
+        sourceDvType.lower_bound !== undefined &&
+        sourceDvType.lower_bound !== null
+      ) {
+        if (Array.isArray(sourceDvType.lower_bound)) {
+          if (
+            sourceDvType.lower_bound.length === 0 ||
+            Array.isArray(sourceDvType.lower_bound[0])
+          ) {
+            typeObject.lower_bound = sourceDvType.lower_bound;
+          } else {
+            typeObject.lower_bound = [sourceDvType.lower_bound];
+          }
+        } else {
+          typeObject.lower_bound = [[sourceDvType.lower_bound]];
+        }
+      }
+
+      // Assign typeObject based on category
+      // ALL categories, including PROPULSION, should have type as an array with one object.
+      dvEntry[0].type = [typeObject];
+
+      result[dv.name] = dvEntry;
+    });
+
+    return result;
+  }
 });

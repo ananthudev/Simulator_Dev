@@ -35,14 +35,15 @@ function initializeTestUI() {
 
   const toggleButton = document.createElement("button");
   toggleButton.id = "test-ui-toggle";
-  toggleButton.textContent = "Hide"; // Initial state
+  toggleButton.textContent = "Show"; // Initial state is hidden
   testHeader.appendChild(toggleButton);
 
   mainTestContainer.appendChild(testHeader);
 
-  // Create the collapsible content container
+  // Create the collapsible content container - initially hidden
   const collapsibleContent = document.createElement("div");
   collapsibleContent.id = "test-ui-collapsible-content";
+  collapsibleContent.style.display = "none"; // Initially hidden
 
   // Create the 'Run All Tests' button (moved inside collapsible content)
   const runAllTestsButton = document.createElement("button");
@@ -74,7 +75,24 @@ function initializeTestUI() {
     toggleButton.textContent = isHidden ? "Hide" : "Show";
   });
 
-  // Define test types in groups for better organization
+  // Get data from realdata.json through TestData
+  const stagesData = [
+    { name: "Stage 1", index: 1 },
+    { name: "Stage 2", index: 2 },
+  ];
+
+  const motorsData = [
+    { name: "Motor 1_1", stageIndex: 1, motorIndex: 1 },
+    { name: "Motor 2_1", stageIndex: 2, motorIndex: 1 },
+  ];
+
+  // Count objective functions, constraints, and design variables
+  const optimizationData = window.TestData.optimization;
+  const numObjectives = optimizationData?.objective?.length || 1;
+  const numConstraints = optimizationData?.constraints?.length || 4;
+  const numDesignVars = optimizationData?.design_variables?.length || 4;
+
+  // Define test categories with specific buttons based on realdata.json
   const testGroups = [
     {
       name: "Basic Forms",
@@ -90,46 +108,39 @@ function initializeTestUI() {
           className: "test-button secondary environment",
         },
         {
-          name: "Test ASCEND",
+          name: "Test Vehicle",
           fn: () => window.TestHelpers.fillTestVehicleData("ascend"),
-          className: "test-button secondary vehicle",
-        },
-        {
-          name: "Test PROJECTILE",
-          fn: () => window.TestHelpers.fillTestVehicleData("projectile"),
-          className: "test-button secondary vehicle",
-        },
-        {
-          name: "Test ORBITAL",
-          fn: () => window.TestHelpers.fillTestVehicleData("orbital"),
           className: "test-button secondary vehicle",
         },
       ],
     },
     {
-      name: "Stages & Motors",
-      tests: [
-        {
-          name: "Fill Current Stage",
-          fn: window.TestHelpers.fillCurrentStageData,
-          className: "test-button stage",
+      name: "Stages",
+      tests: stagesData.map((stage) => ({
+        name: stage.name,
+        fn: () => {
+          window.TestHelpers.fillTestStageData(stage.index);
+          window.TestHelpers.fillTestAeroData(stage.index);
         },
-        {
-          name: "Fill Current Motor",
-          fn: window.TestHelpers.fillCurrentMotorData,
-          className: "test-button motor",
+        className: "test-button stage",
+      })),
+    },
+    {
+      name: "Motors",
+      tests: motorsData.map((motor) => ({
+        name: motor.name,
+        fn: () => {
+          window.TestHelpers.fillTestMotorData(
+            motor.stageIndex,
+            motor.motorIndex
+          );
+          window.TestHelpers.fillTestThrustData(
+            motor.stageIndex,
+            motor.motorIndex
+          );
         },
-        {
-          name: "Upload Aero Data",
-          fn: () => window.TestHelpers.fillTestAeroData(1),
-          className: "test-button upload",
-        },
-        {
-          name: "Upload Thrust Data",
-          fn: () => window.TestHelpers.fillTestThrustData(1, 1),
-          className: "test-button upload",
-        },
-      ],
+        className: "test-button motor",
+      })),
     },
     {
       name: "Sequence & Control",
@@ -152,15 +163,15 @@ function initializeTestUI() {
       ],
     },
     {
-      name: "Optimization Module",
+      name: "Optimization",
       tests: [
         {
-          name: "Fill Objective Function",
+          name: `${numObjectives} Objective${numObjectives > 1 ? "s" : ""}`,
           fn: window.TestHelpers.fillTestObjectiveFunction,
           className: "test-button objective",
         },
         {
-          name: "Fill Constraints",
+          name: `${numConstraints} Constraint${numConstraints > 1 ? "s" : ""}`,
           fn: window.TestHelpers.fillTestConstraints,
           className: "test-button constraints",
         },
@@ -170,7 +181,9 @@ function initializeTestUI() {
           className: "test-button opt-mode",
         },
         {
-          name: "Fill Design Variables",
+          name: `${numDesignVars} Design Variable${
+            numDesignVars > 1 ? "s" : ""
+          }`,
           fn: window.TestHelpers.fillTestDesignVariables,
           className: "test-button design-vars",
         },
@@ -197,39 +210,41 @@ function initializeTestUI() {
     });
   });
 
-  // Add some basic styling specific to the test UI
+  // Add some basic styling specific to the test UI - more compact version
   const style = document.createElement("style");
   style.textContent = `
     #main-test-ui-container {
       position: fixed;
-      top: 80px;
+      top: 20px;
       right: 20px;
       z-index: 1000;
       background: rgba(0,0,0,0.9);
       border: 1px solid #444;
       border-radius: 5px;
-      width: 300px; /* Adjust width as needed */
+      width: 250px; /* Reduced width */
       color: #fff;
       font-family: sans-serif;
-      font-size: 14px;
+      font-size: 12px; /* Reduced font size */
+      max-height: 90vh;
+      overflow-y: auto;
     }
     #test-ui-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 10px;
+      padding: 5px 8px; /* Reduced padding */
       background: #333;
       border-bottom: 1px solid #444;
       cursor: pointer; /* Indicate it's clickable */
     }
     #test-ui-header h3 {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px; /* Reduced font size */
       color: #eee;
     }
      #test-ui-toggle {
-      padding: 4px 8px;
-      font-size: 12px;
+      padding: 2px 6px; /* Reduced padding */
+      font-size: 10px; /* Reduced font size */
       cursor: pointer;
       background: #555;
       border: 1px solid #666;
@@ -240,19 +255,19 @@ function initializeTestUI() {
       background: #666;
     }
     #test-ui-collapsible-content {
-      padding: 10px;
-      /* Initially visible, will be toggled by JS */
+      padding: 8px; /* Reduced padding */
+      /* Initially hidden, will be toggled by JS */
     }
     .test-button-container {
-       margin-bottom: 10px;
+       margin-bottom: 8px; /* Reduced margin */
        display: flex; /* Use flexbox for layout */
        flex-wrap: wrap; /* Allow buttons to wrap to the next line */
-       gap: 3px; /* Reduced gap between buttons */
+       gap: 2px; /* Reduced gap between buttons */
        align-items: flex-start; /* Align items to the start */
     }
     .test-button, #run-tests, #test-ui-toggle {
-      padding: 2px 4px; /* Further reduced padding */
-      font-size: 9px; /* Further reduced font size */
+      padding: 1px 3px; /* Further reduced padding */
+      font-size: 8px; /* Further reduced font size */
       cursor: pointer;
       border: 1px solid #666;
       border-radius: 3px;
@@ -271,8 +286,9 @@ function initializeTestUI() {
         width: 100%; /* Make run all tests button full width */
         flex-grow: 1; /* Allow it to grow */
         text-align: center;
-        padding: 5px 10px; /* Slightly larger padding for main button */
-        font-size: 12px; /* Slightly larger font for main button */
+        padding: 4px 8px; /* Slightly larger padding for main button */
+        font-size: 10px; /* Slightly larger font for main button */
+        margin-bottom: 5px;
     }
 
     .test-button:hover, #run-tests:hover, #test-ui-toggle:hover {
@@ -371,28 +387,29 @@ function initializeTestUI() {
 
     .test-group-header {
         width: 100%; /* Make header take full width */
-        margin-top: 10px; /* Space above header */
-        margin-bottom: 5px; /* Space below header */
-        font-size: 14px; /* Slightly smaller font than title */
+        margin-top: 6px; /* Less space above header */
+        margin-bottom: 3px; /* Less space below header */
+        font-size: 12px; /* Smaller font than before */
         color: #ccc;
         border-bottom: 1px solid #444; /* Separator line */
-        padding-bottom: 3px;
+        padding-bottom: 2px;
     }
 
     .test-status-indicator {
-      margin-top: 10px;
+      margin-top: 8px;
       border: 1px solid #555;
-      padding: 10px;
+      padding: 6px;
       background: #222;
-      max-height: 300px;
+      max-height: 200px; /* Reduced height */
       overflow-y: auto;
-      border-radius: 5px;
+      border-radius: 4px;
       color: #ccc;
+      font-size: 10px; /* Smaller font size */
     }
     .test-step {
-      margin-bottom: 5px;
-      padding: 5px;
-      border-left: 3px solid #444;
+      margin-bottom: 3px;
+      padding: 3px;
+      border-left: 2px solid #444;
       border-radius: 2px;
       background: #2a2a2a;
     }
@@ -406,13 +423,14 @@ function initializeTestUI() {
       border-left-color: #e74c3c;
     }
     .test-final-status {
-      margin-top: 10px;
+      margin-top: 6px;
       text-align: center;
       font-weight: bold;
       color: #2ecc71;
-      padding: 5px;
-      border-radius: 4px;
+      padding: 3px;
+      border-radius: 3px;
       background: rgba(46, 204, 113, 0.1);
+      font-size: 10px;
     }
   `;
   document.head.appendChild(style);

@@ -1,14 +1,14 @@
-// test-data.js - Standardized test data aligned with test_suite.json format
+// test-data.js - Standardized test data aligned with realdata.json format
 // This file provides consistent test data for the Astra GUI application
 
 const TestData = {
   // Mission section data
   mission: {
     name: "SSPO",
-    mode: "simulation",
-    tracking: true,
-    date: "2025-04-19",
-    time: "12:45:23",
+    mode: "optimization",
+    tracking: false, // "OFF" in JSON
+    date: "2025-05-16",
+    time: "09:32:53",
   },
 
   // Environment section data
@@ -19,7 +19,7 @@ const TestData = {
       csv: null, // Would contain file data if using CSV
     },
     wind: {
-      csv: null, // Would contain file data if using CSV
+      csv: null,
       defaultData: [
         ["Altitude", "Zonal", "Meridonal"],
         ["m", "m/s", "m/s"],
@@ -34,98 +34,43 @@ const TestData = {
       order: 2,
       degree: 0,
     },
-    coe_info: "PERIGEE_GC_LATITUDE",
+    coe_info: "MSL",
   },
 
   // Vehicle section data
   vehicle: {
-    name: "Garuda",
-    type: "ascend",
+    name: "TestVehicle",
+    type: "ascend", // From "vehicle_type": "ASCEND"
     integration_method: "RK4",
     time_step: 0.1,
-    effective_altitude: 100000,
+    effective_altitude: 70000,
     dciss: false, // DCISS toggle off
     initial_conditions: {
       ascend: {
-        data_method: "launch", // 'launch' or 'states'
+        data_method: "launch", // Using launch point data
         launch_point: {
-          latitude: 13,
-          longitude: 80.2,
-          azimuth: 180,
-          msl: 0,
-          lp_height: 30,
+          latitude: 8.4038977,
+          longitude: 78.0197,
+          azimuth: 187.43,
+          msl: 10,
+          lp_height: 17,
           launch_angle: 0,
           roll: 0,
           pitch: 0,
           yaw: 0,
         },
-        states: {
-          // If using states method
-          X: 0,
-          Y: 0,
-          Z: 0,
-          U: 0,
-          V: 0,
-          W: 0,
-          q0: 0,
-          q1: 0,
-          q2: 0,
-          q3: 0,
-        },
-      },
-      projectile: {
-        data_method: "launch",
-        launch_point: {
-          latitude: 13,
-          longitude: 80.2,
-          msl: 0,
-          azimuth: 90,
-          elevation: 45,
-          launch_angle: 0,
-          initial_velocity: 600,
-        },
-      },
-      orbital: {
-        data_method: "state", // 'state', 'tle', or 'elements'
-        state: {
-          X: 1000,
-          Y: 2000,
-          Z: 3000,
-          U: 4000,
-          V: 5000,
-          W: 6000,
-          q0: 7000,
-          q1: 8000,
-          q2: 9000,
-          q3: 10000,
-        },
-        tle: {
-          line1: "",
-          line2: "",
-          start_time: 0,
-          stop_time: 0,
-          step_time: 0,
-        },
-        elements: {
-          semi_major_axis: 0,
-          eccentricity: 0,
-          inclination: 0,
-          argument_perigee: 0,
-          raan: 0,
-          true_anomaly: 0,
-        },
       },
     },
     payload: {
       name: "James Webb",
-      mass: 500,
+      mass: 448.72318255,
     },
     plf: {
       name: "Heat Shield",
-      mass: 200,
+      mass: 150,
       separation: {
-        type: "time", // 'time' or 'altitude'
-        value: 150,
+        type: "altitude", // Based on HSS_Flag in sequence with ALTITUDE trigger
+        value: 115000,
         flag: "HSS_Flag",
       },
     },
@@ -134,19 +79,39 @@ const TestData = {
   // Stage data
   stage: {
     stage1: {
-      structural_mass: 1000,
-      reference_area: 2.5,
-      burn_time: 120,
-      aero_data: null, // Would contain file data
+      structural_mass: 6604.0269,
+      reference_area: 3.141592654,
+      burn_time: 169.1,
+      aero_data: [
+        // Simplified version of Stage_1_AeroData
+        [0, 0.38, 0.38],
+        [0.4, 0.38, 0.38],
+        [0.6, 0.38, 0.38],
+        [0.8, 0.38, 0.38],
+        [1, 0.38, 0.38],
+        [2, 0.38, 0.38],
+        [4, 0.38, 0.38],
+        [10, 0.38, 0.38],
+      ],
       ini_flag: "ST_1_INI",
       sep_flag: "ST_1_SEP",
       dciss: false,
     },
     stage2: {
-      structural_mass: 2000,
-      reference_area: 5.0,
-      burn_time: 140,
-      aero_data: null,
+      structural_mass: 1102.8098,
+      reference_area: 3.14159,
+      burn_time: 288.5,
+      aero_data: [
+        // Simplified version of Stage_2_AeroData
+        [0, 0.38, 0.38],
+        [0.4, 0.38, 0.38],
+        [0.6, 0.38, 0.38],
+        [0.8, 0.38, 0.38],
+        [1, 0.38, 0.38],
+        [2, 0.38, 0.38],
+        [4, 0.38, 0.38],
+        [10, 0.38, 0.38],
+      ],
       ini_flag: "ST_2_INI",
       sep_flag: "ST_2_SEP",
       dciss: false,
@@ -156,25 +121,34 @@ const TestData = {
   // Motor data
   motor: {
     motor1_1: {
-      // Stage 1, Motor 1
-      propulsion_type: "Solid", // "Solid", "Liquid", "Hybrid"
-      nozzle_diameter: 0.6,
-      propulsion_mass: 5050,
-      thrust_data: null, // Would contain file data
-    },
-    motor1_2: {
-      // Stage 1, Motor 2
-      propulsion_type: "Liquid", // Different type for testing
-      nozzle_diameter: 0.8,
-      propulsion_mass: 6000,
-      thrust_data: null,
+      propulsion_type: "solid",
+      nozzle_diameter: 0.14,
+      propulsion_mass: 53432.5818,
+      thrust_data: [
+        [0, 0, 53432.5818],
+        [0.1, 1011.5, 53400.99201],
+        [10, 1011.5, 50273.60287],
+        [50, 1011.5, 37637.68713],
+        [100, 1011.5, 21842.79247],
+        [150, 1011.5, 6047.897804],
+        [160.8, 1011.5, 2636.200556],
+        [169, 1011.5, 45.83783126],
+        [169.1, 0, 14.24804193],
+      ],
     },
     motor2_1: {
-      // Stage 2, Motor 1
-      propulsion_type: "Hybrid", // Different type for testing
-      nozzle_diameter: 0.5,
-      propulsion_mass: 3500,
-      thrust_data: null,
+      propulsion_type: "solid",
+      nozzle_diameter: 0.83,
+      propulsion_mass: 7380.3422,
+      thrust_data: [
+        [0, 0, 7380.3422],
+        [0.1, 88, 7377.78405581814],
+        [50, 88, 6101.2701090681],
+        [100, 88, 4822.1980181362],
+        [200, 88, 2264.05383627239],
+        [288.4, 88, 2.65437950479225],
+        [288.5, 0, 0.096235322927861],
+      ],
     },
   },
 
@@ -183,65 +157,93 @@ const TestData = {
     {
       identity: "ST_1_INI",
       trigger: "MISSION_TIME",
-      value: 23,
+      value: 0,
       reference: "none",
-      comment: "Stage 1 Initialization",
+      comment: "Stage 1 Start",
     },
     {
       identity: "S1_M1_IGN",
       trigger: "MISSION_TIME",
-      value: 23.5,
-      reference: "ST_1_INI",
+      value: 0,
+      reference: "none",
       comment: "Motor 1 Ignition",
     },
     {
-      identity: "S1_M1_CUTOFF",
+      identity: "S1_M1_Burnout",
+      trigger: "MISSION_TIME",
+      value: 169.1,
+      reference: "none",
+      comment: "Motor 1 Burn out",
+    },
+    {
+      identity: "ST_1_SEP",
       trigger: "PHASE_TIME",
-      value: 120,
-      reference: "S1_M1_IGN",
-      comment: "Motor 1 Cutoff",
+      value: 169.1,
+      reference: "ST_1_INI",
+      comment: "Stage 1 Separation",
+    },
+    {
+      identity: "ST_2_INI",
+      trigger: "PHASE_TIME",
+      value: 0,
+      reference: "ST_1_SEP",
+      comment: "Stage 2 Start",
+    },
+    {
+      identity: "S2_M1_IGN",
+      trigger: "PHASE_TIME",
+      value: 0,
+      reference: "ST_1_SEP",
+      comment: "Motor 2 Ignition",
+    },
+    {
+      identity: "S2_M1_Burnout",
+      trigger: "PHASE_TIME",
+      value: 288.5,
+      reference: "S2_M1_IGN",
+      comment: "Motor 2 burn out",
+    },
+    {
+      identity: "ST_2_SEP",
+      trigger: "PHASE_TIME",
+      value: 288.5,
+      reference: "S2_M1_IGN",
+      comment: "Stage 2 Separation",
     },
     {
       identity: "HSS_Flag",
       trigger: "ALTITUDE",
-      value: 80000,
+      value: 115000,
       reference: "none",
-      comment: "Heat Shield Separation",
-    },
-    {
-      identity: "ST_1_SEP",
-      trigger: "MISSION_TIME",
-      value: 150,
-      reference: "S1_M1_CUTOFF",
-      comment: "Stage 1 Separation",
+      comment: "Heat Shield Seperation",
     },
   ],
 
   // Steering data
   steering: {
-    sequence: "123", // Roll → Pitch → Yaw
+    sequence: "213", // From TestVehicle_Steering
     components: [
       {
         id: "verticalAscend_1",
         name: "Vertical Ascend 1",
         type: "verticalAscend",
         start: {
-          identity: "VERTICAL_START_1",
-          trigger_type: "missiontime",
+          identity: "VA_START_1",
+          trigger_type: "phaseTime",
           trigger_value: 0,
-          reference: "none",
-          comment: "Start of vertical ascent",
+          reference: "ST_1_INI",
+          comment: "Vertical_Ascend_Start",
         },
         stop: {
-          identity: "VERTICAL_STOP_1",
+          identity: "VA_STOP_1",
           trigger_type: "altitude",
-          trigger_value: 1000,
-          reference: "none",
-          comment: "End of vertical ascent",
+          trigger_value: 190,
+          reference: "VA_START_1",
+          comment: "Vertical_Ascend_Stop",
         },
         parameters: {
           steering_type: "zeroRate",
-          comment: "Zero rate vertical ascent phase",
+          comment: "Vertical_Ascend",
         },
       },
       {
@@ -249,50 +251,47 @@ const TestData = {
         name: "Pitch Hold 1",
         type: "pitchHold",
         start: {
-          identity: "PITCH_HOLD_START_1",
-          trigger_type: "missiontime",
-          trigger_value: 30,
-          reference: "VERTICAL_STOP_1",
-          comment: "Start of pitch hold",
+          identity: "PH_START_1",
+          trigger_type: "phaseTime",
+          trigger_value: 0,
+          reference: "VA_STOP_1",
+          comment: "Pitch_Hold_Start",
         },
         stop: {
-          identity: "PITCH_HOLD_STOP_1",
-          trigger_type: "missiontime",
-          trigger_value: 60,
-          reference: "PITCH_HOLD_START_1",
-          comment: "End of pitch hold",
+          identity: "PH_STOP_1",
+          trigger_type: "phaseTime",
+          trigger_value: 5,
+          reference: "PH_START_1",
+          comment: "Pitch_Hold_Stop",
+        },
+        parameters: {
+          steering_type: "zeroRate",
+          comment: "Pitch_Hold",
+        },
+      },
+      {
+        id: "constantPitch_1",
+        name: "Constant Pitch 1",
+        type: "constantPitch",
+        start: {
+          identity: "CP_START_1",
+          trigger_type: "phaseTime",
+          trigger_value: 0,
+          reference: "PH_STOP_1",
+          comment: "Constant_Pitch_Start",
+        },
+        stop: {
+          identity: "CP_STOP_1",
+          trigger_type: "phaseTime",
+          trigger_value: 3.1104355,
+          reference: "CP_START_1",
+          comment: "Constant_Pitch_Stop",
         },
         parameters: {
           steering_type: "constantBodyRate",
           axis: "pitch",
-          value: -1.5,
-          comment: "Constant pitch rate maneuver",
-        },
-      },
-      {
-        id: "gravityTurn_1",
-        name: "Gravity Turn 1",
-        type: "gravityTurn",
-        start: {
-          identity: "GRAVITY_TURN_START_1",
-          trigger_type: "missiontime",
-          trigger_value: 90,
-          reference: "PITCH_HOLD_STOP_1",
-          comment: "Start of gravity turn",
-        },
-        stop: {
-          identity: "GRAVITY_TURN_STOP_1",
-          trigger_type: "altitude",
-          trigger_value: 60000,
-          reference: "none",
-          comment: "End of gravity turn",
-        },
-        parameters: {
-          steering_type: "clg",
-          algorithm: "aoa",
-          max_qaoa: 50000,
-          alpha_time: 10,
-          comment: "CLG gravity turn using AOA",
+          value: -4.767241713786673,
+          comment: "Constant_Pitch",
         },
       },
       {
@@ -301,27 +300,88 @@ const TestData = {
         type: "profile",
         start: {
           identity: "PROFILE_START_1",
-          trigger_type: "missiontime",
-          trigger_value: 120,
-          reference: "GRAVITY_TURN_STOP_1",
-          comment: "Start of profile steering",
+          trigger_type: "phaseTime",
+          trigger_value: 0,
+          reference: "CP_STOP_1",
+          comment: "Profile_1 Start",
         },
         stop: {
           identity: "PROFILE_STOP_1",
-          trigger_type: "altitude",
-          trigger_value: 100000,
-          reference: "none",
-          comment: "End of profile steering",
+          trigger_type: "phaseTime",
+          trigger_value: 0,
+          reference: "ST_1_SEP",
+          comment: "Profile_1 Stop",
         },
         parameters: {
           steering_type: "profile",
           mode: "normal",
-          quantity: "bodyRate",
+          quantity: "eulerRate",
           independentVar: "phaseTime",
-          profile_csv_filename: "profile_data.csv",
-          profile_csv:
-            "Time,Roll,Pitch,Yaw\n0,0,-1,0\n10,0,-0.8,0\n20,0,-0.6,0\n30,0,-0.4,0\n40,0,-0.2,0\n50,0,0,0",
-          comment: "Profile based steering using normal mode and body rate",
+          profile_csv: [
+            ["Time", "ROLL", "YAW", "PITCH"],
+            [0, 0, 0, -0.334529405053707],
+            [2, 0, 0, 0.233022074238948],
+            [5, 0, 0, -0.075264619006616],
+            [10, 0, 0, 0.403930928182946],
+            [15, 0, 0, 0.085355813534978],
+            [20, 0, 0, -0.157149732190426],
+            [30, 0, 0, -0.247917318042308],
+            [43.9, 0, 0, -0.488417020318841],
+            [54, 0, 0, -0.342402416619808],
+            [74.1, 0, 0, -0.279531126433529],
+            [95.1, 0, 0, -0.226561244417878],
+            [120.4, 0, 0, -0.067123332302575],
+            [123, 0, 0, -0.115620242285865],
+            [129.9, 0, 0, -0.290306414622902],
+            [140, 0, 0, -0.118410727945321],
+            [160, 0, 0, -0.225918338044863],
+            [180, 0, 0, 0.169276523850417],
+          ],
+          comment: "Profile_1",
+        },
+      },
+      {
+        id: "profile_2",
+        name: "Profile 2",
+        type: "profile",
+        start: {
+          identity: "PROFILE_START_2",
+          trigger_type: "phaseTime",
+          trigger_value: 0,
+          reference: "S2_M1_IGN",
+          comment: "Profile_2 Start",
+        },
+        stop: {
+          identity: "PROFILE_STOP_2",
+          trigger_type: "phaseTime",
+          trigger_value: 0,
+          reference: "ST_2_SEP",
+          comment: "Profile_2 Stop",
+        },
+        parameters: {
+          steering_type: "profile",
+          mode: "normal",
+          quantity: "eulerRate",
+          independentVar: "profileTime",
+          profile_csv: [
+            ["Time", "ROLL", "YAW", "PITCH"],
+            [0, 0, 0.061251668429887, -0.057817997477519],
+            [5, 0, 0.139424564066419, -0.292135239274413],
+            [20, 0, -0.048974510464463, -0.331555528461593],
+            [30, 0, 0.142225972937025, -0.215145300744634],
+            [43.9, 0, -0.087154210942074, -0.23590766162741],
+            [54, 0, 0.101381558898185, -0.288467475708868],
+            [74.1, 0, -0.065190536303901, -0.229576481817389],
+            [95.1, 0, 0.131513957846863, -0.255330949531613],
+            [110.4, 0, -0.052805055427716, -0.016263081242757],
+            [123, 0, -0.180728377372239, -0.351940514996392],
+            [128.9, 0, 0.699965718999801, -0.239839926184689],
+            [130, 0, -0.000618660426124, -0.461192483161337],
+            [200, 0, 0.017933794466486, -0.227673909492046],
+            [300, 0, -0.027856217193931, -0.291682956755576],
+            [500, 0, -0.647422042007777, -1.89634511997135],
+          ],
+          comment: "Profile_2",
         },
       },
     ],
@@ -329,116 +389,115 @@ const TestData = {
 
   // Stopping condition
   stopping: {
-    criteria: "flag", // 'flag', 'time', or 'altitude'
+    criteria: "flag", // Based on "type": "Flag"
     flag: {
-      name: "ST_1_SEP",
+      name: "ST_2_SEP",
       condition: "eq",
-      value: 1,
+      value: 0.1,
     },
     time: {
-      value: 500,
+      value: 500, // Default placeholder
       condition: "eq",
     },
     altitude: {
-      value: 100000,
+      value: 500000, // Default placeholder
       condition: "gt",
     },
   },
 
-  // Optimization data (for optimization mode)
+  // Optimization data
   optimization: {
-    // Objective function data - using format from test_suite.json
+    // Objective function data
     objective: [
       {
-        name: "MAXIMIZE_ALTITUDE",
-        value: 1.0,
+        name: "PAYLOAD_MASS",
+        value: 1.0, // Default value since "null" in JSON
         weight: 1.0,
-        type: "MAX",
-      },
-      {
-        name: "MINIMIZE_FLIGHT_TIME",
-        value: 0.5,
-        weight: 0.3,
-        type: "MIN",
+        type: "MAX", // Factor: -1 means maximize
       },
     ],
 
-    // Constraints data - using format from test_suite.json
+    // Constraints data
     constraints: [
       {
-        name: "Q",
-        value: 50000,
+        name: "APOGEE",
+        value: 500.1,
         type: "INEQUALITY",
         condition: "LESS_THAN",
-        flag: "",
+        flag: "ST_2_SEP",
         enable: true,
         factor: 1,
-        tolerance: 0.001,
+        tolerance: 0.1, // From constraint_tolerence array
       },
       {
-        name: "MAX_QAOA",
-        value: 45000,
-        type: "INEQUALITY",
-        condition: "LESS_THAN",
-        flag: "",
-        enable: true,
-        factor: 1,
-        tolerance: 0.001,
-      },
-      {
-        name: "MAX_SENSED_ACC",
-        value: 6,
-        type: "INEQUALITY",
-        condition: "LESS_THAN",
-        flag: "",
-        enable: true,
-        factor: 1,
-        tolerance: 0.01,
-      },
-      {
-        name: "SLACK_VARIABLE",
-        value: 0.1,
+        name: "PERIGEE",
+        value: 485.2,
         type: "INEQUALITY",
         condition: "GREATER_THAN",
-        flag: "ST_1_SEP",
+        flag: "ST_2_SEP",
         enable: true,
         factor: 1,
-        tolerance: 0.0001,
+        tolerance: 0.1, // From constraint_tolerence array
+      },
+      {
+        name: "ECCENTRICITY",
+        value: 0.001,
+        type: "INEQUALITY",
+        condition: "LESS_THAN",
+        flag: "ST_2_SEP",
+        enable: true,
+        factor: 1,
+        tolerance: 0.0001, // From constraint_tolerence array
+      },
+      {
+        name: "INCLINATION",
+        value: 97.35,
+        type: "EQUALITY",
+        condition: "",
+        flag: "ST_2_SEP",
+        enable: true,
+        factor: 1,
+        tolerance: 0.001, // From constraint_tolerence array
       },
     ],
 
-    // Mode data - using format from test_suite.json
+    // Mode data
     mode: {
-      type: "archipelago", // 'normal' or 'archipelago'
+      type: "normal",
       normal: {
-        algorithm: "PSO",
+        algorithm: "SADE", // From optimizer
         map: {
           lower: 0,
           upper: 1,
         },
-        population: 20,
-        set_population: true,
+        population: 150,
+        set_population: false, // Based on "set_population": "NO"
         problem_strategy: "ignore_o",
         csv_upload: null,
         algorithm_params: {
-          PSO: {
-            omega: 0.7,
-            eta1: 2.0,
-            eta2: 2.0,
-            max_vel: 0.5,
+          SADE: {
+            generation: 150,
+            variant_adptv: "1",
+            memory: false,
+            F: 0.8,
+            CR: 0.9,
+            variant: "2",
+            ftol: 0.000001,
+            xtol: 0.000001,
+            seed: 9,
           },
         },
       },
       archipelago: {
-        algorithms: ["PSO", "MBH", "NLOPT"],
-        topology: "Fully Connected",
-        migration_type: "Broadcast",
-        migration_handling: "Evict",
+        algorithms: ["PSO", "MBH", "NLOPT"], // Default placeholder
+        topology: "Fully Connected", // Default placeholder
+        migration_type: "Broadcast", // Default placeholder
+        migration_handling: "Evict", // Default placeholder
         map: {
           lower: 0,
           upper: 1,
         },
-        population: 1,
+        population: 1, // Default placeholder
         set_population: false,
         csv_upload: null,
         algorithm_params: {
@@ -459,40 +518,44 @@ const TestData = {
       },
     },
 
-    // Design variables data - using format from test_suite.json
+    // Design variables data from opt_steering_1, opt_steering_2, opt_steering_3, opt_payload_4
     design_variables: [
-      {
-        category: "CUT_OFF",
-        name: "opt_cutoff_1",
-        flag: "ST_1_SEP",
-        control_variable: "TIME",
-        lower_bound: 100,
-        upper_bound: 200,
-      },
       {
         category: "STEERING",
         name: "opt_steering_1",
-        segment: "pitchHold_1",
+        segment: "constantPitch_1",
         segment_type: "CONST_BODYRATE",
-        control_variable: "RATE",
+        control_variable: "BODYRATE",
         axis: "pitch",
-        lower_bound: -2.0,
-        upper_bound: -0.5,
+        lower_bound: -5.5,
+        upper_bound: 6.5,
       },
       {
-        category: "PROPULSION",
-        name: "opt_thrust_1",
-        segment: "Stage_1",
-        control_variable: "THRUST_SCALE",
-        lower_bound: 0.8,
-        upper_bound: 1.2,
+        category: "STEERING",
+        name: "opt_steering_2",
+        segment: "profile_1",
+        segment_type: "PROFILE",
+        control_variable: "EULER_RATE",
+        axis: "pitch",
+        lower_bound: -0.7, // simplifying to use the largest range value
+        upper_bound: 0.7, // simplifying to use the largest range value
       },
       {
-        category: "AZIMUTH",
-        name: "opt_azimuth",
-        control_variable: "AZIMUTH_ANGLE",
-        lower_bound: 90,
-        upper_bound: 180,
+        category: "STEERING",
+        name: "opt_steering_3",
+        segment: "profile_2",
+        segment_type: "PROFILE",
+        control_variable: "EULER_RATE",
+        axis: "pitch,yaw",
+        lower_bound: -3, // simplifying to use the largest range value
+        upper_bound: 3, // simplifying to use the largest range value
+      },
+      {
+        category: "PAYLOAD",
+        name: "opt_payload_4",
+        control_variable: "MASS",
+        lower_bound: 600,
+        upper_bound: 900,
       },
     ],
   },

@@ -1,83 +1,342 @@
 {
-  "Software": "ASTRA",
-  "mission": {
-    "mission_name": "SSPO",
-    "planet_name": "",
-    "MODE": "optimization",
-    "tracking_option": "ON",
-    "frame_model": "POST",
-    "output_frame": "POST",
-    "UTC": {
-      "Date": "2025-04-19",
-      "Time": "12:45:23"
-    }
-  },
-  "_mission_data_start": "--- Mission Details Start ---",
-  "_mission_data_end": "--- Mission Details End ---",
-  "_environment_data_start": "--- Environment Details Start ---",
   "EARTH": {
     "Gravity_param": {
-      "order": 2,
-      "degree": 0
+      "degree": 0,
+      "order": 2
     },
+    "atmos_model": "atmos_76",
     "coe_info": {
       "component": "PERIGEE_GC_LATITUDE"
-    },
-    "atmos_model": "atmos_76"
+    }
   },
-  "Wind": [
-    [
-      "Altitude",
-      "Zonal",
-      "Meridonal"
-    ],
-    [
-      "m",
-      "m/s",
-      "m/s"
-    ],
-    [
-      0,
-      0,
-      0
-    ],
-    [
-      60000,
-      0,
-      0
-    ],
-    [
-      90000,
-      0,
-      0
-    ],
-    [
-      150000,
-      0,
-      0
-    ],
-    [
-      400000,
-      0,
-      0
-    ]
-  ],
-  "_environment_data_end": "--- Environment Details End ---",
-  "_vehicle_data_start": "--- Vehicle Details Start ---",
   "Garuda": {
+    "Initial_condition": "Location_1",
+    "effective_altitude": 100000,
+    "integration_method": "RK4",
     "no_Stg": 2,
+    "payload": "James Webb",
+    "plf": "Heat Shield",
+    "sequence": "Garuda_Sequence",
     "stage": [
       "Stage_1",
       "Stage_2"
     ],
-    "payload": "James Webb",
-    "plf": "Heat Shield",
-    "integration_method": "RK4",
-    "time_step": 0.1,
-    "effective_altitude": 100000,
     "steering": "Garuda_Steering",
-    "sequence": "Garuda_Sequence",
-    "Initial_condition": "Location_1"
+    "time_step": 0.1
+  },
+  "Garuda_Sequence": [
+    {
+      "comment": "Stage 1 Initialization",
+      "identity": "ST_1_INI",
+      "reference": "none",
+      "trigger": "MISSION_TIME",
+      "value": 23
+    },
+    {
+      "comment": "Motor 1 Ignition",
+      "identity": "S1_M1_IGN",
+      "reference": "ST_1_INI",
+      "trigger": "MISSION_TIME",
+      "value": 23.5
+    },
+    {
+      "comment": "Motor 1 Cutoff",
+      "identity": "S1_M1_CUTOFF",
+      "reference": "S1_M1_IGN",
+      "trigger": "PHASE_TIME",
+      "value": 120
+    },
+    {
+      "comment": "Heat Shield Separation",
+      "identity": "HSS_Flag",
+      "reference": "none",
+      "trigger": "ALTITUDE",
+      "value": 80000
+    },
+    {
+      "comment": "Stage 1 Separation",
+      "identity": "ST_1_SEP",
+      "reference": "S1_M1_CUTOFF",
+      "trigger": "MISSION_TIME",
+      "value": 150
+    }
+  ],
+  "Garuda_Steering": {
+    "Steering_Sequence": "123",
+    "steering": [
+      "Vertical_Ascend_1",
+      "Pitch_Hold_1",
+      "Gravity_Turn_1",
+      "Profile_1"
+    ]
+  },
+  "Gravity_Turn_1": {
+    "start": {
+      "comment": "Start of gravity turn",
+      "identity": "GT_START_1",
+      "reference": "none",
+      "trigger": "MISSION_TIME",
+      "value": 90
+    },
+    "steering": {
+      "comment": "",
+      "type": "ZERO_RATE"
+    },
+    "stop": {
+      "comment": "End of gravity turn",
+      "identity": "GT_STOP_1",
+      "reference": "none",
+      "trigger": "ALTITUDE",
+      "value": 60000
+    }
+  },
+  "Heat Shield": {
+    "DCISS": "OFF",
+    "descend_drag": null,
+    "mass": 200,
+    "mass_unit": "kg",
+    "ref_area": 0,
+    "sep_flag": "HSS_Flag"
+  },
+  "Initial_States": {
+    "Location_1": {
+      "above_MSL": 0,
+      "above_MSL_unit": "m",
+      "azimuth": 180,
+      "azimuth_unit": "deg",
+      "height_unit": "m",
+      "latitude": 13,
+      "latitude_unit": "deg",
+      "launch_set_angle": 0,
+      "longitude": 80.2,
+      "longitude_unit": "deg",
+      "lp_height": 30,
+      "pitch": 0,
+      "roll": 0,
+      "type": "Launch_Point",
+      "yaw": 0
+    }
+  },
+  "James Webb": {
+    "mass": 500,
+    "unit": "kg"
+  },
+  "Pitch_Hold_1": {
+    "start": {
+      "comment": "Start of pitch hold",
+      "identity": "PH_START_1",
+      "reference": "none",
+      "trigger": "MISSION_TIME",
+      "value": 30
+    },
+    "steering": {
+      "comment": "",
+      "type": "ZERO_RATE"
+    },
+    "stop": {
+      "comment": "End of pitch hold",
+      "identity": "PH_STOP_1",
+      "reference": "none",
+      "trigger": "MISSION_TIME",
+      "value": 60
+    }
+  },
+  "Profile_1": {
+    "start": {
+      "comment": "Start of profile steering",
+      "identity": "PROFILE_START_1",
+      "reference": "none",
+      "trigger": "MISSION_TIME",
+      "value": 120
+    },
+    "steering": {
+      "comment": "",
+      "type": "ZERO_RATE"
+    },
+    "stop": {
+      "comment": "End of profile steering",
+      "identity": "PROFILE_STOP_1",
+      "reference": "none",
+      "trigger": "ALTITUDE",
+      "value": 100000
+    }
+  },
+  "S1_MOTOR1": {
+    "burn_out_flag": "S1_M1_Burnout",
+    "burntime": 120,
+    "cut_off_flags": [
+      "S1_M1_CUTOFF"
+    ],
+    "ign_flag": "S1_M1_IGN",
+    "no_of_nozzles": 1,
+    "nozzle": "S1_MOTOR1_NOZ1",
+    "nozzledia": 0.6,
+    "prop_mass": 5050,
+    "sep_flag": "ST_1_SEP",
+    "str_mass": 1000,
+    "thr_time": [
+      [
+        "Time",
+        "Thrust"
+      ],
+      [
+        0,
+        100000
+      ],
+      [
+        10,
+        95000
+      ],
+      [
+        20,
+        90000
+      ],
+      [
+        30,
+        85000
+      ],
+      [
+        40,
+        0
+      ]
+    ],
+    "type_of_prop": "solid"
+  },
+  "S2_MOTOR1": {
+    "burn_out_flag": "S2_M1_Burnout",
+    "burntime": 140,
+    "cut_off_flags": [
+      "S2_M1_CUTOFF"
+    ],
+    "ign_flag": "S2_M1_IGN",
+    "no_of_nozzles": 1,
+    "nozzle": "S2_MOTOR1_NOZ1",
+    "nozzledia": 0.5,
+    "prop_mass": 3500,
+    "sep_flag": "ST_2_SEP",
+    "str_mass": 2000,
+    "thr_time": [
+      [
+        "Time",
+        "Thrust",
+        "PropMass"
+      ],
+      [
+        "s",
+        "kN",
+        "Kg"
+      ],
+      [
+        0,
+        0,
+        44999
+      ],
+      [
+        0.1,
+        981,
+        44966.213
+      ],
+      [
+        1.1,
+        981,
+        44638.344
+      ],
+      [
+        50,
+        981,
+        28605.557
+      ],
+      [
+        100,
+        981,
+        12212.115
+      ],
+      [
+        120,
+        981,
+        5654.738
+      ],
+      [
+        120.1,
+        725.94,
+        5630.4175
+      ],
+      [
+        125,
+        725.94,
+        4441.623
+      ],
+      [
+        130,
+        725.94,
+        3228.508
+      ],
+      [
+        140,
+        725.94,
+        802.279
+      ],
+      [
+        142.99,
+        725.94,
+        76.836
+      ],
+      [
+        143,
+        725.94,
+        74.41
+      ],
+      [
+        143.289,
+        725.94,
+        4.292
+      ],
+      [
+        143.3,
+        725.94,
+        1.623
+      ],
+      [
+        143.31,
+        725.94,
+        1.623
+      ],
+      [
+        143.32,
+        725.94,
+        1.623
+      ],
+      [
+        143.9,
+        0,
+        0
+      ]
+    ],
+    "type_of_prop": "solid"
+  },
+  "S2_MOTOR1_NOZ1": {
+    "Diameter": 0.5,
+    "Location": {
+      "Phi": 0,
+      "Radial_dist": 0
+    },
+    "Orientation": {
+      "kappa": 0,
+      "lamda": 0,
+      "mu": 0
+    },
+    "Throat_location": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "eta_thrust": 0,
+    "mis_alignment": {
+      "epsilon_thrust": 0,
+      "sigma_thrust": 0,
+      "tau_thrust": 0
+    },
+    "zeta_thrust": 0
   },
   "SSPO": {
     "vehicle": [
@@ -85,58 +344,27 @@
     ],
     "vehicle_type": "ASCEND"
   },
-  "James Webb": {
-    "unit": "kg",
-    "mass": 500
-  },
-  "Heat Shield": {
-    "mass_unit": "kg",
-    "mass": 200,
-    "ref_area": 0,
-    "sep_flag": "HSS_Flag",
-    "descend_drag": null,
-    "DCISS": "OFF"
-  },
-  "Initial_States": {
-    "Location_1": {
-      "type": "Launch_Point",
-      "latitude_unit": "deg",
-      "latitude": 13,
-      "longitude_unit": "deg",
-      "longitude": 80.2,
-      "azimuth_unit": "deg",
-      "azimuth": 180,
-      "above_MSL_unit": "m",
-      "above_MSL": 0,
-      "height_unit": "m",
-      "lp_height": 30,
-      "launch_set_angle": 0,
-      "roll": 0,
-      "pitch": 0,
-      "yaw": 0
-    }
-  },
-  "_vehicle_data_end": "--- Vehicle Details End ---",
+  "Software": "ASTRA",
   "Stage_1": {
-    "motor": [
-      "S1_MOTOR1"
-    ],
+    "DCISS": "OFF",
     "actuator": null,
-    "str_mass": 1000,
-    "length": null,
-    "ref_area": 2.5,
-    "burntime": 120,
     "aero_data": [
       "Stage_1_AeroData"
     ],
-    "sample_data": null,
+    "burntime": 120,
+    "coasting": "OFF",
+    "descend_drag": null,
     "inert_mass": null,
     "ini_flag": "ST_1_INI",
+    "length": null,
+    "motor": [
+      "S1_MOTOR1"
+    ],
+    "ref_area": 2.5,
+    "sample_data": null,
     "sep_flag": "ST_1_SEP",
-    "strapon": null,
-    "descend_drag": null,
-    "DCISS": "OFF",
-    "coasting": "OFF"
+    "str_mass": 1000,
+    "strapon": null
   },
   "Stage_1_AeroData": {
     "Flag": [
@@ -165,195 +393,26 @@
       ]
     ]
   },
-  "S1_MOTOR1": {
-    "str_mass": 1000,
-    "type_of_prop": "solid",
-    "prop_mass": 5050,
-    "nozzledia": 0.6,
-    "burntime": 120,
-    "ign_flag": "S1_M1_IGN",
-    "burn_out_flag": "S1_M1_Burnout",
-    "cut_off_flags": [
-      "S1_M1_CUTOFF"
-    ],
-    "sep_flag": "ST_1_SEP",
-    "no_of_nozzles": 1,
-    "nozzle": "S1_MOTOR1_NOZ1",
-    "thr_time": [
-      [
-        "Time",
-        "Thrust"
-      ],
-      [
-        0,
-        100000
-      ],
-      [
-        10,
-        95000
-      ],
-      [
-        20,
-        90000
-      ],
-      [
-        30,
-        85000
-      ],
-      [
-        40,
-        0
-      ]
-    ]
-  },
-  "Garuda_Sequence": [
-    {
-      "identity": "ST_1_INI",
-      "trigger": "MISSION_TIME",
-      "value": 23,
-      "reference": "none",
-      "comment": "Stage 1 Initialization"
-    },
-    {
-      "identity": "S1_M1_IGN",
-      "trigger": "MISSION_TIME",
-      "value": 23.5,
-      "reference": "ST_1_INI",
-      "comment": "Motor 1 Ignition"
-    },
-    {
-      "identity": "S1_M1_CUTOFF",
-      "trigger": "PHASE_TIME",
-      "value": 120,
-      "reference": "S1_M1_IGN",
-      "comment": "Motor 1 Cutoff"
-    },
-    {
-      "identity": "HSS_Flag",
-      "trigger": "ALTITUDE",
-      "value": 80000,
-      "reference": "none",
-      "comment": "Heat Shield Separation"
-    },
-    {
-      "identity": "ST_1_SEP",
-      "trigger": "MISSION_TIME",
-      "value": 150,
-      "reference": "S1_M1_CUTOFF",
-      "comment": "Stage 1 Separation"
-    }
-  ],
-  "_steering_data_start": "--- Steering Details Start ---",
-  "Vertical_Ascend_1": {
-    "start": {
-      "identity": "VA_START_1",
-      "trigger": "MISSION_TIME",
-      "value": 0,
-      "reference": "none",
-      "comment": "Start of vertical ascent"
-    },
-    "stop": {
-      "identity": "VA_STOP_1",
-      "trigger": "ALTITUDE",
-      "value": 1000,
-      "reference": "none",
-      "comment": "End of vertical ascent"
-    },
-    "steering": {
-      "type": "ZERO_RATE",
-      "comment": ""
-    }
-  },
-  "Pitch_Hold_1": {
-    "start": {
-      "identity": "PH_START_1",
-      "trigger": "MISSION_TIME",
-      "value": 30,
-      "reference": "none",
-      "comment": "Start of pitch hold"
-    },
-    "stop": {
-      "identity": "PH_STOP_1",
-      "trigger": "MISSION_TIME",
-      "value": 60,
-      "reference": "none",
-      "comment": "End of pitch hold"
-    },
-    "steering": {
-      "type": "ZERO_RATE",
-      "comment": ""
-    }
-  },
-  "Gravity_Turn_1": {
-    "start": {
-      "identity": "GT_START_1",
-      "trigger": "MISSION_TIME",
-      "value": 90,
-      "reference": "none",
-      "comment": "Start of gravity turn"
-    },
-    "stop": {
-      "identity": "GT_STOP_1",
-      "trigger": "ALTITUDE",
-      "value": 60000,
-      "reference": "none",
-      "comment": "End of gravity turn"
-    },
-    "steering": {
-      "type": "ZERO_RATE",
-      "comment": ""
-    }
-  },
-  "Profile_1": {
-    "start": {
-      "identity": "PROFILE_START_1",
-      "trigger": "MISSION_TIME",
-      "value": 120,
-      "reference": "none",
-      "comment": "Start of profile steering"
-    },
-    "stop": {
-      "identity": "PROFILE_STOP_1",
-      "trigger": "ALTITUDE",
-      "value": 100000,
-      "reference": "none",
-      "comment": "End of profile steering"
-    },
-    "steering": {
-      "type": "ZERO_RATE",
-      "comment": ""
-    }
-  },
-  "Garuda_Steering": {
-    "Steering_Sequence": "123",
-    "steering": [
-      "Vertical_Ascend_1",
-      "Pitch_Hold_1",
-      "Gravity_Turn_1",
-      "Profile_1"
-    ]
-  },
-  "_steering_data_end": "--- Steering Details End ---",
   "Stage_2": {
-    "motor": [
-      "S2_MOTOR1"
-    ],
+    "DCISS": "OFF",
     "actuator": null,
-    "str_mass": 2000,
-    "length": null,
-    "ref_area": 5,
-    "burntime": 140,
     "aero_data": [
       "Stage_2_AeroData"
     ],
-    "sample_data": null,
+    "burntime": 140,
+    "coasting": "OFF",
+    "descend_drag": null,
     "inert_mass": null,
     "ini_flag": "ST_2_INI",
+    "length": null,
+    "motor": [
+      "S2_MOTOR1"
+    ],
+    "ref_area": 5,
+    "sample_data": null,
     "sep_flag": "ST_2_SEP",
-    "strapon": null,
-    "descend_drag": null,
-    "DCISS": "OFF",
-    "coasting": "OFF"
+    "str_mass": 2000,
+    "strapon": null
   },
   "Stage_2_AeroData": {
     "Flag": [
@@ -542,140 +601,81 @@
       ]
     ]
   },
-  "S2_MOTOR1": {
-    "str_mass": 2000,
-    "type_of_prop": "solid",
-    "prop_mass": 3500,
-    "nozzledia": 0.5,
-    "burntime": 140,
-    "ign_flag": "S2_M1_IGN",
-    "burn_out_flag": "S2_M1_Burnout",
-    "cut_off_flags": [
-      "S2_M1_CUTOFF"
-    ],
-    "sep_flag": "ST_2_SEP",
-    "no_of_nozzles": 1,
-    "nozzle": "S2_MOTOR1_NOZ1",
-    "thr_time": [
-      [
-        "Time",
-        "Thrust",
-        "PropMass"
-      ],
-      [
-        "s",
-        "kN",
-        "Kg"
-      ],
-      [
-        0,
-        0,
-        44999
-      ],
-      [
-        0.1,
-        981,
-        44966.213
-      ],
-      [
-        1.1,
-        981,
-        44638.344
-      ],
-      [
-        50,
-        981,
-        28605.557
-      ],
-      [
-        100,
-        981,
-        12212.115
-      ],
-      [
-        120,
-        981,
-        5654.738
-      ],
-      [
-        120.1,
-        725.94,
-        5630.4175
-      ],
-      [
-        125,
-        725.94,
-        4441.623
-      ],
-      [
-        130,
-        725.94,
-        3228.508
-      ],
-      [
-        140,
-        725.94,
-        802.279
-      ],
-      [
-        142.99,
-        725.94,
-        76.836
-      ],
-      [
-        143,
-        725.94,
-        74.41
-      ],
-      [
-        143.289,
-        725.94,
-        4.292
-      ],
-      [
-        143.3,
-        725.94,
-        1.623
-      ],
-      [
-        143.31,
-        725.94,
-        1.623
-      ],
-      [
-        143.32,
-        725.94,
-        1.623
-      ],
-      [
-        143.9,
-        0,
-        0
-      ]
-    ]
-  },
-  "S2_MOTOR1_NOZ1": {
-    "Diameter": 0.5,
-    "Location": {
-      "Radial_dist": 0,
-      "Phi": 0
+  "Vertical_Ascend_1": {
+    "start": {
+      "comment": "Start of vertical ascent",
+      "identity": "VA_START_1",
+      "reference": "none",
+      "trigger": "MISSION_TIME",
+      "value": 0
     },
-    "mis_alignment": {
-      "sigma_thrust": 0,
-      "tau_thrust": 0,
-      "epsilon_thrust": 0
+    "steering": {
+      "comment": "",
+      "type": "ZERO_RATE"
     },
-    "Orientation": {
-      "mu": 0,
-      "lamda": 0,
-      "kappa": 0
-    },
-    "eta_thrust": 0,
-    "zeta_thrust": 0,
-    "Throat_location": {
-      "x": 0,
-      "y": 0,
-      "z": 0
+    "stop": {
+      "comment": "End of vertical ascent",
+      "identity": "VA_STOP_1",
+      "reference": "none",
+      "trigger": "ALTITUDE",
+      "value": 1000
     }
+  },
+  "Wind": [
+    [
+      "Altitude",
+      "Zonal",
+      "Meridonal"
+    ],
+    [
+      "m",
+      "m/s",
+      "m/s"
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      60000,
+      0,
+      0
+    ],
+    [
+      90000,
+      0,
+      0
+    ],
+    [
+      150000,
+      0,
+      0
+    ],
+    [
+      400000,
+      0,
+      0
+    ]
+  ],
+  "_environment_data_end": "--- Environment Details End ---",
+  "_environment_data_start": "--- Environment Details Start ---",
+  "_mission_data_end": "--- Mission Details End ---",
+  "_mission_data_start": "--- Mission Details Start ---",
+  "_steering_data_end": "--- Steering Details End ---",
+  "_steering_data_start": "--- Steering Details Start ---",
+  "_vehicle_data_end": "--- Vehicle Details End ---",
+  "_vehicle_data_start": "--- Vehicle Details Start ---",
+  "mission": {
+    "MODE": "optimization",
+    "UTC": {
+      "Date": "2025-04-19",
+      "Time": "12:45:23"
+    },
+    "frame_model": "POST",
+    "mission_name": "SSPO",
+    "output_frame": "POST",
+    "planet_name": "",
+    "tracking_option": "ON"
   }
 }
