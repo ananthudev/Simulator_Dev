@@ -379,8 +379,12 @@ function generateSteeringFields(type, params = {}) {
     console.error("Dynamic steering fields container not found.");
     return;
   }
+
+  // Normalize the type to camelCase
+  const normalizedType = normalizeSteeringType(type);
+
   console.log(
-    `Generating/Showing fields for type: ${type} with initial params:`,
+    `Generating/Showing fields for type: ${normalizedType} with initial params:`,
     JSON.stringify(params)
   );
 
@@ -389,14 +393,14 @@ function generateSteeringFields(type, params = {}) {
   });
 
   // --- ADDED: Handle empty type ---
-  if (!type) {
+  if (!normalizedType) {
     console.log("No steering type selected, hiding all dynamic fields.");
     return; // Don't try to find or populate fields for an empty type
   }
   // --- END ADDED ---
 
   const activeSection = container.querySelector(
-    `.steering-params[data-steering-type="${type}"]`
+    `.steering-params[data-steering-type="${normalizedType}"]`
   );
 
   // Define types with no parameters
@@ -411,11 +415,11 @@ function generateSteeringFields(type, params = {}) {
 
   if (activeSection) {
     activeSection.style.display = "block";
-    console.log(`Showing section for type: ${type}`);
-    console.log(`Calling populateFields for type: ${type}`);
+    console.log(`Showing section for type: ${normalizedType}`);
+    console.log(`Calling populateFields for type: ${normalizedType}`);
     populateFields(activeSection, params);
 
-    if (type === "clg") {
+    if (normalizedType === "clg") {
       const algorithmSelect = activeSection.querySelector(".clg-algorithm");
       if (algorithmSelect) {
         algorithmSelect.removeEventListener("change", handleClgAlgorithmChange);
@@ -429,9 +433,11 @@ function generateSteeringFields(type, params = {}) {
         }
       }
     }
-  } else if (!noParamTypes.includes(type)) {
+  } else if (!noParamTypes.includes(normalizedType)) {
     // Only warn if the type is not known to have no parameters
-    console.warn(`No parameter section found for steering type: ${type}`);
+    console.warn(
+      `No parameter section found for steering type: ${normalizedType}`
+    );
   }
 }
 
@@ -560,6 +566,35 @@ function downloadProfileTemplate() {
 // -------------------------------------------
 // Configuration Handler Class (from steering-configuration.js)
 // -------------------------------------------
+
+// Add this function before the SteeringConfigHandler class
+function normalizeSteeringType(type) {
+  if (!type) return "";
+
+  // Convert uppercase types to camelCase
+  switch (type.toUpperCase()) {
+    case "ZERO_RATE":
+      return "zeroRate";
+    case "CONST_BODYRATE":
+      return "constantBodyRate";
+    case "PROFILE":
+      return "profile";
+    case "CLG":
+      return "clg";
+    case "VERTICAL_ASCEND":
+      return "verticalAscend";
+    case "PITCH_HOLD":
+      return "pitchHold";
+    case "CONST_PITCHRATE":
+      return "constantPitch";
+    case "GRAVITY_TURN":
+      return "gravityTurn";
+    case "COASTING":
+      return "coasting";
+    default:
+      return type; // Keep original if no mapping
+  }
+}
 
 class SteeringConfigHandler {
   constructor() {
@@ -857,7 +892,10 @@ class SteeringConfigHandler {
 
   validateSteeringParams(type, params) {
     console.log(`Validating params for type: ${type}`, params);
-    switch (type) {
+    // Normalize the type to camelCase
+    const normalizedType = normalizeSteeringType(type);
+
+    switch (normalizedType) {
       case "constantBodyRate":
         const isValid =
           params.axis &&
@@ -890,11 +928,13 @@ class SteeringConfigHandler {
       case "constantPitch":
       case "gravityTurn":
       case "zeroRate":
-        console.log(`Type ${type} has no parameters to validate here.`);
+        console.log(
+          `Type ${normalizedType} has no parameters to validate here.`
+        );
         return true;
       default:
         console.warn(
-          `Unknown steering type encountered in validation: ${type}`
+          `Unknown steering type encountered in validation: ${normalizedType}`
         );
         return false;
     }
@@ -1056,8 +1096,11 @@ class SteeringConfigHandler {
     const container = document.querySelector(".dynamic-steering-fields");
     if (!container) return params;
 
+    // Normalize the type to camelCase
+    const normalizedType = normalizeSteeringType(type);
+
     // Collect parameters based on the selected steering type
-    switch (type) {
+    switch (normalizedType) {
       case "zeroRate":
         // No specific params needed
         break;
@@ -1123,7 +1166,9 @@ class SteeringConfigHandler {
         }
         break;
       default:
-        console.warn(`Unknown steering type for param collection: ${type}`);
+        console.warn(
+          `Unknown steering type for param collection: ${normalizedType}`
+        );
     }
 
     return params;
@@ -1213,8 +1258,12 @@ class SteeringConfigHandler {
       const dynamicFieldsContainer = document.querySelector(
         ".dynamic-steering-fields"
       );
+
+      // Normalize the type to camelCase
+      const normalizedType = normalizeSteeringType(type);
+
       const activeSection = dynamicFieldsContainer?.querySelector(
-        `.steering-params[data-steering-type="${type}"]`
+        `.steering-params[data-steering-type="${normalizedType}"]`
       );
       if (activeSection) {
         console.log("Attaching listeners after steering type change...");
@@ -1249,7 +1298,8 @@ class SteeringConfigHandler {
     document.querySelector('[data-field="start_reference"]').value =
       config.start_reference;
     document.querySelector('[data-field="start_comment"]').value =
-      config.start_comment || "";
+      config.start_comment;
+
     document.querySelector('[data-field="stop_identity"]').value =
       config.stop_identity;
     document.querySelector('[data-field="stop_trigger_type"]').value =
@@ -1259,62 +1309,42 @@ class SteeringConfigHandler {
     document.querySelector('[data-field="stop_reference"]').value =
       config.stop_reference;
     document.querySelector('[data-field="stop_comment"]').value =
-      config.stop_comment || "";
+      config.stop_comment;
 
     const steeringTypeSelect = document.querySelector(
       '[data-field="steering_type"]'
     );
     if (steeringTypeSelect) {
       steeringTypeSelect.value = config.steering_type || "";
-    } else {
-      console.warn("Steering type select element not found during population.");
     }
-    const steeringComment = document.querySelector(
-      '[data-field="steering_comment"]'
+    document.querySelector('[data-field="steering_comment"]').value =
+      config.steering_comment;
+
+    console.log(
+      `Populating steering fields for type: ${config.steering_type} with params:`,
+      config.steering_params
     );
-    if (steeringComment) {
-      steeringComment.value = config.steering_comment || "";
-    } else {
-      console.warn("Steering comment element not found during population.");
+
+    // Use the normalized steering type for field generation
+    const normalizedType = normalizeSteeringType(config.steering_type);
+    generateSteeringFields(normalizedType, config.steering_params);
+
+    // Add handlers to any type-specific dynamic input fields
+    const activeSection = document.querySelector(
+      `.steering-params[data-steering-type="${normalizedType}"]`
+    );
+    if (activeSection) {
+      console.log("Attaching listeners to dynamic fields...");
+      this.attachListenersToDynamicFields(activeSection);
+    } else if (config.steering_type) {
+      console.warn(
+        `Could not find active section for steering type '${config.steering_type}' to attach listeners to during population.`
+      );
     }
 
-    if (typeof generateSteeringFields === "function") {
-      console.log(
-        `Populating steering fields for type: ${config.steering_type} with params:`,
-        config.steering_params
-      );
-      generateSteeringFields(config.steering_type, config.steering_params);
-      const dynamicFieldsContainer = document.querySelector(
-        ".dynamic-steering-fields"
-      );
-      const activeSection = dynamicFieldsContainer?.querySelector(
-        `.steering-params[data-steering-type="${config.steering_type}"]`
-      );
-      if (activeSection) {
-        console.log("Attaching listeners after populating panel...");
-        this.attachListenersToDynamicFields(activeSection);
-      } else {
-        // --- MODIFIED: Check if steering type is non-empty before warning ---
-        if (config.steering_type) {
-          console.warn(
-            `Could not find active section for steering type '${config.steering_type}' to attach listeners to during population.`
-          );
-        } else {
-          console.log(
-            "No steering type set yet, skipping listener attachment."
-          );
-        }
-        // --- END MODIFICATION ---
-      }
-    } else {
-      console.error("generateSteeringFields function not found.");
-    }
-
-    console.log("Validating sections after population...");
     this.validateSection("start");
     this.validateSection("stop");
     this.validateSection("steering");
-    console.log("Section validation complete.");
   }
 }
 
@@ -1520,7 +1550,10 @@ function generateComponentPreview(component) {
   function formatSteeringParams(type, params) {
     if (!params) return "Not configured";
 
-    switch (type) {
+    // Normalize the type to camelCase
+    const normalizedType = normalizeSteeringType(type);
+
+    switch (normalizedType) {
       case "zeroRate":
         return "Zero Rate";
       case "constantBodyRate":
@@ -1693,8 +1726,11 @@ function saveSteeringConfiguration() {
       isValid = false;
       validationErrors.push(`${comp.displayName}: Steering type not selected`);
     } else {
+      // Normalize the steering type for validation
+      const normalizedType = normalizeSteeringType(comp.config.steering_type);
+
       // Validate steering parameters based on type
-      switch (comp.config.steering_type) {
+      switch (normalizedType) {
         case "constantBodyRate":
           if (
             !comp.config.steering_params.axis ||

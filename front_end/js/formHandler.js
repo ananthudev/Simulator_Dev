@@ -406,11 +406,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Update placeholder based on trigger type
     triggerType.addEventListener("change", function () {
       switch (this.value) {
-        case "mission-time":
-        case "phase-time":
+        case "MISSION_TIME":
+        case "PHASE_TIME":
           triggerValue.placeholder = "Enter time in seconds";
           break;
-        case "altitude":
+        case "ALTITUDE":
           triggerValue.placeholder = "Enter altitude in meters";
           break;
         default:
@@ -2180,13 +2180,13 @@ function validateTriggerValue(triggerType, value) {
   }
 
   switch (triggerType) {
-    case "mission-time":
-    case "phase-time":
+    case "MISSION_TIME":
+    case "PHASE_TIME":
       return {
         isValid: true,
         message: "Value in seconds",
       };
-    case "altitude":
+    case "ALTITUDE":
       return {
         isValid: true,
         message: "Value in meters",

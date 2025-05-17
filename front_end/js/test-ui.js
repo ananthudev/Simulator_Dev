@@ -21,196 +21,389 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initializeTestUI() {
-  // Create the main test UI container
-  const mainTestContainer = document.createElement("div");
-  mainTestContainer.id = "main-test-ui-container";
+  try {
+    // Create the main test UI container
+    const mainTestContainer = document.createElement("div");
+    mainTestContainer.id = "main-test-ui-container";
 
-  // Create header for collapsing
-  const testHeader = document.createElement("div");
-  testHeader.id = "test-ui-header";
+    // Create header for collapsing
+    const testHeader = document.createElement("div");
+    testHeader.id = "test-ui-header";
 
-  const headerTitle = document.createElement("h3");
-  headerTitle.textContent = "Test Controls";
-  testHeader.appendChild(headerTitle);
+    const headerTitle = document.createElement("h3");
+    headerTitle.textContent = "Test Controls";
+    testHeader.appendChild(headerTitle);
 
-  const toggleButton = document.createElement("button");
-  toggleButton.id = "test-ui-toggle";
-  toggleButton.textContent = "Show"; // Initial state is hidden
-  testHeader.appendChild(toggleButton);
+    const toggleButton = document.createElement("button");
+    toggleButton.id = "test-ui-toggle";
+    toggleButton.textContent = "Show"; // Initial state is hidden
+    testHeader.appendChild(toggleButton);
 
-  mainTestContainer.appendChild(testHeader);
+    mainTestContainer.appendChild(testHeader);
 
-  // Create the collapsible content container - initially hidden
-  const collapsibleContent = document.createElement("div");
-  collapsibleContent.id = "test-ui-collapsible-content";
-  collapsibleContent.style.display = "none"; // Initially hidden
+    // Create the collapsible content container - initially hidden
+    const collapsibleContent = document.createElement("div");
+    collapsibleContent.id = "test-ui-collapsible-content";
+    collapsibleContent.style.display = "none"; // Initially hidden
 
-  // Create the 'Run All Tests' button (moved inside collapsible content)
-  const runAllTestsButton = document.createElement("button");
-  runAllTestsButton.id = "run-tests";
-  runAllTestsButton.textContent = "Run All Tests";
-  runAllTestsButton.className = "test-button main"; // Removed fixed positioning class
-  runAllTestsButton.onclick = window.TestHelpers.runAllTests;
-  collapsibleContent.appendChild(runAllTestsButton);
+    // Create the 'Run All Tests' button (moved inside collapsible content)
+    const runAllTestsButton = document.createElement("button");
+    runAllTestsButton.id = "run-tests";
+    runAllTestsButton.textContent = "Run All Tests";
+    runAllTestsButton.className = "test-button main"; // Removed fixed positioning class
+    runAllTestsButton.onclick = function () {
+      if (typeof window.TestHelpers.runAllTests === "function") {
+        window.TestHelpers.runAllTests();
+      } else {
+        console.error("runAllTests function not found in TestHelpers");
+      }
+    };
+    collapsibleContent.appendChild(runAllTestsButton);
 
-  // Create container for individual test buttons (existing)
-  const testButtonContainer = document.createElement("div"); // Renamed from testContainer for clarity
-  testButtonContainer.className = "test-button-container"; // New class for specific styling
-  collapsibleContent.appendChild(testButtonContainer);
+    // Create container for individual test buttons
+    const testButtonContainer = document.createElement("div");
+    testButtonContainer.className = "test-button-container";
+    collapsibleContent.appendChild(testButtonContainer);
 
-  // Create status indicator area (existing)
-  const statusIndicator = document.createElement("div");
-  statusIndicator.className = "test-status-indicator";
-  statusIndicator.style.display = "none"; // Initially hidden
-  collapsibleContent.appendChild(statusIndicator);
+    // Create status indicator area
+    const statusIndicator = document.createElement("div");
+    statusIndicator.className = "test-status-indicator";
+    statusIndicator.style.display = "none"; // Initially hidden
+    collapsibleContent.appendChild(statusIndicator);
 
-  mainTestContainer.appendChild(collapsibleContent);
-  document.body.appendChild(mainTestContainer);
+    mainTestContainer.appendChild(collapsibleContent);
+    document.body.appendChild(mainTestContainer);
 
-  // Add event listener for toggling
-  toggleButton.addEventListener("click", function () {
-    const content = document.getElementById("test-ui-collapsible-content");
-    const isHidden = content.style.display === "none";
-    content.style.display = isHidden ? "block" : "none";
-    toggleButton.textContent = isHidden ? "Hide" : "Show";
-  });
-
-  // Get data from realdata.json through TestData
-  const stagesData = [
-    { name: "Stage 1", index: 1 },
-    { name: "Stage 2", index: 2 },
-  ];
-
-  const motorsData = [
-    { name: "Motor 1_1", stageIndex: 1, motorIndex: 1 },
-    { name: "Motor 2_1", stageIndex: 2, motorIndex: 1 },
-  ];
-
-  // Count objective functions, constraints, and design variables
-  const optimizationData = window.TestData.optimization;
-  const numObjectives = optimizationData?.objective?.length || 1;
-  const numConstraints = optimizationData?.constraints?.length || 4;
-  const numDesignVars = optimizationData?.design_variables?.length || 4;
-
-  // Define test categories with specific buttons based on realdata.json
-  const testGroups = [
-    {
-      name: "Basic Forms",
-      tests: [
-        {
-          name: "Test Mission",
-          fn: window.TestHelpers.fillTestMissionData,
-          className: "test-button secondary mission",
-        },
-        {
-          name: "Test Environment",
-          fn: window.TestHelpers.fillTestEnvironmentData,
-          className: "test-button secondary environment",
-        },
-        {
-          name: "Test Vehicle",
-          fn: () => window.TestHelpers.fillTestVehicleData("ascend"),
-          className: "test-button secondary vehicle",
-        },
-      ],
-    },
-    {
-      name: "Stages",
-      tests: stagesData.map((stage) => ({
-        name: stage.name,
-        fn: () => {
-          window.TestHelpers.fillTestStageData(stage.index);
-          window.TestHelpers.fillTestAeroData(stage.index);
-        },
-        className: "test-button stage",
-      })),
-    },
-    {
-      name: "Motors",
-      tests: motorsData.map((motor) => ({
-        name: motor.name,
-        fn: () => {
-          window.TestHelpers.fillTestMotorData(
-            motor.stageIndex,
-            motor.motorIndex
-          );
-          window.TestHelpers.fillTestThrustData(
-            motor.stageIndex,
-            motor.motorIndex
-          );
-        },
-        className: "test-button motor",
-      })),
-    },
-    {
-      name: "Sequence & Control",
-      tests: [
-        {
-          name: "Fill Sequence",
-          fn: window.TestHelpers.fillTestSequenceData,
-          className: "test-button sequence",
-        },
-        {
-          name: "Fill Steering",
-          fn: window.TestHelpers.fillTestSteeringData,
-          className: "test-button steering",
-        },
-        {
-          name: "Fill Stopping Condition",
-          fn: window.TestHelpers.fillTestStoppingConditionData,
-          className: "test-button stopping",
-        },
-      ],
-    },
-    {
-      name: "Optimization",
-      tests: [
-        {
-          name: `${numObjectives} Objective${numObjectives > 1 ? "s" : ""}`,
-          fn: window.TestHelpers.fillTestObjectiveFunction,
-          className: "test-button objective",
-        },
-        {
-          name: `${numConstraints} Constraint${numConstraints > 1 ? "s" : ""}`,
-          fn: window.TestHelpers.fillTestConstraints,
-          className: "test-button constraints",
-        },
-        {
-          name: "Fill Optimization Mode",
-          fn: window.TestHelpers.fillTestOptimizationMode,
-          className: "test-button opt-mode",
-        },
-        {
-          name: `${numDesignVars} Design Variable${
-            numDesignVars > 1 ? "s" : ""
-          }`,
-          fn: window.TestHelpers.fillTestDesignVariables,
-          className: "test-button design-vars",
-        },
-      ],
-    },
-  ];
-
-  // Add group headers and buttons to container
-  testGroups.forEach((group) => {
-    // Add group header
-    const groupHeader = document.createElement("h4"); // Changed to h4 for better hierarchy
-    groupHeader.textContent = group.name;
-    groupHeader.className = "test-group-header";
-    testButtonContainer.appendChild(groupHeader); // Append to testButtonContainer
-
-    // Add group tests
-    group.tests.forEach((test) => {
-      const button = document.createElement("button");
-      button.textContent = test.name;
-      // Use specific class if provided, otherwise default to secondary
-      button.className = test.className || "test-button secondary";
-      button.onclick = test.fn;
-      testButtonContainer.appendChild(button); // Append to testButtonContainer
+    // Add event listener for toggling
+    toggleButton.addEventListener("click", function () {
+      const content = document.getElementById("test-ui-collapsible-content");
+      const isHidden = content.style.display === "none";
+      content.style.display = isHidden ? "block" : "none";
+      toggleButton.textContent = isHidden ? "Hide" : "Show";
     });
-  });
 
-  // Add some basic styling specific to the test UI - more compact version
+    // Make the test UI draggable with improved implementation
+    makeDraggable(mainTestContainer, testHeader);
+
+    // Get data from realdata.json through TestData
+    const stagesData = [
+      { name: "Stage 1", index: 1 },
+      { name: "Stage 2", index: 2 },
+    ];
+
+    const motorsData = [
+      { name: "Motor 1_1", stageIndex: 1, motorIndex: 1 },
+      { name: "Motor 2_1", stageIndex: 2, motorIndex: 1 },
+    ];
+
+    // Count objective functions, constraints, and design variables
+    // with better error handling
+    const optimizationData = window.TestData
+      ? window.TestData.optimization
+      : null;
+    const numObjectives = optimizationData?.objective?.length || 1;
+    const numConstraints = optimizationData?.constraints?.length || 4;
+    const numDesignVars = optimizationData?.design_variables?.length || 4;
+
+    // Define test categories with specific buttons based on realdata.json
+    const testGroups = [
+      {
+        name: "Basic Forms",
+        tests: [
+          {
+            name: "Test Mission",
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestMissionData === "function"
+              ) {
+                window.TestHelpers.fillTestMissionData();
+              } else {
+                console.error(
+                  "fillTestMissionData function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button secondary mission",
+          },
+          {
+            name: "Test Environment",
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestEnvironmentData === "function"
+              ) {
+                window.TestHelpers.fillTestEnvironmentData();
+              } else {
+                console.error(
+                  "fillTestEnvironmentData function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button secondary environment",
+          },
+          {
+            name: "Test Vehicle",
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestVehicleData === "function"
+              ) {
+                window.TestHelpers.fillTestVehicleData("ascend");
+              } else {
+                console.error(
+                  "fillTestVehicleData function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button secondary vehicle",
+          },
+        ],
+      },
+      {
+        name: "Stages",
+        tests: stagesData.map((stage) => ({
+          name: stage.name,
+          fn: function () {
+            if (
+              typeof window.TestHelpers.fillTestStageData === "function" &&
+              typeof window.TestHelpers.fillTestAeroData === "function"
+            ) {
+              window.TestHelpers.fillTestStageData(stage.index);
+              window.TestHelpers.fillTestAeroData(stage.index);
+            } else {
+              console.error(
+                "Stage data fill functions not found in TestHelpers"
+              );
+            }
+          },
+          className: "test-button stage",
+        })),
+      },
+      {
+        name: "Motors",
+        tests: motorsData.map((motor) => ({
+          name: motor.name,
+          fn: function () {
+            if (
+              typeof window.TestHelpers.fillTestMotorData === "function" &&
+              typeof window.TestHelpers.fillTestThrustData === "function"
+            ) {
+              window.TestHelpers.fillTestMotorData(
+                motor.stageIndex,
+                motor.motorIndex
+              );
+              window.TestHelpers.fillTestThrustData(
+                motor.stageIndex,
+                motor.motorIndex
+              );
+            } else {
+              console.error(
+                "Motor data fill functions not found in TestHelpers"
+              );
+            }
+          },
+          className: "test-button motor",
+        })),
+      },
+      {
+        name: "Sequence & Control",
+        tests: [
+          {
+            name: "Fill Sequence",
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestSequenceData === "function"
+              ) {
+                window.TestHelpers.fillTestSequenceData();
+              } else {
+                console.error(
+                  "fillTestSequenceData function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button sequence",
+          },
+          {
+            name: "Fill Steering",
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestSteeringData === "function"
+              ) {
+                window.TestHelpers.fillTestSteeringData();
+              } else {
+                console.error(
+                  "fillTestSteeringData function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button steering",
+          },
+          {
+            name: "Fill Stopping Condition",
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestStoppingConditionData ===
+                "function"
+              ) {
+                window.TestHelpers.fillTestStoppingConditionData();
+              } else {
+                console.error(
+                  "fillTestStoppingConditionData function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button stopping",
+          },
+        ],
+      },
+      {
+        name: "Optimization",
+        tests: [
+          {
+            name: `${numObjectives} Objective${numObjectives > 1 ? "s" : ""}`,
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestObjectiveFunction ===
+                "function"
+              ) {
+                window.TestHelpers.fillTestObjectiveFunction();
+              } else {
+                console.error(
+                  "fillTestObjectiveFunction function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button objective",
+          },
+          {
+            name: `${numConstraints} Constraint${
+              numConstraints > 1 ? "s" : ""
+            }`,
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestConstraints === "function"
+              ) {
+                window.TestHelpers.fillTestConstraints();
+              } else {
+                console.error(
+                  "fillTestConstraints function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button constraints",
+          },
+          {
+            name: "Fill Optimization Mode",
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestOptimizationMode ===
+                "function"
+              ) {
+                window.TestHelpers.fillTestOptimizationMode();
+              } else {
+                console.error(
+                  "fillTestOptimizationMode function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button opt-mode",
+          },
+          {
+            name: `${numDesignVars} Design Variable${
+              numDesignVars > 1 ? "s" : ""
+            }`,
+            fn: function () {
+              if (
+                typeof window.TestHelpers.fillTestDesignVariables === "function"
+              ) {
+                window.TestHelpers.fillTestDesignVariables();
+              } else {
+                console.error(
+                  "fillTestDesignVariables function not found in TestHelpers"
+                );
+              }
+            },
+            className: "test-button design-vars",
+          },
+        ],
+      },
+    ];
+
+    // Add group headers and buttons to container
+    testGroups.forEach((group) => {
+      // Add group header
+      const groupHeader = document.createElement("h4");
+      groupHeader.textContent = group.name;
+      groupHeader.className = "test-group-header";
+      testButtonContainer.appendChild(groupHeader);
+
+      // Add group tests
+      group.tests.forEach((test) => {
+        const button = document.createElement("button");
+        button.textContent = test.name;
+        button.className = test.className || "test-button secondary";
+        button.onclick = test.fn;
+        testButtonContainer.appendChild(button);
+      });
+    });
+
+    // Add basic styling specific to the test UI - more compact version
+    addTestUIStyles();
+  } catch (error) {
+    console.error("Error initializing test UI:", error);
+  }
+}
+
+// Helper function to make an element draggable
+function makeDraggable(element, handle) {
+  try {
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    // Mouse down event to start dragging
+    handle.addEventListener("mousedown", function (e) {
+      // Ignore if the click was on buttons or other interactive elements
+      if (e.target !== handle && e.target.parentNode !== handle) return;
+
+      isDragging = true;
+
+      // Get the current position of the panel
+      const rect = element.getBoundingClientRect();
+
+      // Calculate the offset of the mouse within the header
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+
+      // Change cursor to indicate dragging
+      element.style.cursor = "grabbing";
+    });
+
+    // Mouse move event to perform the dragging
+    document.addEventListener("mousemove", function (e) {
+      if (!isDragging) return;
+
+      // Calculate new position
+      const x = e.clientX - offsetX;
+      const y = e.clientY - offsetY;
+
+      // Apply new position
+      element.style.left = x + "px";
+      element.style.top = y + "px";
+      element.style.right = "auto"; // Remove the default right positioning
+    });
+
+    // Mouse up event to stop dragging
+    document.addEventListener("mouseup", function () {
+      if (isDragging) {
+        isDragging = false;
+        element.style.cursor = "default";
+      }
+    });
+  } catch (error) {
+    console.error("Error making element draggable:", error);
+  }
+}
+
+// Helper function to add test UI styles
+function addTestUIStyles() {
   const style = document.createElement("style");
   style.textContent = `
     #main-test-ui-container {
@@ -227,6 +420,11 @@ function initializeTestUI() {
       font-size: 12px; /* Reduced font size */
       max-height: 90vh;
       overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: box-shadow 0.3s ease;
+    }
+    #main-test-ui-container:hover {
+      box-shadow: 0 6px 12px rgba(0,0,0,0.5);
     }
     #test-ui-header {
       display: flex;
@@ -235,7 +433,13 @@ function initializeTestUI() {
       padding: 5px 8px; /* Reduced padding */
       background: #333;
       border-bottom: 1px solid #444;
-      cursor: pointer; /* Indicate it's clickable */
+      cursor: grab; /* Indicate it's draggable */
+      user-select: none; /* Prevent text selection while dragging */
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+    }
+    #test-ui-header:active {
+      cursor: grabbing; /* Change cursor when actively dragging */
     }
     #test-ui-header h3 {
       margin: 0;
@@ -435,3 +639,203 @@ function initializeTestUI() {
   `;
   document.head.appendChild(style);
 }
+
+// Function to initialize test forms using realdata.json
+function initializeFromRealDataJson() {
+  // Check if rawTestData is available
+  if (window.rawTestData) {
+    console.log("Initializing test forms from realdata.json");
+
+    // Set up the window.rawTestData variable as a global for test helpers to use
+    if (!window.rawTestData) {
+      loadRealDataJson().then((data) => {
+        if (data) {
+          console.log("Loaded rawTestData from realdata.json");
+          window.rawTestData = data;
+          populateFromRealDataJson();
+        }
+      });
+    } else {
+      populateFromRealDataJson();
+    }
+  }
+}
+
+// Function to populate the test forms from realdata.json
+function populateFromRealDataJson() {
+  try {
+    // Add optimization mode
+    const optModeBtn = document.getElementById("optimization-mode-test-btn");
+    if (optModeBtn) {
+      optModeBtn.addEventListener("click", function () {
+        if (typeof window.TestHelpers.fillTestOptimizationMode === "function") {
+          window.TestHelpers.fillTestOptimizationMode();
+        } else {
+          console.error(
+            "fillTestOptimizationMode function not found in TestHelpers"
+          );
+        }
+      });
+    }
+
+    // Add constraints
+    const constraintsBtn = document.getElementById("constraints-test-btn");
+    if (constraintsBtn) {
+      constraintsBtn.addEventListener("click", function () {
+        if (typeof window.TestHelpers.fillTestConstraints === "function") {
+          window.TestHelpers.fillTestConstraints();
+        } else {
+          console.error(
+            "fillTestConstraints function not found in TestHelpers"
+          );
+        }
+      });
+    }
+
+    // Add design variables
+    const designVarsBtn = document.getElementById("design-variables-test-btn");
+    if (designVarsBtn) {
+      designVarsBtn.addEventListener("click", function () {
+        if (typeof window.TestHelpers.fillTestDesignVariables === "function") {
+          window.TestHelpers.fillTestDesignVariables();
+        } else {
+          console.error(
+            "fillTestDesignVariables function not found in TestHelpers"
+          );
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error in populateFromRealDataJson:", error);
+  }
+}
+
+// Check if we need to add a Direct from JSON button to the test UI
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    // Create a special button to fill forms directly from realdata.json
+    const testToolbar = document.querySelector(".test-toolbar");
+    if (testToolbar) {
+      const directJsonBtn = document.createElement("button");
+      directJsonBtn.id = "direct-json-btn";
+      directJsonBtn.textContent = "Fill from realdata.json";
+      directJsonBtn.className = "test-action-btn";
+      directJsonBtn.style.backgroundColor = "#8e44ad"; // Purple color to differentiate
+
+      directJsonBtn.addEventListener("click", function () {
+        // Load realdata.json if it's not already loaded
+        if (!window.rawTestData) {
+          loadRealDataJson().then((data) => {
+            if (data) {
+              // Check if SweetAlert is available
+              if (typeof Swal !== "undefined") {
+                Swal.fire({
+                  title: "Using realdata.json",
+                  text: "Forms will be populated with data from realdata.json",
+                  icon: "info",
+                  toast: true,
+                  position: "top-end",
+                  showConfirmButton: false,
+                  timer: 3000,
+                });
+              } else {
+                console.log("Using realdata.json to fill forms");
+              }
+
+              // First we'll populate the design variables - with longer timeouts for stability
+              setTimeout(() => {
+                if (
+                  typeof window.TestHelpers.fillTestDesignVariables ===
+                  "function"
+                ) {
+                  window.TestHelpers.fillTestDesignVariables();
+
+                  // Then the constraints with longer delay
+                  setTimeout(() => {
+                    if (
+                      typeof window.TestHelpers.fillTestConstraints ===
+                      "function"
+                    ) {
+                      window.TestHelpers.fillTestConstraints();
+
+                      // And finally the mode with longer delay
+                      setTimeout(() => {
+                        if (
+                          typeof window.TestHelpers.fillTestOptimizationMode ===
+                          "function"
+                        ) {
+                          window.TestHelpers.fillTestOptimizationMode();
+                        }
+                      }, 3000);
+                    }
+                  }, 3000);
+                }
+              }, 2000);
+            } else {
+              // Show error message
+              if (typeof Swal !== "undefined") {
+                Swal.fire({
+                  title: "Error",
+                  text: "Failed to load realdata.json",
+                  icon: "error",
+                  toast: true,
+                  position: "top-end",
+                  showConfirmButton: false,
+                  timer: 3000,
+                });
+              } else {
+                console.error("Failed to load realdata.json");
+              }
+            }
+          });
+        } else {
+          // If data is already loaded, just use it to populate the forms
+          if (typeof Swal !== "undefined") {
+            Swal.fire({
+              title: "Using cached realdata.json",
+              text: "Forms will be populated with data from realdata.json",
+              icon: "info",
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 3000,
+            });
+          } else {
+            console.log("Using cached realdata.json to fill forms");
+          }
+
+          // Follow the same sequence as above with longer delays
+          setTimeout(() => {
+            if (
+              typeof window.TestHelpers.fillTestDesignVariables === "function"
+            ) {
+              window.TestHelpers.fillTestDesignVariables();
+
+              setTimeout(() => {
+                if (
+                  typeof window.TestHelpers.fillTestConstraints === "function"
+                ) {
+                  window.TestHelpers.fillTestConstraints();
+
+                  setTimeout(() => {
+                    if (
+                      typeof window.TestHelpers.fillTestOptimizationMode ===
+                      "function"
+                    ) {
+                      window.TestHelpers.fillTestOptimizationMode();
+                    }
+                  }, 3000);
+                }
+              }, 3000);
+            }
+          }, 2000);
+        }
+      });
+
+      // Add button to the toolbar
+      testToolbar.appendChild(directJsonBtn);
+    }
+  } catch (error) {
+    console.error("Error setting up direct JSON button:", error);
+  }
+});

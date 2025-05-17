@@ -288,7 +288,7 @@ const TestData = {
           comment: "Constant_Pitch_Stop",
         },
         parameters: {
-          steering_type: "constantBodyRate",
+          steering_type: "CONST_BODYRATE",
           axis: "pitch",
           value: -4.767241713786673,
           comment: "Constant_Pitch",
@@ -313,10 +313,10 @@ const TestData = {
           comment: "Profile_1 Stop",
         },
         parameters: {
-          steering_type: "profile",
+          steering_type: "PROFILE",
           mode: "normal",
-          quantity: "eulerRate",
-          independentVar: "phaseTime",
+          quantity: "EULER_RATE",
+          independentVar: "PHASE_TIME",
           profile_csv: [
             ["Time", "ROLL", "YAW", "PITCH"],
             [0, 0, 0, -0.334529405053707],
@@ -359,10 +359,10 @@ const TestData = {
           comment: "Profile_2 Stop",
         },
         parameters: {
-          steering_type: "profile",
+          steering_type: "PROFILE",
           mode: "normal",
-          quantity: "eulerRate",
-          independentVar: "profileTime",
+          quantity: "EULER_RATE",
+          independentVar: "PROFILE_TIME",
           profile_csv: [
             ["Time", "ROLL", "YAW", "PITCH"],
             [0, 0, 0.061251668429887, -0.057817997477519],
@@ -389,31 +389,32 @@ const TestData = {
 
   // Stopping condition
   stopping: {
-    criteria: "flag", // Based on "type": "Flag"
+    criteria: "flag",
     flag: {
       name: "ST_2_SEP",
-      condition: "eq",
+      condition: "EQ",
       value: 0.1,
     },
     time: {
-      value: 500, // Default placeholder
+      value: 500,
       condition: "eq",
     },
     altitude: {
-      value: 500000, // Default placeholder
+      value: 500000,
       condition: "gt",
     },
   },
 
   // Optimization data
   optimization: {
-    // Objective function data
+    // Objective function data directly from JSON
     objective: [
       {
         name: "PAYLOAD_MASS",
-        value: 1.0, // Default value since "null" in JSON
-        weight: 1.0,
-        type: "MAX", // Factor: -1 means maximize
+        value: null,
+        type: "OBJECTIVE",
+        flag: "ST_2_SEP",
+        factor: -1,
       },
     ],
 
@@ -427,7 +428,7 @@ const TestData = {
         flag: "ST_2_SEP",
         enable: true,
         factor: 1,
-        tolerance: 0.1, // From constraint_tolerence array
+        tolerance: 0.1,
       },
       {
         name: "PERIGEE",
@@ -437,7 +438,7 @@ const TestData = {
         flag: "ST_2_SEP",
         enable: true,
         factor: 1,
-        tolerance: 0.1, // From constraint_tolerence array
+        tolerance: 0.1,
       },
       {
         name: "ECCENTRICITY",
@@ -447,7 +448,7 @@ const TestData = {
         flag: "ST_2_SEP",
         enable: true,
         factor: 1,
-        tolerance: 0.0001, // From constraint_tolerence array
+        tolerance: 0.0001,
       },
       {
         name: "INCLINATION",
@@ -457,7 +458,7 @@ const TestData = {
         flag: "ST_2_SEP",
         enable: true,
         factor: 1,
-        tolerance: 0.001, // From constraint_tolerence array
+        tolerance: 0.001,
       },
     ],
 
@@ -465,13 +466,13 @@ const TestData = {
     mode: {
       type: "normal",
       normal: {
-        algorithm: "SADE", // From optimizer
+        algorithm: "SADE",
         map: {
           lower: 0,
           upper: 1,
         },
         population: 150,
-        set_population: false, // Based on "set_population": "NO"
+        set_population: false,
         problem_strategy: "ignore_o",
         csv_upload: null,
         algorithm_params: {
@@ -489,15 +490,15 @@ const TestData = {
         },
       },
       archipelago: {
-        algorithms: ["PSO", "MBH", "NLOPT"], // Default placeholder
-        topology: "Fully Connected", // Default placeholder
-        migration_type: "Broadcast", // Default placeholder
-        migration_handling: "Evict", // Default placeholder
+        algorithms: ["PSO", "MBH", "NLOPT"],
+        topology: "Fully Connected",
+        migration_type: "Broadcast",
+        migration_handling: "Evict",
         map: {
           lower: 0,
           upper: 1,
         },
-        population: 1, // Default placeholder
+        population: 1,
         set_population: false,
         csv_upload: null,
         algorithm_params: {
@@ -518,14 +519,14 @@ const TestData = {
       },
     },
 
-    // Design variables data from opt_steering_1, opt_steering_2, opt_steering_3, opt_payload_4
+    // Design variables data structure updated to match JSON structure
     design_variables: [
       {
         category: "STEERING",
         name: "opt_steering_1",
-        segment: "constantPitch_1",
+        segment: "Constant_Pitch_1",
         segment_type: "CONST_BODYRATE",
-        control_variable: "BODYRATE",
+        control_variable: "BODY_RATE",
         axis: "pitch",
         lower_bound: -5.5,
         upper_bound: 6.5,
@@ -533,28 +534,28 @@ const TestData = {
       {
         category: "STEERING",
         name: "opt_steering_2",
-        segment: "profile_1",
+        segment: "Profile_1",
         segment_type: "PROFILE",
         control_variable: "EULER_RATE",
         axis: "pitch",
-        lower_bound: -0.7, // simplifying to use the largest range value
-        upper_bound: 0.7, // simplifying to use the largest range value
+        lower_bound: -0.7,
+        upper_bound: 0.7,
       },
       {
         category: "STEERING",
         name: "opt_steering_3",
-        segment: "profile_2",
+        segment: "Profile_2",
         segment_type: "PROFILE",
         control_variable: "EULER_RATE",
         axis: "pitch,yaw",
-        lower_bound: -3, // simplifying to use the largest range value
-        upper_bound: 3, // simplifying to use the largest range value
+        lower_bound: -3,
+        upper_bound: 3,
       },
       {
         category: "PAYLOAD",
         name: "opt_payload_4",
         control_variable: "MASS",
-        lower_bound: 600,
+        lower_bound: 0,
         upper_bound: 900,
       },
     ],
@@ -563,3 +564,33 @@ const TestData = {
 
 // Make the test data globally available
 window.TestData = TestData;
+
+// Function to load raw data from realdata.json
+async function loadRealDataJson() {
+  try {
+    const response = await fetch("/test_data/realdata.json");
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Successfully loaded realdata.json");
+      window.rawTestData = data;
+      return data;
+    } else {
+      console.warn("Could not load realdata.json:", response.status);
+      return null;
+    }
+  } catch (error) {
+    console.warn("Error loading realdata.json:", error);
+    return null;
+  }
+}
+
+// Load realdata.json when the script is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  loadRealDataJson()
+    .then((data) => {
+      if (data) {
+        console.log("rawTestData is available for test forms");
+      }
+    })
+    .catch((err) => console.error("Failed to load realdata.json:", err));
+});

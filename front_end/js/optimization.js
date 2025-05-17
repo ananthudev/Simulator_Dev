@@ -2,21 +2,21 @@
 
 // Global state to track CSV file content for both modes
 window.optimizationHandler = window.optimizationHandler || {};
-window.optimizationHandler.normalCsvData = null;
+window.optimizationHandler.normalCsvData = Array(49).fill(0); // Initialize with default array of zeros
 window.optimizationHandler.normalCsvFile = null;
-window.optimizationHandler.archipelagoCsvData = null;
+window.optimizationHandler.archipelagoCsvData = Array(49).fill(0); // Initialize with default array of zeros
 window.optimizationHandler.archipelagoCsvFile = null;
 
 // Add a CSV parse function to parse initial population data
 function parseInitialPopulationCSV(csvString) {
-  if (!csvString) return null;
+  if (!csvString) return Array(49).fill(0); // Return default array of 49 zeros if no input
 
   try {
     // Clean and prepare the string
     const trimmedString = csvString.trim();
     const lines = trimmedString.split("\n");
 
-    if (lines.length === 0) return null;
+    if (lines.length === 0) return Array(49).fill(0); // Return default if no lines
 
     // Initialize array to hold values
     const result = [];
@@ -40,10 +40,11 @@ function parseInitialPopulationCSV(csvString) {
       }
     });
 
-    return result;
+    // Return the parsed result or default array if empty
+    return result.length > 0 ? result : Array(49).fill(0);
   } catch (error) {
     console.error("Error parsing initial population CSV:", error);
-    return null;
+    return Array(49).fill(0); // Return default on error
   }
 }
 
@@ -1088,21 +1089,21 @@ window.algorithmParameters = algorithmParameters;
 
 // Control Variable options for each design variable category
 const designVariableControlOptions = {
-  CUT_OFF: ["Time"],
-  PAYLOAD: ["Mass"],
-  AZIMUTH: ["Launch_Azimuth"],
-  SEQUENCE: ["Time"],
-  PROPULSION: ["Propellant"],
+  CUT_OFF: ["TIME"],
+  PAYLOAD: ["MASS"],
+  AZIMUTH: ["LAUNCH_AZIMUTH"],
+  SEQUENCE: ["TIME"],
+  PROPULSION: ["PROPULSION"],
   STEERING: {
-    CLG: ["Euler_Rate", "Body_Rate", "Euler_Angle", "Body_Angle"],
-    ZERO_RATE: ["Stop_Time"],
-    PROFILE: ["Euler_Rate", "Body_Rate", "Euler_Angle", "Body_Angle"],
+    CLG: ["EULER_RATE", "BODY_RATE", "EULER_ANGLE", "BODY_ANGLE"],
+    ZERO_RATE: ["STOP_TIME"],
+    PROFILE: ["EULER_RATE", "BODY_RATE", "EULER_ANGLE", "BODY_ANGLE"],
     CONST_BODYRATE: [
-      "Stop_Time",
-      "Euler_Rate",
-      "Body_Rate",
-      "Euler_Angle",
-      "Body_Angle",
+      "STOP_TIME",
+      "EULER_RATE",
+      "BODY_RATE",
+      "EULER_ANGLE",
+      "BODY_ANGLE",
     ],
   },
 };
@@ -1273,8 +1274,8 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Normal mode CSV data parsed and stored");
       } else {
         window.optimizationHandler.normalCsvFile = null;
-        window.optimizationHandler.normalCsvData = null;
-        console.log("Normal mode CSV data cleared");
+        window.optimizationHandler.normalCsvData = Array(49).fill(0);
+        console.log("Normal mode CSV data cleared and set to default zeros");
       }
     };
 
@@ -1311,8 +1312,10 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Archipelago mode CSV data parsed and stored");
       } else {
         window.optimizationHandler.archipelagoCsvFile = null;
-        window.optimizationHandler.archipelagoCsvData = null;
-        console.log("Archipelago mode CSV data cleared");
+        window.optimizationHandler.archipelagoCsvData = Array(49).fill(0);
+        console.log(
+          "Archipelago mode CSV data cleared and set to default zeros"
+        );
       }
     };
 
@@ -3298,7 +3301,8 @@ document.addEventListener("DOMContentLoaded", function () {
         // Ensure comp has id, displayName, and type, which it should if coming from steeringState
         if (comp && comp.id && comp.displayName && comp.type) {
           const option = document.createElement("option");
-          option.value = comp.id; // Use the unique component ID as the value
+          // Store the exact displayName as the value to preserve case and format
+          option.value = comp.displayName;
           // Display name should already be in 'Capitalized_Type_Name_Increment' format e.g. Vertical_Ascend_1
           option.textContent = comp.displayName;
           selectElement.appendChild(option);
@@ -3524,10 +3528,10 @@ document.addEventListener("DOMContentLoaded", function () {
                   );
 
                   const mutuallyExclusiveGroupValues = [
-                    "Euler_Rate",
-                    "Body_Rate",
-                    "Euler_Angle",
-                    "Body_Angle",
+                    "EULER_RATE",
+                    "BODY_RATE",
+                    "EULER_ANGLE",
+                    "BODY_ANGLE",
                   ];
 
                   checkboxes.forEach((checkbox) => {
@@ -3675,7 +3679,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedOption = segmentSelect.options[segmentSelect.selectedIndex];
     const segmentType = selectedOption
       ? selectedOption.dataset.segmentType
-      : null; // Get type from selected segment option
+      : null; // Get type from selected segment option's dataset
 
     if (segmentTypeSelect && segmentType) {
       segmentTypeSelect.value = segmentType; // Auto-select the type based on the chosen segment
@@ -5626,24 +5630,66 @@ document.addEventListener("DOMContentLoaded", function () {
           ".algorithm-param-input"
         );
 
+        const algorithmDef = window.algorithmParameters[algorithm] || {};
+
         paramInputs.forEach((input) => {
           const paramKey = input.dataset.parameter;
           let value;
 
-          // Handle different input types
+          // Get parameter definition
+          const paramDef = algorithmDef[paramKey] || {};
+
+          // Handle different input types with proper type conversion
           if (input.type === "checkbox") {
             value = input.checked;
-          } else if (input.type === "number") {
+          } else if (input.type === "number" || paramDef.type === "number") {
             value = parseFloat(input.value);
             if (isNaN(value)) value = null;
           } else if (input.tagName === "SELECT") {
+            // For select, convert to proper type based on options
             value = input.value;
+            // If all options are numbers, convert to number
+            if (
+              paramDef.options &&
+              paramDef.options.every(
+                (opt) => typeof opt === "number" || !isNaN(Number(opt))
+              )
+            ) {
+              value = Number(value);
+            }
+            // If boolean options, convert to actual boolean
+            else if (value === "true" || value === "false") {
+              value = value === "true";
+            }
+            // Additional check for boolean parameters with string representations
+            else if (
+              paramDef.options &&
+              paramDef.options.length === 2 &&
+              paramDef.options.includes(true) &&
+              paramDef.options.includes(false)
+            ) {
+              // Force conversion to boolean for boolean parameters
+              value = value === "true" || value === true;
+            }
           } else {
             value = input.value;
+            // Try to convert known numeric or boolean values in string form
+            if (value === "true") {
+              value = true;
+            } else if (value === "false") {
+              value = false;
+            } else if (!isNaN(Number(value)) && value.trim() !== "") {
+              value = Number(value);
+            }
           }
 
           if (paramKey && value !== undefined) {
-            algoParams[paramKey] = value;
+            // Special handling for known boolean parameters
+            if (paramKey === "memory" && value !== null) {
+              algoParams[paramKey] = value === true || value === "true";
+            } else {
+              algoParams[paramKey] = value;
+            }
           }
         });
 
@@ -5754,10 +5800,13 @@ document.addEventListener("DOMContentLoaded", function () {
       // Still include the structure but with empty population and set_population: "OFF"
       jsonData.initial_population = [
         {
-          population: "",
+          population: initialPopulationKey,
           set_population: "NO",
         },
       ];
+
+      // Add default array of zeros
+      jsonData[initialPopulationKey] = Array(49).fill(0);
     }
 
     if (modeData.type === "normal") {
@@ -6918,12 +6967,29 @@ document.addEventListener("DOMContentLoaded", function () {
             if (isNaN(value)) value = null;
           } else if (input.tagName === "SELECT") {
             value = input.value;
+            // For boolean options, ensure proper conversion
+            if (value === "true" || value === "false") {
+              value = value === "true";
+            }
           } else {
             value = input.value;
+            // Try to convert known numeric or boolean values in string form
+            if (value === "true") {
+              value = true;
+            } else if (value === "false") {
+              value = false;
+            } else if (!isNaN(Number(value)) && value.trim() !== "") {
+              value = Number(value);
+            }
           }
 
           if (paramKey && value !== undefined) {
-            params[paramKey] = value;
+            // Special handling for known boolean parameters
+            if (paramKey === "memory" && value !== null) {
+              params[paramKey] = value === true || value === "true";
+            } else {
+              params[paramKey] = value;
+            }
           }
         });
 
@@ -7821,12 +7887,28 @@ document.addEventListener("DOMContentLoaded", function () {
               });
               dv.type.lower_bound = lowerBounds;
               dv.type.upper_bound = upperBounds;
-              // Collect other fields as before
-              const controlVarInput = typeFields.querySelector(
-                ".dv-control-variable"
-              );
-              if (controlVarInput)
-                dv.type.control_variable = controlVarInput.value;
+
+              // For CONST_BODYRATE, collect from checkboxes instead of dropdown
+              if (segmentType === "CONST_BODYRATE") {
+                const controlVarCheckboxes = typeFields.querySelectorAll(
+                  ".dv-control-variable-cb:checked"
+                );
+                if (controlVarCheckboxes && controlVarCheckboxes.length > 0) {
+                  dv.type.control_variable = Array.from(
+                    controlVarCheckboxes
+                  ).map((cb) => cb.value);
+                } else {
+                  // No default value if no checkbox is selected
+                  dv.type.control_variable = [];
+                }
+              } else {
+                // For other types, collect from dropdown as before
+                const controlVarInput = typeFields.querySelector(
+                  ".dv-control-variable"
+                );
+                if (controlVarInput)
+                  dv.type.control_variable = controlVarInput.value;
+              }
               if (segmentType === "PROFILE") {
                 const indVar = typeFields.querySelector(".dv-ind-variable");
                 const indVector = typeFields.querySelector(".dv-ind-vector");
@@ -8068,15 +8150,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      // Get steering segments in the correct format (with capital letters and underscores)
-      if (
-        window.finalMissionData.Garuda_Steering &&
-        Array.isArray(window.finalMissionData.Garuda_Steering.steering)
-      ) {
-        availableSteeringSegments.push(
-          ...window.finalMissionData.Garuda_Steering.steering
-        );
-      }
+      // Get steering segments from any steering sequence in the mission data
+      Object.keys(window.finalMissionData).forEach((key) => {
+        if (
+          window.finalMissionData[key] &&
+          window.finalMissionData[key].steering &&
+          Array.isArray(window.finalMissionData[key].steering)
+        ) {
+          availableSteeringSegments.push(
+            ...window.finalMissionData[key].steering
+          );
+        }
+      });
     }
 
     designVariablesData.forEach((dv) => {
@@ -8089,15 +8174,21 @@ document.addEventListener("DOMContentLoaded", function () {
       // Add segment with proper formatting based on category
       if (dv.segment) {
         if (dv.category === "STEERING") {
-          // Try to find the properly formatted segment name from available steering segments
+          // Find the exact segment name as it appears in the steering section
           const formattedSegment = availableSteeringSegments.find(
-            (segment) =>
-              segment.toLowerCase().replace(/_/g, "") ===
-              dv.segment.toLowerCase().replace(/_/g, "")
+            (segment) => segment === dv.segment
           );
 
-          // Use the properly formatted name if found, otherwise use the original
-          dvEntry[0].segment = formattedSegment || dv.segment;
+          // Use the exact name from the steering section, or search case-insensitively if not found
+          if (formattedSegment) {
+            dvEntry[0].segment = formattedSegment;
+          } else {
+            // Fallback: try to find by case-insensitive comparison
+            const fallbackSegment = availableSteeringSegments.find(
+              (segment) => segment.toLowerCase() === dv.segment.toLowerCase()
+            );
+            dvEntry[0].segment = fallbackSegment || dv.segment;
+          }
         } else {
           // For other categories, use the segment as is
           dvEntry[0].segment = dv.segment;
@@ -8135,9 +8226,11 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       // Ensure control_variable is never an empty array for STEERING category
+      // except for CONST_BODYRATE which should only have user-selected values
       if (
         dv.category === "STEERING" &&
-        typeObject.control_variable.length === 0
+        typeObject.control_variable.length === 0 &&
+        dv.segment_type !== "CONST_BODYRATE"
       ) {
         // Add a default control variable based on segment_type
         if (dv.segment_type === "CLG") {
@@ -8146,8 +8239,6 @@ document.addEventListener("DOMContentLoaded", function () {
           typeObject.control_variable = ["PROFILE"];
         } else if (dv.segment_type === "ZERO_RATE") {
           typeObject.control_variable = ["ZERO_RATE"];
-        } else if (dv.segment_type === "CONST_BODYRATE") {
-          typeObject.control_variable = ["BODYRATE"];
         }
       }
 

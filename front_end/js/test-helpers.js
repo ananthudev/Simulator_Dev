@@ -791,6 +791,14 @@ function fillTestSequenceData() {
 
         triggerTypeSelect.value = triggerTypeValue;
 
+        // Set trigger value - THIS WAS MISSING
+        if (triggerValueInput && eventData.value !== undefined) {
+          triggerValueInput.value = eventData.value.toString();
+          triggerValueInput.dispatchEvent(
+            new Event("input", { bubbles: true })
+          );
+        }
+
         // Set reference flag
         if (eventData.reference && eventData.reference !== "none") {
           const refExists = Array.from(dependentEventSelect.options).some(
@@ -1074,6 +1082,37 @@ function fillSteeringForm(section, data) {
       }
     }
   });
+
+  // Specifically handle the trigger_value field which needs special attention
+  if (data.trigger_value !== undefined) {
+    const triggerValueInput = document.querySelector(
+      `#config-tab-${section} [data-field="${section}_trigger_value"]`
+    );
+    if (triggerValueInput) {
+      triggerValueInput.value = data.trigger_value.toString();
+      triggerValueInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }
+
+  // Handle reference field separately to ensure it's properly set
+  if (data.reference) {
+    const referenceSelect = document.querySelector(
+      `#config-tab-${section} [data-field="${section}_reference"]`
+    );
+    if (referenceSelect) {
+      // Check if value exists in options
+      const exists = Array.from(referenceSelect.options).some(
+        (opt) => opt.value === data.reference
+      );
+      if (!exists && referenceSelect.options.length > 0) {
+        // Add the option if it doesn't exist
+        const newOption = new Option(data.reference, data.reference);
+        referenceSelect.add(newOption);
+      }
+      referenceSelect.value = data.reference;
+      referenceSelect.dispatchEvent(new Event("change"));
+    }
+  }
 }
 
 // Helper function to fill steering parameters based on steering type
@@ -1222,13 +1261,25 @@ function fillSteeringParams(params) {
 
             // Handle profile CSV data
             if (params.profile_csv) {
+              // Convert array data to CSV string if needed
+              let csvContent = params.profile_csv;
+              if (Array.isArray(params.profile_csv)) {
+                // Convert 2D array to CSV string
+                csvContent = params.profile_csv
+                  .map((row) => row.join(","))
+                  .join("\n");
+              }
+
+              // Generate filename based on component id or use default
+              const filename =
+                params.profile_csv_filename || "profile_data.csv";
+
               // Update the filename display
               const filenameInput = document.getElementById(
                 "profile-csv-filename"
               );
               if (filenameInput) {
-                filenameInput.value =
-                  params.profile_csv_filename || "profile_data.csv";
+                filenameInput.value = filename;
                 filenameInput.dispatchEvent(new Event("input"));
 
                 // Create a simulated file upload
@@ -1236,9 +1287,9 @@ function fillSteeringParams(params) {
                 if (fileInput) {
                   simulateFileUpload(
                     fileInput,
-                    params.profile_csv_filename || "profile_data.csv",
+                    filename,
                     "text/csv",
-                    params.profile_csv
+                    csvContent
                   );
                 }
               }
@@ -1265,257 +1316,343 @@ function fillSteeringParams(params) {
 function fillTestObjectiveFunction() {
   // Check if we're in optimization mode
   ensureOptimizationMode(() => {
-    const objData = window.TestData.optimization.objective;
-    if (!objData || objData.length === 0) {
-      console.error("No objective function test data available");
-      return;
-    }
+    try {
+      let objData = [];
 
-    // Navigate to the objective function form
-    const objNavLink = document.querySelector(
-      'a[href="#objective-function-form"]'
-    );
-    if (objNavLink) {
-      objNavLink.click();
-    } else {
-      document.getElementById("objective-function-form").style.display =
-        "block";
-    }
+      // First try to get objective function data from rawTestData (realdata.json)
+      if (window.rawTestData && window.rawTestData.optimization) {
+        objData = window.rawTestData.optimization
+          .filter((item) => item.type === "OBJECTIVE" || item.factor === -1)
+          .map((obj) => ({
+            name: obj.name,
+            value: obj.value,
+            type: obj.type,
+            flag: obj.flag,
+            factor: obj.factor,
+          }));
 
-    // Wait for the form to be visible
-    setTimeout(() => {
-      console.log("Filling objective function data...");
+        console.log(
+          "Using objective function from realdata.json:",
+          objData.length
+        );
+      }
 
-      // Add objective functions
-      for (let i = 0; i < Math.min(objData.length, 2); i++) {
-        // Max 2 objective functions
-        // Click add objective button if needed
-        if (
-          i > 0 ||
-          document.querySelectorAll(
-            "#objective-function-container .optimization-instance"
-          ).length === 0
-        ) {
-          const addObjBtn = document.getElementById("add-objective-btn");
-          if (addObjBtn) {
-            addObjBtn.click();
+      // Fallback to test data if no objectives were found
+      if (
+        objData.length === 0 &&
+        window.TestData &&
+        window.TestData.optimization
+      ) {
+        objData = window.TestData.optimization.objective;
+        console.log("Using objective function from test data:", objData.length);
+      }
 
-            // Wait for the new objective form to appear
-            setTimeout(() => {
-              fillObjectiveInstance(i, objData[i]);
-            }, 300);
-          }
+      if (!objData || objData.length === 0) {
+        console.error("No objective function test data available");
+        return;
+      }
+
+      // Navigate to the objective function form with better error handling
+      const objNavLink = document.querySelector(
+        'a[href="#objective-function-form"]'
+      );
+      if (objNavLink) {
+        objNavLink.click();
+      } else {
+        // Try to show the form directly if the nav link isn't found
+        const form = document.getElementById("objective-function-form");
+        if (form) {
+          form.style.display = "block";
         } else {
-          fillObjectiveInstance(i, objData[i]);
+          console.error("Objective function form not found");
+          return;
         }
       }
 
-      // Save the objective functions
+      // Wait for the form to be visible with increased timeout
       setTimeout(() => {
-        const saveBtn = document.querySelector(
-          '#objective-function-form button[type="submit"]'
-        );
-        if (saveBtn) {
-          saveBtn.click();
-          console.log("Objective functions saved");
+        console.log("Filling objective function data...");
+
+        // Clear existing objectives first to avoid UI issues
+        const clearBtn = document.querySelector(".clear-objectives-btn");
+        if (clearBtn) {
+          clearBtn.click();
+
+          // Wait for the clear operation to complete
+          setTimeout(() => {
+            addObjectivesSequentially(objData);
+          }, 300);
+        } else {
+          addObjectivesSequentially(objData);
         }
-      }, 1000);
-    }, 500);
+      }, 800); // Increased timeout for form to become visible
+    } catch (error) {
+      console.error("Error in fillTestObjectiveFunction:", error);
+    }
   });
 }
 
-// Helper function to fill a single objective function instance
-function fillObjectiveInstance(index, data) {
-  // Find the objective function instance
-  const instances = document.querySelectorAll(
-    "#objective-function-container .optimization-instance"
-  );
-  if (instances.length <= index) {
-    console.error(`Objective function instance ${index} not found`);
-    return;
+// Helper function to add objectives sequentially with proper delays
+function addObjectivesSequentially(objData) {
+  try {
+    let currentIndex = 0;
+
+    function addNextObjective() {
+      if (currentIndex >= objData.length || currentIndex >= 2) {
+        // Max 2 objectives
+        // Save when all are added
+        saveObjectives();
+        return;
+      }
+
+      // Click add objective button
+      const addObjBtn = document.getElementById("add-objective-btn");
+      if (addObjBtn) {
+        addObjBtn.click();
+
+        // Wait for the new objective form to appear
+        setTimeout(() => {
+          fillObjectiveInstance(currentIndex, objData[currentIndex]);
+          currentIndex++;
+          setTimeout(addNextObjective, 500);
+        }, 500);
+      } else {
+        console.error("Add objective button not found");
+        // Try to save what we have
+        saveObjectives();
+      }
+    }
+
+    // Check if we already have instances
+    const existingInstances = document.querySelectorAll(
+      "#objective-function-container .optimization-instance"
+    );
+
+    if (existingInstances.length > 0) {
+      // Fill existing instances
+      existingInstances.forEach((instance, index) => {
+        if (index < objData.length) {
+          fillObjectiveInstance(index, objData[index]);
+          currentIndex = index + 1;
+        }
+      });
+
+      // Continue adding more if needed
+      setTimeout(addNextObjective, 500);
+    } else {
+      // Start adding objectives
+      addNextObjective();
+    }
+  } catch (error) {
+    console.error("Error in addObjectivesSequentially:", error);
   }
+}
 
-  const instance = instances[index];
-
-  // Fill the fields
-  const nameInput = instance.querySelector(
-    '.input-field[name="objective-name"]'
-  );
-  const valueInput = instance.querySelector(
-    '.input-field[name="objective-value"]'
-  );
-  const weightInput = instance.querySelector(
-    '.input-field[name="objective-weight"]'
-  );
-  const typeSelect = instance.querySelector(
-    '.input-field[name="objective-type"]'
-  );
-
-  if (nameInput && data.name) {
-    nameInput.value = data.name;
-    nameInput.dispatchEvent(new Event("input"));
-  }
-
-  if (valueInput && data.value !== undefined) {
-    valueInput.value = data.value;
-    valueInput.dispatchEvent(new Event("input"));
-  }
-
-  if (weightInput && data.weight !== undefined) {
-    weightInput.value = data.weight;
-    weightInput.dispatchEvent(new Event("input"));
-  }
-
-  if (typeSelect && data.type) {
-    typeSelect.value = data.type;
-    typeSelect.dispatchEvent(new Event("change"));
-  }
+// Helper function to save objectives
+function saveObjectives() {
+  setTimeout(() => {
+    const saveBtn = document.querySelector(
+      '#objective-function-form button[type="submit"]'
+    );
+    if (saveBtn) {
+      saveBtn.click();
+      console.log("Objective functions saved");
+    }
+  }, 1000);
 }
 
 // Function to fill constraints data
 function fillTestConstraints() {
   // Check if we're in optimization mode
   ensureOptimizationMode(() => {
-    const constraintData = window.TestData.optimization.constraints;
-    if (!constraintData || constraintData.length === 0) {
-      console.error("No constraint test data available");
-      return;
-    }
+    try {
+      // Try to get constraints data from realdata.json first, then fallback to test data
+      let constraintsData = [];
 
-    // Navigate to the constraints form
-    const constraintsNavLink = document.querySelector(
-      'a[href="#constraints-form"]'
-    );
-    if (constraintsNavLink) {
-      constraintsNavLink.click();
-    } else {
-      document.getElementById("constraints-form").style.display = "block";
-    }
+      // Extract constraints from realdata.json if available
+      if (window.rawTestData && window.rawTestData.optimization) {
+        constraintsData = window.rawTestData.optimization
+          .filter(
+            (item) => item.type === "INEQUALITY" || item.type === "EQUALITY"
+          )
+          .map((constraint, index) => ({
+            name: constraint.name,
+            value: constraint.value,
+            type: constraint.type,
+            condition: constraint.condition || "",
+            flag: constraint.flag,
+            enable: constraint.enable !== undefined ? constraint.enable : true,
+            factor: constraint.factor || 1,
+            tolerance:
+              window.rawTestData.constraint_tolerence &&
+              window.rawTestData.constraint_tolerence[index]
+                ? window.rawTestData.constraint_tolerence[index]
+                : 0.1,
+          }));
 
-    // Wait for the form to be visible
-    setTimeout(() => {
-      console.log("Filling constraints data...");
+        console.log(
+          "Using constraints from realdata.json:",
+          constraintsData.length
+        );
+      }
 
-      // Add constraints
-      for (let i = 0; i < Math.min(constraintData.length, 10); i++) {
-        // Max 10 constraints
-        // Click add constraint button if needed
-        if (
-          i > 0 ||
-          document.querySelectorAll(
-            "#constraints-container .optimization-instance"
-          ).length === 0
-        ) {
-          const addConstraintBtn =
-            document.getElementById("add-constraint-btn");
-          if (addConstraintBtn) {
-            addConstraintBtn.click();
+      // Fallback to test data if no constraints were found
+      if (
+        constraintsData.length === 0 &&
+        window.TestData &&
+        window.TestData.optimization
+      ) {
+        constraintsData = window.TestData.optimization.constraints;
+        console.log(
+          "Using constraints from test data:",
+          constraintsData ? constraintsData.length : 0
+        );
+      }
 
-            // Wait for the new constraint form to appear
-            setTimeout(() => {
-              fillConstraintInstance(i, constraintData[i]);
-            }, 300);
-          }
+      if (!constraintsData || constraintsData.length === 0) {
+        console.error("No constraints test data available");
+        return;
+      }
+
+      console.log("Constraints data to fill:", constraintsData.length);
+
+      // Navigate to the constraints form with better error handling
+      const constraintsNavLink = document.querySelector(
+        'a[href="#constraints-form"]'
+      );
+      if (constraintsNavLink) {
+        constraintsNavLink.click();
+      } else {
+        // Try to show the form directly if the nav link isn't found
+        const form = document.getElementById("constraints-form");
+        if (form) {
+          form.style.display = "block";
         } else {
-          fillConstraintInstance(i, constraintData[i]);
+          console.error("Constraints form not found");
+          return;
         }
       }
 
-      // Save the constraints
+      // Wait for the form to be visible with increased timeout
       setTimeout(() => {
-        const saveBtn = document.querySelector(
-          '#constraints-form button[type="submit"]'
-        );
-        if (saveBtn) {
-          saveBtn.click();
-          console.log("Constraints saved");
+        console.log("Filling constraint data...");
+
+        // Clear existing constraints to avoid UI issues
+        const clearBtn = document.getElementById("clear-constraints-btn");
+        if (clearBtn) {
+          clearBtn.click();
+
+          // Wait for the clear operation to complete
+          setTimeout(() => {
+            addConstraintsSequentially(constraintsData);
+          }, 500);
+        } else {
+          // Try to clear manually if button doesn't exist
+          const constraintsContainer = document.getElementById(
+            "constraints-container"
+          );
+          if (constraintsContainer) {
+            constraintsContainer.innerHTML = "";
+            setTimeout(() => {
+              addConstraintsSequentially(constraintsData);
+            }, 300);
+          } else {
+            addConstraintsSequentially(constraintsData);
+          }
         }
-      }, 1000);
-    }, 500);
+      }, 800); // Increased timeout for form to become visible
+    } catch (error) {
+      console.error("Error in fillTestConstraints:", error);
+    }
   });
 }
 
-// Helper function to fill a single constraint instance
+// Updated helper function for filling a constraint instance
 function fillConstraintInstance(index, data) {
-  // Find the constraint instance
-  const instances = document.querySelectorAll(
-    "#constraints-container .optimization-instance"
-  );
-  if (instances.length <= index) {
-    console.error(`Constraint instance ${index} not found`);
-    return;
-  }
-
-  const instance = instances[index];
-
-  // Fill the fields
-  const nameSelect = instance.querySelector(".constraint-name");
-  const valueInput = instance.querySelector(".constraint-value");
-  const typeSelect = instance.querySelector(".constraint-type");
-  const conditionSelect = instance.querySelector(".constraint-condition");
-  const flagSelect = instance.querySelector(".constraint-flag");
-  const enableToggle = instance.querySelector(".constraint-enable");
-  const factorInput = instance.querySelector(".constraint-factor");
-  const toleranceInput = instance.querySelector(".constraint-tolerance");
-
-  if (nameSelect && data.name) {
-    // Check if the name exists in the dropdown options
-    const nameExists = Array.from(nameSelect.options).some(
-      (opt) => opt.value === data.name
+  try {
+    // Find the constraint instance
+    const instances = document.querySelectorAll(
+      "#constraints-container .optimization-instance"
     );
-    if (!nameExists && nameSelect.options.length > 0) {
-      // Add the option if it doesn't exist
-      const newOption = new Option(data.name, data.name);
-      nameSelect.add(newOption);
+    if (instances.length <= index) {
+      console.error(`Constraint instance ${index} not found`);
+      return;
     }
 
-    nameSelect.value = data.name;
-    nameSelect.dispatchEvent(new Event("change"));
-  }
+    const instance = instances[index];
+    console.log(`Filling constraint ${index + 1}:`, data.name);
 
-  if (valueInput && data.value !== undefined) {
-    valueInput.value = data.value;
-    valueInput.dispatchEvent(new Event("input"));
-  }
+    // Fill the fields with error handling
+    const nameSelect = instance.querySelector(".constraint-name");
+    const valueInput = instance.querySelector(".constraint-value");
+    const typeSelect = instance.querySelector(".constraint-type");
+    const conditionSelect = instance.querySelector(".constraint-condition");
+    const flagSelect = instance.querySelector(".constraint-flag");
+    const enableToggle = instance.querySelector(".constraint-enable");
+    const factorInput = instance.querySelector(".constraint-factor");
+    const toleranceInput = instance.querySelector(".constraint-tolerance");
 
-  if (typeSelect && data.type) {
-    typeSelect.value = data.type;
-    typeSelect.dispatchEvent(new Event("change"));
-  }
+    if (nameSelect && data.name) {
+      // Check if the name exists in the dropdown options
+      const nameExists = Array.from(nameSelect.options).some(
+        (opt) => opt.value === data.name
+      );
+      if (!nameExists && nameSelect.options.length > 0) {
+        // Add the option if it doesn't exist
+        const newOption = new Option(data.name, data.name);
+        nameSelect.add(newOption);
+      }
 
-  if (conditionSelect && data.condition) {
-    conditionSelect.value = data.condition;
-    conditionSelect.dispatchEvent(new Event("change"));
-  }
-
-  if (flagSelect && data.flag) {
-    // Check if the flag exists in the dropdown options
-    const flagExists = Array.from(flagSelect.options).some(
-      (opt) => opt.value === data.flag
-    );
-    if (!flagExists && flagSelect.options.length > 0) {
-      // Add the option if it doesn't exist
-      const newOption = new Option(data.flag, data.flag);
-      flagSelect.add(newOption);
+      nameSelect.value = data.name;
+      nameSelect.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    flagSelect.value = data.flag;
-    flagSelect.dispatchEvent(new Event("change"));
-  }
+    if (valueInput && data.value !== undefined) {
+      valueInput.value = data.value.toString();
+      valueInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
 
-  if (enableToggle && data.enable !== undefined) {
-    enableToggle.checked = data.enable;
-    enableToggle.dispatchEvent(new Event("change"));
-  }
+    if (typeSelect && data.type) {
+      typeSelect.value = data.type;
+      typeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
 
-  if (factorInput && data.factor !== undefined) {
-    factorInput.value = data.factor;
-    factorInput.dispatchEvent(new Event("input"));
-  }
+    if (conditionSelect && data.condition) {
+      conditionSelect.value = data.condition;
+      conditionSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
 
-  if (toleranceInput && data.tolerance !== undefined) {
-    toleranceInput.value = data.tolerance;
-    toleranceInput.dispatchEvent(new Event("input"));
+    if (flagSelect && data.flag) {
+      // Check if the flag exists in the dropdown options
+      const flagExists = Array.from(flagSelect.options).some(
+        (opt) => opt.value === data.flag
+      );
+      if (!flagExists && flagSelect.options.length > 0) {
+        // Add the option if it doesn't exist
+        const newOption = new Option(data.flag, data.flag);
+        flagSelect.add(newOption);
+      }
+
+      flagSelect.value = data.flag;
+      flagSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    if (enableToggle && data.enable !== undefined) {
+      enableToggle.checked = data.enable;
+      enableToggle.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    if (factorInput && data.factor !== undefined) {
+      factorInput.value = data.factor.toString();
+      factorInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    if (toleranceInput && data.tolerance !== undefined) {
+      toleranceInput.value = data.tolerance.toString();
+      toleranceInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  } catch (error) {
+    console.error(`Error filling constraint ${index}:`, error);
   }
 }
 
@@ -1523,206 +1660,280 @@ function fillConstraintInstance(index, data) {
 function fillTestOptimizationMode() {
   // Check if we're in optimization mode
   ensureOptimizationMode(() => {
-    const modeData = window.TestData.optimization.mode;
-    if (!modeData) {
-      console.error("No optimization mode test data available");
-      return;
-    }
+    try {
+      // Get optimization mode data from realdata.json if available, then fall back to test data
+      let modeData = {};
+      let modeType = "normal"; // Default mode type
 
-    // Navigate to the mode form
-    const modeNavLink = document.querySelector('a[href="#mode-form"]');
-    if (modeNavLink) {
-      modeNavLink.click();
-    } else {
-      document.getElementById("mode-form").style.display = "block";
-    }
+      // Try to extract mode data from realdata.json
+      if (window.rawTestData) {
+        modeType = window.rawTestData.mode || "normal";
 
-    // Wait for the form to be visible
-    setTimeout(() => {
-      console.log("Filling optimization mode data...");
+        modeData = {
+          type: modeType,
+          [modeType]: {}, // Initialize the mode-specific data object
+        };
 
-      // Select the mode type (normal or archipelago)
-      const modeRadios = document.querySelectorAll(
-        'input[name="optimization-mode"]'
-      );
-      if (modeRadios.length > 0) {
-        const selectedRadio = Array.from(modeRadios).find(
-          (radio) => radio.value === modeData.type
+        // Extract the parameters based on mode type
+        if (modeType === "normal") {
+          modeData.normal = {
+            algorithm: window.rawTestData.optimizer || "SADE",
+            map: {
+              lower: Array.isArray(window.rawTestData.map)
+                ? window.rawTestData.map[0]
+                : 0,
+              upper: Array.isArray(window.rawTestData.map)
+                ? window.rawTestData.map[1]
+                : 1,
+            },
+            population: window.rawTestData.population || 150,
+            set_population:
+              window.rawTestData.initial_population?.[0]?.set_population ===
+              "YES",
+            problem_strategy: window.rawTestData.problem_strategy || "ignore_o",
+            csv_upload: null,
+          };
+
+          // Add algorithm parameters if available
+          const algorithmName = modeData.normal.algorithm;
+          if (window.rawTestData[algorithmName]) {
+            modeData.normal.algorithm_params = {
+              [algorithmName]: { ...window.rawTestData[algorithmName] },
+            };
+          }
+        }
+        // Handle archipelago mode if needed
+
+        console.log(
+          "Using optimization mode data from realdata.json:",
+          modeType
         );
-        if (selectedRadio) {
-          selectedRadio.checked = true;
-          selectedRadio.dispatchEvent(new Event("change"));
+      }
+
+      // Fall back to test data if no mode data found
+      if (
+        Object.keys(modeData).length === 0 &&
+        window.TestData?.optimization?.mode
+      ) {
+        modeData = window.TestData.optimization.mode;
+        modeType = modeData.type || "normal";
+        console.log("Using optimization mode data from test data:", modeType);
+      }
+
+      if (!modeData || Object.keys(modeData).length === 0) {
+        console.error("No optimization mode test data available");
+        return;
+      }
+
+      // Navigate to the mode form with better error handling
+      const modeNavLink = document.querySelector('a[href="#mode-form"]');
+      if (modeNavLink) {
+        modeNavLink.click();
+      } else {
+        // Try to show the form directly if the nav link isn't found
+        const form = document.getElementById("mode-form");
+        if (form) {
+          form.style.display = "block";
+        } else {
+          console.error("Mode form not found");
+          return;
         }
       }
 
-      // Wait for the appropriate mode fields to show
+      // Wait for the form to be visible with increased timeout
       setTimeout(() => {
-        if (modeData.type === "normal") {
-          fillNormalModeFields(modeData.normal);
-        } else if (modeData.type === "archipelago") {
-          fillArchipelagoModeFields(modeData.archipelago);
-        }
+        console.log("Filling optimization mode data...");
 
-        // Save the mode configuration
-        setTimeout(() => {
-          const saveBtn = document.querySelector(
-            '#mode-form button[type="submit"]'
+        // Set mode type (normal or archipelago)
+        const modeTypeSelect = document.getElementById("mode-type");
+        if (modeTypeSelect && modeData.type) {
+          modeTypeSelect.value = modeData.type;
+          modeTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+          // Wait for mode-specific fields to be enabled with increased timeout
+          setTimeout(() => {
+            // Fill mode-specific fields
+            if (modeData.type === "normal" && modeData.normal) {
+              fillNormalModeFields(modeData.normal);
+            } else if (
+              modeData.type === "archipelago" &&
+              modeData.archipelago
+            ) {
+              fillArchipelagoModeFields(modeData.archipelago);
+            }
+
+            // Save the mode settings
+            setTimeout(() => {
+              const saveBtn = document.getElementById("save-mode-btn");
+              if (saveBtn) {
+                saveBtn.click();
+                console.log("Optimization mode settings saved");
+              }
+            }, 1000);
+          }, 800); // Increased timeout for fields to appear
+        } else {
+          console.error(
+            "Mode type select not found or mode type not specified"
           );
-          if (saveBtn) {
-            saveBtn.click();
-            console.log("Optimization mode saved");
-          }
-        }, 1500);
-      }, 500);
-    }, 500);
+        }
+      }, 800); // Increased timeout for form to become visible
+    } catch (error) {
+      console.error("Error in fillTestOptimizationMode:", error);
+    }
   });
 }
 
 // Helper function to fill normal mode fields
 function fillNormalModeFields(data) {
-  // Algorithm
-  const algorithmSelect = document.getElementById("normal-algorithm");
-  if (algorithmSelect && data.algorithm) {
-    algorithmSelect.value = data.algorithm;
-    algorithmSelect.dispatchEvent(new Event("change"));
-  }
+  try {
+    // Algorithm
+    const algorithmSelect = document.getElementById("normal-algorithm");
+    if (algorithmSelect && data.algorithm) {
+      // Check if algorithm exists in options
+      const algExists = Array.from(algorithmSelect.options).some(
+        (opt) => opt.value.toUpperCase() === data.algorithm.toUpperCase()
+      );
 
-  // Map bounds
-  const lowerBoundInput = document.getElementById("normal-lower-bound");
-  const upperBoundInput = document.getElementById("normal-upper-bound");
-
-  if (lowerBoundInput && data.map && data.map.lower !== undefined) {
-    lowerBoundInput.value = data.map.lower;
-    lowerBoundInput.dispatchEvent(new Event("input"));
-  }
-
-  if (upperBoundInput && data.map && data.map.upper !== undefined) {
-    upperBoundInput.value = data.map.upper;
-    upperBoundInput.dispatchEvent(new Event("input"));
-  }
-
-  // Population
-  const populationInput = document.getElementById("normal-population");
-  if (populationInput && data.population !== undefined) {
-    populationInput.value = data.population;
-    populationInput.dispatchEvent(new Event("input"));
-  }
-
-  // Set population toggle
-  const setPopulationToggle = document.getElementById("normal-set-population");
-  if (setPopulationToggle && data.set_population !== undefined) {
-    setPopulationToggle.checked = data.set_population;
-    setPopulationToggle.dispatchEvent(new Event("change"));
-  }
-
-  // Problem strategy
-  const strategySelect = document.getElementById("normal-problem-strategy");
-  if (strategySelect && data.problem_strategy) {
-    // Find the closest matching option
-    const options = Array.from(strategySelect.options);
-    for (const option of options) {
-      if (
-        option.value &&
-        option.value.toLowerCase().includes(data.problem_strategy.toLowerCase())
-      ) {
-        strategySelect.value = option.value;
-        strategySelect.dispatchEvent(new Event("change"));
-        break;
+      if (algExists) {
+        algorithmSelect.value = data.algorithm;
+      } else if (algorithmSelect.options.length > 0) {
+        // Use first available option as fallback
+        algorithmSelect.selectedIndex = 0;
+        console.warn(`Algorithm "${data.algorithm}" not found, using fallback`);
       }
-    }
-  }
 
-  // Algorithm parameters (if modal dialog is used for them)
-  // This would be implementation-specific and may need to be adapted
-  if (data.algorithm_params && data.algorithm_params[data.algorithm]) {
-    console.log(
-      `Algorithm parameters for ${data.algorithm} available, but implementation depends on UI design`
+      algorithmSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    // Map bounds
+    const lowerBoundInput = document.getElementById("normal-lower-bound");
+    const upperBoundInput = document.getElementById("normal-upper-bound");
+
+    if (lowerBoundInput && data.map && data.map.lower !== undefined) {
+      lowerBoundInput.value = data.map.lower;
+      lowerBoundInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    if (upperBoundInput && data.map && data.map.upper !== undefined) {
+      upperBoundInput.value = data.map.upper;
+      upperBoundInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    // Population
+    const populationInput = document.getElementById("normal-population");
+    if (populationInput && data.population !== undefined) {
+      populationInput.value = data.population;
+      populationInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    // Set population toggle
+    const setPopulationToggle = document.getElementById(
+      "normal-set-population"
     );
-  }
-}
-
-// Helper function to fill archipelago mode fields
-function fillArchipelagoModeFields(data) {
-  // Add algorithms
-  if (data.algorithms && data.algorithms.length > 0) {
-    // Wait for algorithms container to be ready
-    setTimeout(() => {
-      for (let i = 0; i < Math.min(data.algorithms.length, 3); i++) {
-        // Max 3 algorithms
-        addArchipelagoAlgorithm(data.algorithms[i]);
-      }
-    }, 300);
-  }
-
-  // Topology
-  const topologySelect = document.getElementById("archipelago-topology");
-  if (topologySelect && data.topology) {
-    topologySelect.value = data.topology;
-    topologySelect.dispatchEvent(new Event("change"));
-  }
-
-  // Migration type
-  const migrationTypeSelect = document.getElementById(
-    "archipelago-migration-type"
-  );
-  if (migrationTypeSelect && data.migration_type) {
-    migrationTypeSelect.value = data.migration_type;
-    migrationTypeSelect.dispatchEvent(new Event("change"));
-  }
-
-  // Migration handling
-  const migrationHandlingSelect = document.getElementById(
-    "archipelago-migration-handling"
-  );
-  if (migrationHandlingSelect && data.migration_handling) {
-    migrationHandlingSelect.value = data.migration_handling;
-    migrationHandlingSelect.dispatchEvent(new Event("change"));
-  }
-
-  // Map bounds
-  const lowerBoundInput = document.getElementById("archipelago-lower-bound");
-  const upperBoundInput = document.getElementById("archipelago-upper-bound");
-
-  if (lowerBoundInput && data.map && data.map.lower !== undefined) {
-    lowerBoundInput.value = data.map.lower;
-    lowerBoundInput.dispatchEvent(new Event("input"));
-  }
-
-  if (upperBoundInput && data.map && data.map.upper !== undefined) {
-    upperBoundInput.value = data.map.upper;
-    upperBoundInput.dispatchEvent(new Event("input"));
-  }
-
-  // Population
-  const populationInput = document.getElementById("archipelago-population");
-  if (populationInput && data.population !== undefined) {
-    populationInput.value = data.population;
-    populationInput.dispatchEvent(new Event("input"));
-  }
-
-  // Set population toggle
-  const setPopulationToggle = document.getElementById(
-    "archipelago-set-population"
-  );
-  if (setPopulationToggle && data.set_population !== undefined) {
-    setPopulationToggle.checked = data.set_population;
-    setPopulationToggle.dispatchEvent(new Event("change"));
-  }
-}
-
-// Helper function to add an algorithm to the archipelago
-function addArchipelagoAlgorithm(algorithmName) {
-  // Select the algorithm
-  const algorithmSelect = document.getElementById("archipelago-algorithm");
-  if (algorithmSelect) {
-    algorithmSelect.value = algorithmName;
-    algorithmSelect.dispatchEvent(new Event("change"));
-
-    // Click the add button
-    const addButton = document.getElementById("add-algorithm-btn");
-    if (addButton) {
-      addButton.click();
+    if (setPopulationToggle && data.set_population !== undefined) {
+      setPopulationToggle.checked = data.set_population;
+      setPopulationToggle.dispatchEvent(new Event("change", { bubbles: true }));
     }
+
+    // Problem strategy
+    const strategySelect = document.getElementById("normal-problem-strategy");
+    if (strategySelect && data.problem_strategy) {
+      // Find the closest matching option
+      const options = Array.from(strategySelect.options);
+      let bestMatch = null;
+      let bestScore = 0;
+
+      for (const option of options) {
+        if (option.value) {
+          // Calculate simple string similarity score
+          const score = similarityScore(
+            option.value.toLowerCase(),
+            data.problem_strategy.toLowerCase()
+          );
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = option.value;
+          }
+        }
+      }
+
+      if (bestMatch) {
+        strategySelect.value = bestMatch;
+        strategySelect.dispatchEvent(new Event("change", { bubbles: true }));
+      } else if (strategySelect.options.length > 0) {
+        // Default to first option if no match found
+        strategySelect.selectedIndex = 0;
+        strategySelect.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+
+    // Algorithm parameters (if available)
+    if (data.algorithm_params && data.algorithm_params[data.algorithm]) {
+      fillAlgorithmParams(
+        data.algorithm,
+        data.algorithm_params[data.algorithm]
+      );
+    }
+  } catch (error) {
+    console.error("Error filling normal mode fields:", error);
+  }
+}
+
+// Helper function to fill algorithm parameters
+function fillAlgorithmParams(algorithm, params) {
+  // This function would need to be customized based on the UI implementation
+  try {
+    console.log(`Algorithm parameters for ${algorithm} available:`, params);
+
+    // Find algorithm parameter inputs based on naming conventions
+    // Example: For SADE algorithm, look for inputs with IDs like "sade-generations", "sade-f", etc.
+    const parameterInputs = document.querySelectorAll(
+      `[id^="${algorithm.toLowerCase()}-"]`
+    );
+
+    parameterInputs.forEach((input) => {
+      // Extract parameter name from input ID (e.g., "sade-generations" -> "generations")
+      const paramName = input.id.replace(`${algorithm.toLowerCase()}-`, "");
+
+      // Find the matching parameter in the data
+      // Handle different naming conventions (e.g., "generation" in JSON might be "generations" in UI)
+      let matchingParamName = null;
+
+      // Check for exact match first
+      if (params[paramName] !== undefined) {
+        matchingParamName = paramName;
+      } else {
+        // Try to find a close match
+        for (const key in params) {
+          if (
+            key.toLowerCase().includes(paramName) ||
+            paramName.includes(key.toLowerCase())
+          ) {
+            matchingParamName = key;
+            break;
+          }
+        }
+      }
+
+      // Set the value if a match was found
+      if (matchingParamName !== null) {
+        const value = params[matchingParamName];
+
+        if (input.type === "checkbox") {
+          input.checked = Boolean(value);
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          input.value = value.toString();
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      }
+    });
+  } catch (error) {
+    console.error(
+      `Error filling algorithm parameters for ${algorithm}:`,
+      error
+    );
   }
 }
 
@@ -1730,60 +1941,179 @@ function addArchipelagoAlgorithm(algorithmName) {
 function fillTestDesignVariables() {
   // Check if we're in optimization mode
   ensureOptimizationMode(() => {
-    const dvData = window.TestData.optimization.design_variables;
-    if (!dvData || dvData.length === 0) {
-      console.error("No design variables test data available");
-      return;
-    }
+    try {
+      // Extract design variables from realdata.json if available
+      let designVars = [];
 
-    // Navigate to the design variables form
-    const dvNavLink = document.querySelector(
-      'a[href="#design-variables-form"]'
-    );
-    if (dvNavLink) {
-      dvNavLink.click();
-    } else {
-      document.getElementById("design-variables-form").style.display = "block";
-    }
+      if (window.rawTestData) {
+        // Get the design variable collection name (e.g., "design_variable1")
+        const dvCollectionName = window.rawTestData.design_variables;
 
-    // Wait for the form to be visible
-    setTimeout(() => {
-      console.log("Filling design variables data...");
+        if (window.rawTestData[dvCollectionName]) {
+          // These are the names of the design variables (opt_steering_1, etc)
+          const dvKeys = window.rawTestData[dvCollectionName];
 
-      // Add design variables
-      for (let i = 0; i < Math.min(dvData.length, 10); i++) {
-        // Max 10 design variables
-        // Click add design variable button if needed
-        if (
-          i > 0 ||
-          document.querySelectorAll(
-            "#design-variables-container .optimization-instance"
-          ).length === 0
-        ) {
-          const addDvBtn = document.getElementById("add-design-variable-btn");
-          if (addDvBtn) {
-            addDvBtn.click();
+          // For each name, get the actual design variable data
+          designVars = dvKeys
+            .map((key) => {
+              if (window.rawTestData[key] && window.rawTestData[key][0]) {
+                const dvData = window.rawTestData[key][0];
 
-            // Wait for the new design variable form to appear
-            setTimeout(() => {
-              fillDesignVariableInstance(i, dvData[i]);
-            }, 300);
-          }
-        } else {
-          fillDesignVariableInstance(i, dvData[i]);
+                // Format to match our expected structure
+                const type =
+                  dvData.type && dvData.type[0] ? dvData.type[0] : {};
+
+                // Create a standardized design variable object
+                return {
+                  name: key,
+                  category: dvData.category,
+                  segment: dvData.segment,
+                  segment_type: dvData.segment_type,
+                  control_variable: type.control_variable
+                    ? Array.isArray(type.control_variable)
+                      ? type.control_variable[0]
+                      : type.control_variable
+                    : null,
+                  axis: type.axis
+                    ? Array.isArray(type.axis)
+                      ? type.axis.join(",")
+                      : type.axis
+                    : null,
+                  lower_bound: type.lower_bound
+                    ? Array.isArray(type.lower_bound[0])
+                      ? type.lower_bound[0][0]
+                      : type.lower_bound[0]
+                    : null,
+                  upper_bound: type.upper_bound
+                    ? Array.isArray(type.upper_bound[0])
+                      ? type.upper_bound[0][0]
+                      : type.upper_bound[0]
+                    : null,
+                  ind_variable: type.ind_variable,
+                  ind_vector: type.ind_vector,
+                };
+              }
+              return null;
+            })
+            .filter((dv) => dv !== null);
+
+          console.log(
+            "Using design variables from realdata.json:",
+            designVars.length
+          );
         }
       }
 
-      // Save the design variables
-      setTimeout(() => {
-        const saveBtn = document.getElementById("save-design-variables-btn");
-        if (saveBtn) {
-          saveBtn.click();
-          console.log("Design variables saved");
+      // Fallback to test data if no design variables were found
+      if (
+        designVars.length === 0 &&
+        window.TestData?.optimization?.design_variables
+      ) {
+        designVars = window.TestData.optimization.design_variables;
+        console.log(
+          "Using design variables from test data:",
+          designVars.length
+        );
+      }
+
+      if (!designVars || designVars.length === 0) {
+        console.error("No design variables test data available");
+        return;
+      }
+
+      // Navigate to the design variables form with better error handling
+      const dvNavLink = document.querySelector(
+        'a[href="#design-variables-form"]'
+      );
+      if (dvNavLink) {
+        dvNavLink.click();
+      } else {
+        // Try to show the form directly if the nav link isn't found
+        const form = document.getElementById("design-variables-form");
+        if (form) {
+          form.style.display = "block";
+        } else {
+          console.error("Design variables form not found");
+          return;
         }
-      }, 1000 + dvData.length * 300);
-    }, 500);
+      }
+
+      // Wait for the form to be visible with increased timeout
+      setTimeout(() => {
+        console.log("Filling design variables data...");
+
+        // Clear existing design variables to avoid UI issues
+        const clearBtn = document.getElementById("clear-design-variables-btn");
+        if (clearBtn) {
+          clearBtn.click();
+
+          // Wait for the clear operation to complete
+          setTimeout(() => {
+            addDesignVariablesSequentially(designVars);
+          }, 500);
+        } else {
+          addDesignVariablesSequentially(designVars);
+        }
+      }, 800); // Increased timeout for form to become visible
+    } catch (error) {
+      console.error("Error in fillTestDesignVariables:", error);
+    }
   });
+}
+
+// Helper function to add design variables one by one with proper delays
+function addDesignVariablesSequentially(designVars) {
+  let currentIndex = 0;
+
+  function addNextDesignVariable() {
+    if (currentIndex >= designVars.length || currentIndex >= 10) {
+      // Save when all are added (max 10)
+      saveDesignVariables();
+      return;
+    }
+
+    // Get the current number of design variable instances
+    const currentInstances = document.querySelectorAll(
+      "#design-variables-container .optimization-instance"
+    );
+
+    // If we already have enough instances, just fill them
+    if (currentIndex < currentInstances.length) {
+      fillDesignVariableInstance(currentIndex, designVars[currentIndex]);
+      currentIndex++;
+      setTimeout(addNextDesignVariable, 500);
+    } else {
+      // Need to add a new instance
+      const addDvBtn = document.getElementById("add-design-variable-btn");
+      if (addDvBtn) {
+        addDvBtn.click();
+        // Wait for the new design variable form to be added
+        setTimeout(() => {
+          // Fill the newly added design variable
+          fillDesignVariableInstance(currentIndex, designVars[currentIndex]);
+          currentIndex++;
+          setTimeout(addNextDesignVariable, 500);
+        }, 500);
+      } else {
+        console.error("Add design variable button not found");
+        saveDesignVariables();
+      }
+    }
+  }
+
+  // Start adding design variables
+  addNextDesignVariable();
+}
+
+// Helper function to save design variables
+function saveDesignVariables() {
+  setTimeout(() => {
+    const saveBtn = document.getElementById("save-design-variables-btn");
+    if (saveBtn) {
+      saveBtn.click();
+      console.log("Design variables saved");
+    }
+  }, 1000);
 }
 
 // Helper function to fill a single design variable instance
@@ -1798,10 +2128,19 @@ function fillDesignVariableInstance(index, data) {
   }
 
   const instance = instances[index];
+  console.log(
+    `Filling design variable ${index + 1}:`,
+    data.name || data.category
+  );
 
   // Fill the category and name
   const categorySelect = instance.querySelector(".dv-category");
   const nameInput = instance.querySelector(".dv-name");
+
+  if (nameInput && data.name) {
+    nameInput.value = data.name;
+    nameInput.dispatchEvent(new Event("input"));
+  }
 
   if (categorySelect && data.category) {
     categorySelect.value = data.category;
@@ -1810,46 +2149,41 @@ function fillDesignVariableInstance(index, data) {
     // Wait for dynamic fields to appear based on category
     setTimeout(() => {
       fillDesignVariableCategoryFields(instance, data);
-    }, 300);
-  }
-
-  if (nameInput && data.name) {
-    nameInput.value = data.name;
-    nameInput.dispatchEvent(new Event("input"));
+    }, 400); // Increase wait time to ensure fields are rendered
   }
 }
 
 // Helper function to fill category-specific fields for a design variable
 function fillDesignVariableCategoryFields(instance, data) {
   // Find the active category fields
-  const categoryFields = instance.querySelector(
-    `.dv-category-fields[data-category="${data.category}"]:not(.hidden)`
-  );
-  if (!categoryFields) {
-    console.error(`Category fields for ${data.category} not found`);
+  const dynamicFieldsContainer = instance.querySelector(".dv-dynamic-fields");
+  if (!dynamicFieldsContainer) {
+    console.error("Dynamic fields container not found");
     return;
   }
 
   // Fill the fields based on category
   switch (data.category) {
-    case "CUT_OFF":
-      fillCutoffFields(categoryFields, data);
+    case "STEERING":
+      fillSteeringVariableFields(instance, data);
       break;
     case "PAYLOAD":
-      fillPayloadFields(categoryFields, data);
+      fillPayloadFields(instance, data);
       break;
     case "AZIMUTH":
-      fillAzimuthFields(categoryFields, data);
+      fillAzimuthFields(instance, data);
       break;
     case "SEQUENCE":
-      fillSequenceFields(categoryFields, data);
+      fillSequenceFields(instance, data);
       break;
     case "PROPULSION":
-      fillPropulsionFields(categoryFields, data);
+      fillPropulsionFields(instance, data);
       break;
-    case "STEERING":
-      fillSteeringVariableFields(categoryFields, data);
+    case "CUT_OFF":
+      fillCutoffFields(instance, data);
       break;
+    default:
+      console.warn(`Unsupported design variable category: ${data.category}`);
   }
 }
 
@@ -2009,70 +2343,241 @@ function fillPropulsionFields(container, data) {
 }
 
 function fillSteeringVariableFields(container, data) {
-  const segmentSelect = container.querySelector(".dv-segment");
-  const segmentTypeSelect = container.querySelector(".dv-segment-type");
+  try {
+    // Extract data from design variable object
+    console.log("Filling steering variable fields:", data);
 
-  if (segmentSelect && data.segment) {
-    // Check if the segment exists in the options
-    const segmentExists = Array.from(segmentSelect.options).some(
-      (opt) => opt.value === data.segment
-    );
-    if (!segmentExists && segmentSelect.options.length > 0) {
-      const newOption = new Option(data.segment, data.segment);
-      segmentSelect.add(newOption);
-    }
+    // Find fields in the form
+    const segmentSelect = container.querySelector(".dv-segment");
+    const segmentTypeSelect = container.querySelector(".dv-segment-type");
 
-    segmentSelect.value = data.segment;
-    segmentSelect.dispatchEvent(new Event("change"));
-  }
-
-  if (segmentTypeSelect && data.segment_type) {
-    segmentTypeSelect.value = data.segment_type;
-    segmentTypeSelect.dispatchEvent(new Event("change"));
-
-    // Wait for segment type fields to appear
-    setTimeout(() => {
-      const segmentTypeFields = container.querySelector(
-        `.dv-steering-type-fields[data-segment-type="${data.segment_type}"]:not(.hidden)`
+    // Set segment value if available
+    if (segmentSelect && data.segment) {
+      // Make sure the value exists in the dropdown
+      const segmentExists = Array.from(segmentSelect.options).some(
+        (opt) => opt.value === data.segment
       );
 
-      if (segmentTypeFields) {
-        // Fill specific fields based on segment type
-        const controlVarInput = segmentTypeFields.querySelector(
-          ".dv-control-variable"
-        );
-        const axisInput = segmentTypeFields.querySelector(".dv-axis");
-        const lowerBoundInput =
-          segmentTypeFields.querySelector(".dv-lower-bound");
-        const upperBoundInput =
-          segmentTypeFields.querySelector(".dv-upper-bound");
+      if (!segmentExists && segmentSelect.options.length > 0) {
+        // Add the option if it doesn't exist
+        const newOption = document.createElement("option");
+        newOption.value = data.segment;
+        newOption.textContent = data.segment;
+        segmentSelect.appendChild(newOption);
+      }
 
-        if (controlVarInput && data.control_variable) {
-          controlVarInput.value = data.control_variable;
-          controlVarInput.dispatchEvent(new Event("input"));
-        }
+      segmentSelect.value = data.segment;
+      segmentSelect.dispatchEvent(new Event("change", { bubbles: true }));
 
-        if (axisInput && data.axis) {
-          if (axisInput.tagName === "SELECT") {
-            axisInput.value = data.axis;
-            axisInput.dispatchEvent(new Event("change"));
-          } else {
-            axisInput.value = data.axis;
-            axisInput.dispatchEvent(new Event("input"));
+      // Wait for segment-dependent fields to appear
+      setTimeout(() => {
+        // Set segment type
+        if (segmentTypeSelect && data.segment_type) {
+          // Check if segment type exists in options
+          const typeExists = Array.from(segmentTypeSelect.options).some(
+            (opt) => opt.value === data.segment_type
+          );
+
+          if (!typeExists && segmentTypeSelect.options.length > 0) {
+            // Add the segment type option if needed
+            const newOption = document.createElement("option");
+            newOption.value = data.segment_type;
+            newOption.textContent = data.segment_type;
+            segmentTypeSelect.appendChild(newOption);
           }
-        }
 
-        if (lowerBoundInput && data.lower_bound !== undefined) {
-          lowerBoundInput.value = data.lower_bound;
-          lowerBoundInput.dispatchEvent(new Event("input"));
-        }
+          segmentTypeSelect.value = data.segment_type;
+          segmentTypeSelect.dispatchEvent(
+            new Event("change", { bubbles: true })
+          );
 
-        if (upperBoundInput && data.upper_bound !== undefined) {
-          upperBoundInput.value = data.upper_bound;
-          upperBoundInput.dispatchEvent(new Event("input"));
+          // Wait for segment type fields to appear
+          setTimeout(() => {
+            fillSteeringVariableTypeFields(container, data);
+          }, 500);
+        }
+      }, 500);
+    }
+  } catch (error) {
+    console.error("Error filling steering variable fields:", error);
+  }
+}
+
+// Update fillSteeringVariableTypeFields to handle complex JSON format
+function fillSteeringVariableTypeFields(instance, data) {
+  try {
+    // Find control variable field
+    const controlVarSelect = instance.querySelector(".dv-control-variable");
+
+    if (controlVarSelect && data.control_variable) {
+      // Handle array or string
+      const controlVar = Array.isArray(data.control_variable)
+        ? data.control_variable[0]
+        : data.control_variable;
+
+      // Ensure option exists
+      const controlVarExists = Array.from(controlVarSelect.options).some(
+        (opt) => opt.value.toUpperCase() === controlVar.toUpperCase()
+      );
+
+      if (!controlVarExists && controlVarSelect.options.length > 0) {
+        // Try to find the closest matching option
+        let bestMatch = null;
+        let bestScore = 0;
+
+        Array.from(controlVarSelect.options).forEach((opt) => {
+          // Simple string similarity score
+          const score = similarityScore(
+            opt.value.toUpperCase(),
+            controlVar.toUpperCase()
+          );
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = opt.value;
+          }
+        });
+
+        if (bestMatch) {
+          controlVarSelect.value = bestMatch;
+          console.log(
+            `Using closest match "${bestMatch}" for control variable "${controlVar}"`
+          );
+        } else {
+          // Default to first option if no match
+          controlVarSelect.selectedIndex = 0;
+        }
+      } else if (controlVarExists) {
+        // Set the exact value if it exists
+        controlVarSelect.value = controlVar;
+      } else if (controlVarSelect.options.length > 0) {
+        // Default to first option if no match
+        controlVarSelect.selectedIndex = 0;
+      }
+
+      controlVarSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+      // Wait for axis fields to appear
+      setTimeout(() => {
+        fillAxisFields(instance, data);
+      }, 500);
+    }
+  } catch (error) {
+    console.error("Error filling steering variable type fields:", error);
+  }
+}
+
+// Update fillAxisFields to handle complex JSON format
+function fillAxisFields(instance, data) {
+  try {
+    // Find axis checkboxes/selects
+    const axisCheckboxes = instance.querySelectorAll('input[name^="dv-axis"]');
+    const axisSelect = instance.querySelector(".dv-axis");
+
+    // Handle axis data
+    if (data.axis) {
+      const axes =
+        typeof data.axis === "string"
+          ? data.axis.split(",").map((a) => a.trim())
+          : Array.isArray(data.axis)
+          ? data.axis
+          : [data.axis];
+
+      // Handle dropdown select
+      if (axisSelect && axes.length > 0) {
+        // Use the appropriate selector based on the UI
+        if (axisSelect.tagName === "SELECT") {
+          // Find a matching option
+          const option = Array.from(axisSelect.options).find((opt) =>
+            axes.some((axis) => opt.value.toLowerCase() === axis.toLowerCase())
+          );
+
+          if (option) {
+            axisSelect.value = option.value;
+          } else if (axisSelect.options.length > 0) {
+            // Default to first option if no match
+            axisSelect.selectedIndex = 0;
+          }
+          axisSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          // For text input
+          axisSelect.value = axes.join(",");
+          axisSelect.dispatchEvent(new Event("input", { bubbles: true }));
         }
       }
-    }, 300);
+
+      // Handle checkboxes
+      if (axisCheckboxes && axisCheckboxes.length > 0) {
+        axisCheckboxes.forEach((checkbox) => {
+          const axisValue = checkbox.value.toLowerCase();
+          checkbox.checked = axes.some(
+            (axis) => axis.toLowerCase() === axisValue
+          );
+          checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+      }
+    }
+
+    // Find and fill bound fields
+    const lowerBoundInput = instance.querySelector(".dv-lower-bound");
+    const upperBoundInput = instance.querySelector(".dv-upper-bound");
+
+    if (
+      lowerBoundInput &&
+      data.lower_bound !== undefined &&
+      data.lower_bound !== null
+    ) {
+      lowerBoundInput.value = data.lower_bound.toString();
+      lowerBoundInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    if (
+      upperBoundInput &&
+      data.upper_bound !== undefined &&
+      data.upper_bound !== null
+    ) {
+      upperBoundInput.value = data.upper_bound.toString();
+      upperBoundInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  } catch (error) {
+    console.error("Error filling axis fields:", error);
+  }
+}
+
+// Helper function to fill design variable fields for non-steering categories
+function fillDesignVariableCategoryFields(instance, data) {
+  try {
+    // Find the active category fields
+    const dynamicFieldsContainer = instance.querySelector(".dv-dynamic-fields");
+    if (!dynamicFieldsContainer) {
+      console.error("Dynamic fields container not found");
+      return;
+    }
+
+    // Fill the fields based on category
+    switch (data.category) {
+      case "STEERING":
+        fillSteeringVariableFields(instance, data);
+        break;
+      case "PAYLOAD":
+        fillPayloadFields(instance, data);
+        break;
+      case "AZIMUTH":
+        fillAzimuthFields(instance, data);
+        break;
+      case "SEQUENCE":
+        fillSequenceFields(instance, data);
+        break;
+      case "PROPULSION":
+        fillPropulsionFields(instance, data);
+        break;
+      case "CUT_OFF":
+        fillCutoffFields(instance, data);
+        break;
+      default:
+        console.warn(`Unsupported design variable category: ${data.category}`);
+    }
+  } catch (error) {
+    console.error("Error filling design variable category fields:", error);
   }
 }
 
@@ -2143,3 +2648,251 @@ window.TestHelpers = {
   fillTestOptimizationMode,
   fillTestDesignVariables,
 };
+
+// Helper function for filling steering variable fields
+function fillSteeringVariableFields(instance, data) {
+  // Extract data from design variable object
+  console.log("Filling steering variable fields:", data);
+
+  // Find fields in the form
+  const segmentSelect = instance.querySelector(".dv-segment");
+  const segmentTypeSelect = instance.querySelector(".dv-segment-type");
+
+  // Use a try-catch block to handle potential data format issues
+  try {
+    // Set segment value if available
+    if (segmentSelect && data.segment) {
+      // Make sure the value exists in the dropdown
+      const segmentExists = Array.from(segmentSelect.options).some(
+        (opt) => opt.value === data.segment
+      );
+
+      if (!segmentExists && segmentSelect.options.length > 0) {
+        // Add the option if it doesn't exist
+        const newOption = document.createElement("option");
+        newOption.value = data.segment;
+        newOption.textContent = data.segment;
+        segmentSelect.appendChild(newOption);
+      }
+
+      segmentSelect.value = data.segment;
+      segmentSelect.dispatchEvent(new Event("change"));
+
+      // Wait for segment-dependent fields to appear
+      setTimeout(() => {
+        // Set segment type
+        if (segmentTypeSelect && data.segment_type) {
+          // Check if segment type exists in options
+          const typeExists = Array.from(segmentTypeSelect.options).some(
+            (opt) => opt.value === data.segment_type
+          );
+
+          if (!typeExists && segmentTypeSelect.options.length > 0) {
+            // Add the segment type option if needed
+            const newOption = document.createElement("option");
+            newOption.value = data.segment_type;
+            newOption.textContent = data.segment_type;
+            segmentTypeSelect.appendChild(newOption);
+          }
+
+          segmentTypeSelect.value = data.segment_type;
+          segmentTypeSelect.dispatchEvent(new Event("change"));
+
+          // Wait for segment type fields to appear
+          setTimeout(() => {
+            // Handle type-specific nested data
+            fillSteeringVariableTypeFields(instance, data);
+          }, 400);
+        }
+      }, 400);
+    }
+  } catch (error) {
+    console.error("Error filling steering variable fields:", error);
+  }
+}
+
+// Helper function to handle complex nested type data in steering variables
+function fillSteeringVariableTypeFields(instance, data) {
+  // Find control variable field
+  const controlVarSelect = instance.querySelector(".dv-control-variable");
+
+  // Extract type data from realdata.json format if available
+  let typeData = {};
+  try {
+    // Handle both formats - the regular test data format and the realdata.json format
+    if (data.type && Array.isArray(data.type) && data.type[0]) {
+      // Format from realdata.json with type array
+      const type = data.type[0];
+
+      typeData = {
+        control_variable: type.control_variable,
+        axis: type.axis,
+        lower_bound: type.lower_bound,
+        upper_bound: type.upper_bound,
+        ind_variable: type.ind_variable,
+        ind_vector: type.ind_vector,
+      };
+    } else {
+      // Format from simplified test data
+      typeData = {
+        control_variable: data.control_variable,
+        axis: data.axis
+          ? typeof data.axis === "string"
+            ? data.axis.split(",")
+            : [data.axis]
+          : [],
+        lower_bound: data.lower_bound,
+        upper_bound: data.upper_bound,
+      };
+    }
+
+    // Fill control variable
+    if (controlVarSelect && typeData.control_variable) {
+      // Handle array or string
+      const controlVar = Array.isArray(typeData.control_variable)
+        ? typeData.control_variable[0]
+        : typeData.control_variable;
+
+      // Ensure option exists
+      const controlVarExists = Array.from(controlVarSelect.options).some(
+        (opt) => opt.value.toUpperCase() === controlVar.toUpperCase()
+      );
+
+      if (!controlVarExists && controlVarSelect.options.length > 0) {
+        const newOption = document.createElement("option");
+        newOption.value = controlVar;
+        newOption.textContent = controlVar;
+        controlVarSelect.appendChild(newOption);
+      }
+
+      // Find the closest match if exact match is not available
+      if (!controlVarExists) {
+        let bestMatch = null;
+        let bestMatchScore = 0;
+
+        Array.from(controlVarSelect.options).forEach((opt) => {
+          // Simple string similarity score
+          const score = similarityScore(
+            opt.value.toUpperCase(),
+            controlVar.toUpperCase()
+          );
+          if (score > bestMatchScore) {
+            bestMatchScore = score;
+            bestMatch = opt.value;
+          }
+        });
+
+        if (bestMatch) {
+          console.log(
+            `Using closest match "${bestMatch}" for control variable "${controlVar}"`
+          );
+          controlVarSelect.value = bestMatch;
+        } else {
+          // Default to first option if no match
+          controlVarSelect.selectedIndex = 0;
+        }
+      } else {
+        // Set the exact value if it exists
+        controlVarSelect.value = controlVar;
+      }
+
+      controlVarSelect.dispatchEvent(new Event("change"));
+
+      // Wait for axis fields to appear
+      setTimeout(() => {
+        // Fill axis fields
+        fillAxisFields(instance, typeData);
+      }, 400);
+    }
+  } catch (error) {
+    console.error("Error filling steering variable type fields:", error);
+  }
+}
+
+// Helper function to fill axis fields
+function fillAxisFields(instance, typeData) {
+  try {
+    // Find axis checkboxes/selects
+    const axisCheckboxes = instance.querySelectorAll('input[name^="dv-axis"]');
+    const axisSelect = instance.querySelector(".dv-axis");
+
+    // Handle axis data
+    if (typeData.axis) {
+      const axes = Array.isArray(typeData.axis)
+        ? typeData.axis
+        : [typeData.axis];
+
+      // Handle dropdown select
+      if (axisSelect) {
+        for (const axis of axes) {
+          // Find matching option
+          const option = Array.from(axisSelect.options).find(
+            (opt) => opt.value.toLowerCase() === axis.toLowerCase()
+          );
+
+          if (option) {
+            axisSelect.value = option.value;
+            break; // Just use the first matching axis
+          }
+        }
+        axisSelect.dispatchEvent(new Event("change"));
+      }
+
+      // Handle checkboxes
+      if (axisCheckboxes && axisCheckboxes.length > 0) {
+        axisCheckboxes.forEach((checkbox) => {
+          const axisValue = checkbox.value.toLowerCase();
+          checkbox.checked = axes.some(
+            (axis) => axis.toLowerCase() === axisValue
+          );
+          checkbox.dispatchEvent(new Event("change"));
+        });
+      }
+    }
+
+    // Find and fill bound fields
+    const lowerBoundInput = instance.querySelector(".dv-lower-bound");
+    const upperBoundInput = instance.querySelector(".dv-upper-bound");
+
+    if (lowerBoundInput && typeData.lower_bound !== undefined) {
+      // Handle array or scalar
+      const lowerBound = Array.isArray(typeData.lower_bound)
+        ? Array.isArray(typeData.lower_bound[0])
+          ? typeData.lower_bound[0][0]
+          : typeData.lower_bound[0]
+        : typeData.lower_bound;
+
+      lowerBoundInput.value = lowerBound;
+      lowerBoundInput.dispatchEvent(new Event("input"));
+    }
+
+    if (upperBoundInput && typeData.upper_bound !== undefined) {
+      // Handle array or scalar
+      const upperBound = Array.isArray(typeData.upper_bound)
+        ? Array.isArray(typeData.upper_bound[0])
+          ? typeData.upper_bound[0][0]
+          : typeData.upper_bound[0]
+        : typeData.upper_bound;
+
+      upperBoundInput.value = upperBound;
+      upperBoundInput.dispatchEvent(new Event("input"));
+    }
+  } catch (error) {
+    console.error("Error filling axis fields:", error);
+  }
+}
+
+// Helper function to calculate string similarity score
+function similarityScore(str1, str2) {
+  // Very basic similarity - just counts matching characters
+  let score = 0;
+  const minLength = Math.min(str1.length, str2.length);
+
+  for (let i = 0; i < minLength; i++) {
+    if (str1[i] === str2[i]) {
+      score++;
+    }
+  }
+
+  return score / Math.max(str1.length, str2.length);
+}
