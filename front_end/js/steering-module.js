@@ -536,17 +536,17 @@ function downloadProfileTemplate() {
   const quantity = document.querySelector('[name="quantity"]')?.value;
   let template = "";
   switch (quantity) {
-    case "eulerRate":
-    case "bodyRate":
+    case "EULER_RATE":
+    case "BODY_RATE":
       template =
         "Time,Roll Rate,Pitch Rate,Yaw Rate\n0,0,0,0\n1,10,20,30\n2,20,40,60";
       break;
-    case "quaternion":
+    case "QUATERNION":
       template =
         "Time,q0,q1,q2,q3\n0,1,0,0,0\n1,0.9659,0,0.2588,0\n2,0.8660,0,0.5,0";
       break;
-    case "eulerAngle":
-    case "bodyAngle":
+    case "EULER_ANGLE":
+    case "BODY_ANGLE":
       template = "Time,Roll,Pitch,Yaw\n0,0,0,0\n1,10,20,30\n2,20,40,60";
       break;
     default:
@@ -1134,24 +1134,17 @@ class SteeringConfigHandler {
         }
         break;
       case "profile":
-        // Helper function for conversion
-        const convertToUpperUnderscore = (str) => {
-          if (!str) return "";
-          // Insert underscore before capital letters (except the first char), then uppercase
-          return str.replace(/([A-Z])/g, "_$1").toUpperCase();
-        };
-
-        params.mode = container.querySelector('[data-param="mode"]')?.value; // Keep mode as is (normal/step)
+        params.mode = container.querySelector('[data-param="mode"]')?.value;
 
         const quantityValue = container.querySelector(
           '[data-param="quantity"]'
         )?.value;
-        params.quantity = convertToUpperUnderscore(quantityValue);
+        params.quantity = quantityValue;
 
         const independentVarValue = container.querySelector(
           '[data-param="independentVar"]'
         )?.value;
-        params.independentVar = convertToUpperUnderscore(independentVarValue);
+        params.independentVar = independentVarValue;
 
         params.profile_csv_filename = container.querySelector(
           '[data-param="profile_csv_filename"]'
@@ -1327,7 +1320,15 @@ class SteeringConfigHandler {
 
     // Use the normalized steering type for field generation
     const normalizedType = normalizeSteeringType(config.steering_type);
-    generateSteeringFields(normalizedType, config.steering_params);
+
+    // MODIFICATION START: Ensure profile_csv_filename is in params for population
+    const steeringParamsForPopulation = { ...config.steering_params };
+    if (normalizedType === "profile" && config.profile_csv_filename) {
+      steeringParamsForPopulation.profile_csv_filename =
+        config.profile_csv_filename;
+    }
+    generateSteeringFields(normalizedType, steeringParamsForPopulation);
+    // MODIFICATION END
 
     // Add handlers to any type-specific dynamic input fields
     const activeSection = document.querySelector(

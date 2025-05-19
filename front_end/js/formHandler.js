@@ -2738,12 +2738,12 @@ function saveSteeringConfigToFinalData() {
     // Add specific steering parameters
     const params = config.steering_params || {};
     switch (config.steering_type) {
-      case "constantBodyRate":
+      case "CONST_BODYRATE": // MODIFIED from "constantBodyRate"
         steeringUpdate[componentKey].steering.axis = params.axis;
         steeringUpdate[componentKey].steering.value =
           parseFloat(params.value) || 0;
         break;
-      case "clg":
+      case "CLG": // MODIFIED from "clg"
         steeringUpdate[componentKey].steering.algorithm = params.algorithm;
         if (params.algorithm === "aoa") {
           steeringUpdate[componentKey].steering.max_qaoa =
@@ -2757,7 +2757,7 @@ function saveSteeringConfigToFinalData() {
             parseFloat(params.yaw_gain) || 0;
         }
         break;
-      case "profile":
+      case "PROFILE": // MODIFIED from "profile"
         // Assign common profile properties first
         steeringUpdate[componentKey].steering.mode = params.mode || "normal"; // Default to normal if not set
         steeringUpdate[componentKey].steering.quantity = params.quantity

@@ -141,9 +141,41 @@ function saveMissionData() {
   // Create a JSON string with proper formatting
   const jsonString = JSON.stringify(finalMissionData, null, 2);
 
-  // Log the final mission data to console
+  // Log the final mission data to console with detailed info about steering
   console.log("Final Mission Data:");
   console.log(finalMissionData); // Log the object for interactive inspection
+
+  // Check for steering data and log it specifically
+  console.log("Checking for steering data in finalMissionData:");
+  const steeringKeys = Object.keys(finalMissionData).filter(
+    (key) =>
+      key.includes("Vertical_Ascend") ||
+      key.includes("Pitch_Hold") ||
+      key.includes("Constant_Pitch") ||
+      key.includes("Profile") ||
+      key === "_steering_data_start" ||
+      key === "_steering_data_end"
+  );
+
+  console.log("Found steering keys:", steeringKeys);
+  steeringKeys.forEach((key) => {
+    console.log(`Steering data for ${key}:`, finalMissionData[key]);
+    if (finalMissionData[key]?.steering) {
+      console.log(`Steering type: ${finalMissionData[key].steering.type}`);
+      if (finalMissionData[key].steering.value) {
+        console.log(
+          `Steering value exists and has type: ${typeof finalMissionData[key]
+            .steering.value}`
+        );
+        if (Array.isArray(finalMissionData[key].steering.value)) {
+          console.log(
+            `Steering value is array with length: ${finalMissionData[key].steering.value.length}`
+          );
+        }
+      }
+    }
+  });
+
   console.log("JSON String:");
   console.log(jsonString); // Log the formatted JSON string
 
