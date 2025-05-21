@@ -116,6 +116,13 @@
   - Improved form layout by positioning bound fields in logical order (e.g., above Independent Variable fields in PROFILE type).
   - Added validation to ensure at least one axis is selected.
   - Maintained backward compatibility with existing JSON structure.
+- [x] **Optimization JSON Output:** Implement saving/exporting the Optimization configuration sections (Objective Function, Constraints, Mode, Design Variables) into the main `finalMissionData` JSON structure.
+- [x] **Engine Integration (Initial):**
+  - Test the fully generated JSON (including Mission, Env, Vehicle, Sequence, Steering, Optimization) directly with the Astra C simulation engine.
+  - Establish communication channel between Electron frontend (JS) and the Astra C binary (potentially via WSL on Windows).
+  - Implement passing the generated JSON file path or content to the C binary.
+  - Capture standard output/error streams from the C binary process.
+  - Display simulation results/output from the C binary back into the frontend UI.
 
 ### General UI/UX Features
 
@@ -140,13 +147,6 @@
 
 ### Core Features & Integration
 
-- [ ] **Optimization JSON Output:** Implement saving/exporting the Optimization configuration sections (Objective Function, Constraints, Mode, Design Variables) into the main `finalMissionData` JSON structure.
-- [ ] **Engine Integration (Initial):**
-  - Test the fully generated JSON (including Mission, Env, Vehicle, Sequence, Steering, Optimization) directly with the Astra C simulation engine.
-  - Establish communication channel between Electron frontend (JS) and the Astra C binary (potentially via WSL on Windows).
-  - Implement passing the generated JSON file path or content to the C binary.
-  - Capture standard output/error streams from the C binary process.
-  - Display simulation results/output from the C binary back into the frontend UI.
 - [ ] **Simultaneous Missions:** Enable the execution of multiple mission simulations concurrently (requires backend and UI handling for multiple processes/outputs).
 - [ ] **"Open Mission" Functionality:**
   - Implement the "Open Mission" button to allow users to select a previously saved mission JSON file.

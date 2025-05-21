@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize flagRegistry if it doesn't exist
   // Remove conflicting flagRegistry initialization
 
+  // Make UI navigation functions globally accessible
+  window.uiNav = {}; // Create the global object
+
   const welcomeMessage = document.getElementById("welcome-message");
 
   // Forms
@@ -184,6 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
         form.classList.remove("active-form");
       });
   }
+  window.uiNav.hideAllForms = hideAllForms; // Expose it
   hideAllForms();
 
   // Function to show only one form at a time
@@ -195,11 +199,13 @@ document.addEventListener("DOMContentLoaded", function () {
       // formToShow.style.display = "block"; // Remove direct style manipulation
     }
     // Hide both welcome message and its container
-    const welcomeMessage = document.getElementById("welcome-message");
-    const welcomeContainer = document.querySelector(".welcome-container");
-    if (welcomeMessage) welcomeMessage.style.display = "none";
-    if (welcomeContainer) welcomeContainer.style.display = "none";
+    const welcomeMessageElement = document.getElementById("welcome-message"); // Renamed to avoid conflict
+    const welcomeContainerElement =
+      document.querySelector(".welcome-container"); // Renamed to avoid conflict
+    if (welcomeMessageElement) welcomeMessageElement.style.display = "none";
+    if (welcomeContainerElement) welcomeContainerElement.style.display = "none";
   }
+  window.uiNav.showForm = showForm; // Expose it
 
   // Navigation buttons event listeners
   detailsButton.addEventListener("click", (event) => {

@@ -1,5 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
+const fs = require("fs");
+const { exec } = require("child_process");
 
 let mainWindow;
 let splashScreen;
@@ -25,10 +27,21 @@ app.whenReady().then(() => {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      enableRemoteModule: true,
     },
   });
 
   mainWindow.loadFile(path.join(__dirname, "/mission.html"));
+
+  // Set global flag and expose node modules directly
+  mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow.webContents.executeJavaScript(`
+      window.isElectron = true;
+      window.nodePath = require('path');
+      window.nodeFs = require('fs');
+      window.nodeExec = require('child_process').exec;
+    `);
+  });
 
   // Wait a few seconds, then close splash and show main window
   setTimeout(() => {

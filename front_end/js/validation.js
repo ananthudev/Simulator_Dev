@@ -524,15 +524,6 @@ class FormValidator {
       this.removeError(plfMass);
     }
 
-    const plfSepValue = document.getElementById("plf-sep-value");
-    if (!plfSepValue.value || plfSepValue.value <= 0) {
-      this.showError(plfSepValue, "Please enter a valid separation value");
-      isValid = false;
-      errors.push("Valid separation value is required");
-    } else {
-      this.removeError(plfSepValue);
-    }
-
     // Integration method validation
     const integrationMethod = document.getElementById("integration-method");
     if (!integrationMethod.value || integrationMethod.value === "") {
@@ -607,16 +598,6 @@ class FormValidator {
     this.validateOnInput(plfMass, (field) => {
       if (!field.value || field.value <= 0) {
         this.showError(field, "Please enter a valid PLF mass");
-      } else {
-        this.removeError(field);
-      }
-    });
-
-    // PLF Separation Value validation
-    const plfSepValue = document.getElementById("plf-sep-value");
-    this.validateOnInput(plfSepValue, (field) => {
-      if (!field.value || field.value <= 0) {
-        this.showError(field, "Please enter a valid separation value");
       } else {
         this.removeError(field);
       }
