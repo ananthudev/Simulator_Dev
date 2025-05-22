@@ -406,11 +406,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Update placeholder based on trigger type
     triggerType.addEventListener("change", function () {
       switch (this.value) {
-        case "MISSION_TIME":
-        case "PHASE_TIME":
+        case "mission-time":
+        case "phase-time":
           triggerValue.placeholder = "Enter time in seconds";
           break;
-        case "ALTITUDE":
+        case "altitude":
           triggerValue.placeholder = "Enter altitude in meters";
           break;
         default:
@@ -2180,13 +2180,13 @@ function validateTriggerValue(triggerType, value) {
   }
 
   switch (triggerType) {
-    case "MISSION_TIME":
-    case "PHASE_TIME":
+    case "mission-time":
+    case "phase-time":
       return {
         isValid: true,
         message: "Value in seconds",
       };
-    case "ALTITUDE":
+    case "altitude":
       return {
         isValid: true,
         message: "Value in meters",
@@ -2738,12 +2738,12 @@ function saveSteeringConfigToFinalData() {
     // Add specific steering parameters
     const params = config.steering_params || {};
     switch (config.steering_type) {
-      case "CONST_BODYRATE": // MODIFIED from "constantBodyRate"
+      case "constantBodyRate":
         steeringUpdate[componentKey].steering.axis = params.axis;
         steeringUpdate[componentKey].steering.value =
           parseFloat(params.value) || 0;
         break;
-      case "CLG": // MODIFIED from "clg"
+      case "clg":
         steeringUpdate[componentKey].steering.algorithm = params.algorithm;
         if (params.algorithm === "aoa") {
           steeringUpdate[componentKey].steering.max_qaoa =
@@ -2757,7 +2757,7 @@ function saveSteeringConfigToFinalData() {
             parseFloat(params.yaw_gain) || 0;
         }
         break;
-      case "PROFILE": // MODIFIED from "profile"
+      case "profile":
         // Assign common profile properties first
         steeringUpdate[componentKey].steering.mode = params.mode || "normal"; // Default to normal if not set
         steeringUpdate[componentKey].steering.quantity = params.quantity
