@@ -235,9 +235,6 @@ function saveMissionData() {
           "<html><head><title>ASTRA Simulation Results</title>"
         );
         terminal.document.write(
-          '<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"><\\/script>'
-        );
-        terminal.document.write(
           "<style>body { background-color: #000; color: #fff; font-family: monospace; padding: 10px; }</style>"
         );
         terminal.document.write("</head><body>");
@@ -335,10 +332,9 @@ function saveMissionData() {
                           terminal.document &&
                           terminal.document.getElementById("output")
                         ) {
-                          const ansiUp = new AnsiUp();
                           terminal.document.getElementById(
                             "output"
-                          ).innerHTML += ansiUp.ansi_to_html(errorMessage);
+                          ).textContent += errorMessage;
                         } else {
                           console.error(
                             "Terminal window closed or inaccessible. ASTRA Error:",
@@ -356,10 +352,9 @@ function saveMissionData() {
                           terminal.document &&
                           terminal.document.getElementById("output")
                         ) {
-                          const ansiUp = new AnsiUp();
                           terminal.document.getElementById(
                             "output"
-                          ).innerHTML += ansiUp.ansi_to_html(Sstderr);
+                          ).textContent += Sstderr;
                         } else {
                           console.warn(
                             "Terminal window closed or inaccessible. ASTRA Stderr:",
@@ -375,10 +370,9 @@ function saveMissionData() {
                           terminal.document &&
                           terminal.document.getElementById("output")
                         ) {
-                          const ansiUp = new AnsiUp();
                           terminal.document.getElementById(
                             "output"
-                          ).innerHTML += ansiUp.ansi_to_html(Sstdout);
+                          ).textContent += Sstdout;
                         } else {
                           console.log(
                             "Terminal window closed or inaccessible. ASTRA Stdout:",
@@ -468,309 +462,3 @@ document.addEventListener("DOMContentLoaded", function () {
     launchBtn.addEventListener("click", saveMissionData);
   }
 });
-
-// --- Helper functions for populating dynamically created forms (Stages, Motors, Nozzles) ---
-// These should be moved to openMissionHandler.js and called by your main populateForms function.
-
-function populateDynamicStageForm(stageData, stageUINumber, filePaths) {
-  const form = document.getElementById(`stage${stageUINumber}-form`);
-  if (!form) {
-    console.error(
-      `Stage form stage${stageUINumber}-form not found for population.`
-    );
-    return;
-  }
-
-  // Structural Mass
-  const structuralMassInput = form.querySelector(
-    `#structural-mass-${stageUINumber}`
-  );
-  if (structuralMassInput && stageData.str_mass !== undefined)
-    structuralMassInput.value = stageData.str_mass;
-
-  // Reference Area
-  const refAreaInput = form.querySelector(`#reference-area-${stageUINumber}`);
-  if (refAreaInput && stageData.ref_area !== undefined)
-    refAreaInput.value = stageData.ref_area;
-
-  // Burn Time
-  const burnTimeInput = form.querySelector(`#burn-time-${stageUINumber}`);
-  if (burnTimeInput && stageData.burntime !== undefined)
-    burnTimeInput.value = stageData.burntime;
-
-  // DCISS Toggle
-  const dcissToggle = form.querySelector(`#dciss-toggle-stage${stageUINumber}`);
-  if (dcissToggle && stageData.DCISS !== undefined) {
-    dcissToggle.checked = stageData.DCISS === "ON";
-  }
-
-  // Coasting Toggle
-  const coastingToggle = form.querySelector(
-    `#coasting-toggle-stage${stageUINumber}`
-  );
-  if (coastingToggle && stageData.coasting !== undefined) {
-    coastingToggle.checked = stageData.coasting === "ON";
-  }
-
-  // Aero Filename
-  const aeroFilenameInput = form.querySelector(
-    `#aero-filename-stage${stageUINumber}`
-  );
-  if (
-    aeroFilenameInput &&
-    stageData.aero_data &&
-    Array.isArray(stageData.aero_data) &&
-    stageData.aero_data.length > 0
-  ) {
-    aeroFilenameInput.value = stageData.aero_data[0];
-  }
-
-  // Burn Time ID / Initialization Flag
-  const burnTimeIdInput = form.querySelector(`#burn-time-id-${stageUINumber}`);
-  if (burnTimeIdInput && stageData.ini_flag !== undefined)
-    burnTimeIdInput.value = stageData.ini_flag;
-
-  // Separation Flag
-  const separationFlagInput = form.querySelector(
-    `#separation-flag-stage${stageUINumber}`
-  );
-  if (separationFlagInput && stageData.sep_flag !== undefined)
-    separationFlagInput.value = stageData.sep_flag;
-
-  if (burnTimeInput) {
-    burnTimeInput.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-
-  console.log(
-    `Populated stage ${stageUINumber} form with data:`,
-    JSON.parse(JSON.stringify(stageData))
-  );
-}
-
-function populateDynamicMotorForm(
-  motorData,
-  stageUINumber,
-  motorUINumber,
-  filePaths
-) {
-  // Log the received motorData object directly at the beginning
-  console.log(
-    `[missionDataHandler] populateDynamicMotorForm received motorData for S${stageUINumber}M${motorUINumber}:`,
-    motorData
-  );
-
-  const form = document.getElementById(
-    `stage${stageUINumber}-motor${motorUINumber}-form`
-  );
-  if (!form) {
-    console.error(
-      `[missionDataHandler] Motor form stage${stageUINumber}-motor${motorUINumber}-form not found.`
-    );
-    return;
-  }
-  // console.log(`[missionDataHandler] Populating motor form ${form.id} with data:`, JSON.parse(JSON.stringify(motorData))); // Keep this for detailed object view if needed
-
-  // Propulsion Type
-  const propulsionTypeSelect = form.querySelector("select"); // First select is propulsion type
-  console.log(
-    `[missionDataHandler] motorData.prop_type for S${stageUINumber}M${motorUINumber}: ${
-      motorData ? motorData.prop_type : "motorData is null/undefined"
-    }`
-  );
-  if (propulsionTypeSelect) {
-    console.log(
-      `[missionDataHandler] Propulsion type select element found for S${stageUINumber}M${motorUINumber}.`
-    );
-    if (motorData && motorData.prop_type) {
-      const valueToSet = motorData.prop_type.toLowerCase();
-      console.log(
-        `[missionDataHandler] Attempting to set propulsion type to: '${valueToSet}' for S${stageUINumber}M${motorUINumber}`
-      );
-      const options = Array.from(propulsionTypeSelect.options).map(
-        (opt) => opt.value
-      );
-      console.log(
-        `[missionDataHandler] Available options for S${stageUINumber}M${motorUINumber}: ${options.join(
-          ", "
-        )}`
-      );
-      if (options.includes(valueToSet)) {
-        propulsionTypeSelect.value = valueToSet;
-        console.log(
-          `[missionDataHandler] Propulsion type set successfully for S${stageUINumber}M${motorUINumber}.`
-        );
-      } else {
-        console.warn(
-          `[missionDataHandler] Propulsion type option '${valueToSet}' not found in select for S${stageUINumber}M${motorUINumber}.`
-        );
-      }
-    } else {
-      console.log(
-        `[missionDataHandler] motorData.prop_type is undefined or null for S${stageUINumber}M${motorUINumber}.`
-      );
-    }
-  } else {
-    console.warn(
-      `[missionDataHandler] Propulsion type select element NOT found for S${stageUINumber}M${motorUINumber}.`
-    );
-  }
-
-  // Propulsion Mass
-  const propulsionMassInput = form.querySelector(
-    'input[placeholder="Enter Propulsion Mass"]'
-  );
-  if (propulsionMassInput && motorData && motorData.prop_mass !== undefined) {
-    propulsionMassInput.value = motorData.prop_mass;
-  }
-
-  // Nozzle Diameter
-  const nozzleDiameterInput = form.querySelector(
-    'input[placeholder="Enter Nozzle Diameter"]'
-  );
-  console.log(
-    `[missionDataHandler] motorData.noz_dia for S${stageUINumber}M${motorUINumber}: ${
-      motorData ? motorData.noz_dia : "motorData is null/undefined"
-    }`
-  );
-  if (nozzleDiameterInput) {
-    console.log(
-      `[missionDataHandler] Nozzle diameter input element found for S${stageUINumber}M${motorUINumber}.`
-    );
-    if (motorData && motorData.noz_dia !== undefined) {
-      nozzleDiameterInput.value = motorData.noz_dia;
-      console.log(
-        `[missionDataHandler] Nozzle diameter set successfully for S${stageUINumber}M${motorUINumber}.`
-      );
-    } else {
-      console.log(
-        `[missionDataHandler] motorData.noz_dia is undefined for S${stageUINumber}M${motorUINumber}.`
-      );
-    }
-  } else {
-    console.warn(
-      `[missionDataHandler] Nozzle diameter input element NOT found for S${stageUINumber}M${motorUINumber}.`
-    );
-  }
-
-  // Thrust Filename (from thrust_time_data array)
-  // Try finding the element by its full ID directly from the document
-  const thrustFileInputId = `thrust-filename-stage${stageUINumber}-motor${motorUINumber}`;
-  const thrustFilenameInput = document.getElementById(thrustFileInputId);
-
-  console.log(
-    `[missionDataHandler] motorData.thrust_time_data for S${stageUINumber}M${motorUINumber}: ${
-      motorData
-        ? JSON.stringify(motorData.thrust_time_data)
-        : "motorData is null/undefined"
-    }`
-  );
-  if (thrustFilenameInput) {
-    console.log(
-      `[missionDataHandler] Thrust filename input element (ID: ${thrustFileInputId}) found for S${stageUINumber}M${motorUINumber}.`
-    );
-    if (
-      motorData &&
-      motorData.thrust_time_data &&
-      Array.isArray(motorData.thrust_time_data) &&
-      motorData.thrust_time_data.length > 0
-    ) {
-      thrustFilenameInput.value = motorData.thrust_time_data[0];
-      console.log(
-        `[missionDataHandler] Thrust filename set successfully for S${stageUINumber}M${motorUINumber}.`
-      );
-    } else {
-      console.log(
-        `[missionDataHandler] motorData.thrust_time_data is invalid or empty for S${stageUINumber}M${motorUINumber}.`
-      );
-    }
-  } else {
-    console.warn(
-      `[missionDataHandler] Thrust filename input element (ID: ${thrustFileInputId}) NOT found for S${stageUINumber}M${motorUINumber}.`
-    );
-  }
-
-  console.log(
-    `[missionDataHandler] Finished populating motor ${motorUINumber} for stage ${stageUINumber}.`
-  );
-}
-
-function populateDynamicNozzleForm(
-  nozzleData,
-  stageUINumber,
-  motorUINumber,
-  filePaths
-) {
-  const form = document.getElementById(
-    `stage${stageUINumber}-motor${motorUINumber}-nozzle1-form`
-  );
-  if (!form || !nozzleData) {
-    console.error(
-      `Nozzle form/data for stage${stageUINumber}-motor${motorUINumber}-nozzle1 not found.`
-    );
-    return;
-  }
-
-  const etaThrustInput = form.querySelector(
-    'input[placeholder="Enter ETA thrust"]'
-  );
-  if (etaThrustInput && nozzleData.eta_thrust !== undefined)
-    etaThrustInput.value = nozzleData.eta_thrust;
-  const zetaThrustInput = form.querySelector(
-    'input[placeholder="Enter Zeta thrust"]'
-  );
-  if (zetaThrustInput && nozzleData.zeta_thrust !== undefined)
-    zetaThrustInput.value = nozzleData.zeta_thrust;
-
-  const radialDistanceInput = form.querySelector(
-    'input[placeholder="Enter radial distance"]'
-  );
-  if (radialDistanceInput && nozzleData.location_radial_distance !== undefined)
-    radialDistanceInput.value = nozzleData.location_radial_distance;
-  const phiInput = form.querySelector('input[placeholder="Enter Phi value"]');
-  if (phiInput && nozzleData.location_phi !== undefined)
-    phiInput.value = nozzleData.location_phi;
-
-  const sigmaThrustInput = form.querySelector(
-    'input[placeholder="Enter sigma thrust"]'
-  );
-  if (sigmaThrustInput && nozzleData.miss_align_sigma !== undefined)
-    sigmaThrustInput.value = nozzleData.miss_align_sigma;
-  const thauThrustInput = form.querySelector(
-    'input[placeholder="Enter thau thrust"]'
-  );
-  if (thauThrustInput && nozzleData.miss_align_thau !== undefined)
-    thauThrustInput.value = nozzleData.miss_align_thau;
-  const epsilonThrustInput = form.querySelector(
-    'input[placeholder="Enter epsilon thrust"]'
-  );
-  if (epsilonThrustInput && nozzleData.miss_align_epsilon !== undefined)
-    epsilonThrustInput.value = nozzleData.miss_align_epsilon;
-
-  const muInput = form.querySelector('input[placeholder="Enter MU value"]');
-  if (muInput && nozzleData.orientation_mu !== undefined)
-    muInput.value = nozzleData.orientation_mu;
-  const lambdaInput = form.querySelector(
-    'input[placeholder="Enter LAMDA value"]'
-  );
-  if (lambdaInput && nozzleData.orientation_lambda !== undefined)
-    lambdaInput.value = nozzleData.orientation_lambda;
-  const kappaInput = form.querySelector(
-    'input[placeholder="Enter KAPPA value"]'
-  );
-  if (kappaInput && nozzleData.orientation_kappa !== undefined)
-    kappaInput.value = nozzleData.orientation_kappa;
-
-  const xInput = form.querySelector('input[placeholder="Enter X value"]');
-  if (xInput && nozzleData.throat_location_x !== undefined)
-    xInput.value = nozzleData.throat_location_x;
-  const yInput = form.querySelector('input[placeholder="Enter Y value"]');
-  if (yInput && nozzleData.throat_location_y !== undefined)
-    yInput.value = nozzleData.throat_location_y;
-  const zInput = form.querySelector('input[placeholder="Enter Z value"]');
-  if (zInput && nozzleData.throat_location_z !== undefined)
-    zInput.value = nozzleData.throat_location_z;
-
-  console.log(
-    `Populated nozzle 1 for motor ${motorUINumber}, stage ${stageUINumber} form.`
-  );
-}
