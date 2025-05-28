@@ -64,29 +64,36 @@ function readFileAndProcess(file) {
       // Reset current mission state (UI and global data)
       resetCurrentMissionState();
 
-      // Populate forms with loadedMissionData
-      populateForms(loadedMissionData);
-
-      // Navigate to mission details form after successful load
-      const missionFormElement = document.getElementById("mission-form");
-      if (
-        window.uiNav &&
-        typeof window.uiNav.showForm === "function" &&
-        missionFormElement
-      ) {
-        window.uiNav.showForm(missionFormElement);
-        console.log("[OpenMission] Navigated to Mission Details form.");
-      } else {
-        console.warn(
-          "[OpenMission] Could not navigate to Mission Details form. uiNav.showForm not available or form not found."
+      // Increase delay to ensure DOM is fully ready before populating forms
+      setTimeout(() => {
+        console.log(
+          "[OpenMission] DOM reset complete, now populating forms..."
         );
-      }
 
-      Swal.fire(
-        "Success!",
-        "Mission data loaded and forms populated successfully!",
-        "success"
-      );
+        // Populate forms with loadedMissionData
+        populateForms(loadedMissionData);
+
+        // Navigate to mission details form after successful load
+        const missionFormElement = document.getElementById("mission-form");
+        if (
+          window.uiNav &&
+          typeof window.uiNav.showForm === "function" &&
+          missionFormElement
+        ) {
+          window.uiNav.showForm(missionFormElement);
+          console.log("[OpenMission] Navigated to Mission Details form.");
+        } else {
+          console.warn(
+            "[OpenMission] Could not navigate to Mission Details form. uiNav.showForm not available or form not found."
+          );
+        }
+
+        Swal.fire(
+          "Success!",
+          "Mission data loaded and forms populated successfully!",
+          "success"
+        );
+      }, 1000); // Increase from 500ms to 1000ms for a more reliable DOM reset
     } catch (error) {
       console.error("Error processing mission file:", error);
       Swal.fire(
@@ -106,12 +113,9 @@ function readFileAndProcess(file) {
 }
 
 function resetCurrentMissionState() {
-  console.log("Resetting current mission state...");
-  // This function will be responsible for clearing all forms,
-  // dynamic UI elements, and global data variables.
-  // For now, it's a placeholder.
+  console.log("[OpenMission] Resetting current mission state...");
 
-  // 1. Reset global data (examples)
+  // 1. Reset global data
   window.finalMissionData = {};
   window.flagRegistry = {
     event: {},
@@ -125,28 +129,183 @@ function resetCurrentMissionState() {
     window.steeringState.activeComponents = [];
     // Potentially more resets needed for steeringState internals
   }
-  // ... reset other global states from optimization.js, etc.
+  window.thrustTimeData = {}; // Ensure thrust time data is cleared
+
+  // Clear any cached element references
+  window._cachedFormElements = {};
+
+  // Ensure counters are reset
+  window.stageCounter = 0;
+  window.motorCounters = {};
+
+  // Reset any other form-specific state
+  if (window.formState) window.formState = {};
 
   // 2. Clear static form fields (example for mission form)
   const missionForm = document.getElementById("mission-form");
   if (missionForm) missionForm.reset();
   const enviroForm = document.getElementById("enviro-form");
   if (enviroForm) enviroForm.reset();
-  // ... reset other forms ...
+  const vehicleForm = document.getElementById("vehicle-form");
+  if (vehicleForm) vehicleForm.reset();
+  // Reset other static forms
+  const sequenceForm = document.getElementById("sequence-form");
+  if (sequenceForm) sequenceForm.reset();
+  const steeringForm = document.getElementById("steering-form");
+  if (steeringForm) steeringForm.reset();
+  const stoppingForm = document.getElementById("stopping-form");
+  if (stoppingForm) stoppingForm.reset();
 
   // 3. Clear dynamic UI elements
   // Example: Clear stages from sidebar
   const vehicleStagesList = document.getElementById("vehicle-stages");
   if (vehicleStagesList) vehicleStagesList.innerHTML = "";
-  // ... clear motor lists, event lists, active steering components UI, optimization UI elements ...
+
+  // IMPROVED FORM REMOVAL: Use a more robust process with verification
+  console.log("[OpenMission] Starting dynamic form removal process...");
+
+  // Log all current forms before removal
+  console.log("[OpenMission] Current forms before removal:");
+  const allForms = document.querySelectorAll('[id$="-form"]');
+  allForms.forEach((form) => console.log(`- ${form.id}`));
+
+  // Get a reference to the forms container
+  const formsContainer = document.getElementById("forms-container");
+  if (formsContainer) {
+    try {
+      // STEP 1: Try the conventional approach first - select and remove forms by type
+      const stageForms = document.querySelectorAll(
+        '[id^="stage"][id$="-form"]'
+      );
+      console.log(
+        `[OpenMission] Found ${stageForms.length} stage forms to remove`
+      );
+      stageForms.forEach((form) => {
+        try {
+          if (form && form.parentNode) {
+            console.log(`[OpenMission] Removing stage form: ${form.id}`);
+            form.parentNode.removeChild(form);
+          }
+        } catch (e) {
+          console.error(
+            `[OpenMission] Error removing stage form ${form.id}:`,
+            e
+          );
+        }
+      });
+
+      // STEP 2: If that failed, try a more aggressive approach - clear entire container
+      // First check if all forms were successfully removed
+      const remainingForms = formsContainer.querySelectorAll(
+        '[id^="stage"][id$="-form"]'
+      );
+      if (remainingForms.length > 0) {
+        console.warn(
+          `[OpenMission] ${remainingForms.length} stage forms remain after attempted removal. Using container reset approach.`
+        );
+        try {
+          // Save the original container
+          const originalHTML = formsContainer.innerHTML;
+
+          // Clear all dynamic content
+          formsContainer.innerHTML = "";
+
+          // Re-insert only the static forms that should always be present
+          // This approach ensures we don't lose any static forms while clearing dynamic ones
+          const staticForms = [
+            "mission-form",
+            "enviro-form",
+            "vehicle-form",
+            "sequence-form",
+            "steering-form",
+            "stopping-form",
+            "objective-function-form",
+            "constraints-form",
+            "mode-form",
+            "design-variables-form",
+          ];
+
+          const tempContainer = document.createElement("div");
+          tempContainer.innerHTML = originalHTML;
+
+          staticForms.forEach((formId) => {
+            const staticForm = tempContainer.querySelector(`#${formId}`);
+            if (staticForm) {
+              formsContainer.appendChild(staticForm);
+            }
+          });
+
+          console.log(
+            "[OpenMission] Container reset complete. Re-inserted static forms."
+          );
+        } catch (e) {
+          console.error("[OpenMission] Error during container reset:", e);
+        }
+      }
+    } catch (e) {
+      console.error("[OpenMission] Error during form removal process:", e);
+    }
+
+    // Verify all dynamic forms were removed
+    const finalCheck = formsContainer.querySelectorAll(
+      '[id^="stage"][id$="-form"]'
+    );
+    console.log(
+      `[OpenMission] Final check: ${finalCheck.length} stage forms remain after cleanup`
+    );
+
+    if (finalCheck.length > 0) {
+      console.warn(
+        "[OpenMission] Some forms still remain. Forcing container reset..."
+      );
+      // As a last resort, if we still have forms, try one more approach
+      try {
+        // Create a new div to replace the forms container
+        const newFormsContainer = document.createElement("div");
+        newFormsContainer.id = "forms-container";
+        newFormsContainer.className = formsContainer.className;
+
+        // Replace the old container with the new one
+        if (formsContainer.parentNode) {
+          formsContainer.parentNode.replaceChild(
+            newFormsContainer,
+            formsContainer
+          );
+          console.log("[OpenMission] Forms container completely replaced");
+
+          // Re-add the static forms that should always be present
+          const staticForms = document.querySelectorAll(
+            '[id$="-form"]:not([id^="stage"])'
+          );
+          staticForms.forEach((form) => {
+            if (!form.id.includes("motor") && !form.id.includes("nozzle")) {
+              newFormsContainer.appendChild(form);
+            }
+          });
+        }
+      } catch (e) {
+        console.error("[OpenMission] Error during container replacement:", e);
+      }
+    }
+  } else {
+    console.error(
+      "[OpenMission] Could not find forms container! Form removal failed."
+    );
+  }
+
+  // Clear any stage tabs in the sidebar
+  const stageTabs = document.querySelectorAll(".stage-tab");
+  console.log(`[OpenMission] Removing ${stageTabs.length} stage tabs`);
+  stageTabs.forEach((tab) => {
+    if (tab.parentNode) {
+      tab.parentNode.removeChild(tab);
+    }
+  });
 
   // 4. Hide all forms and show welcome, then navigate (example)
   if (window.uiNav) {
     // Assuming uiNav is globally accessible from ui-navigation.js
     window.uiNav.hideAllForms();
-    // const welcomeContainer = document.querySelector(".welcome-container"); // Do not show welcome message during file load reset
-    // if (welcomeContainer) welcomeContainer.style.display = "block"; // Do not show welcome message
-    // window.uiNav.showForm('mission-form'); // Or navigate to the first form
   }
 
   // Clear any displayed filenames for CSV uploads
@@ -155,7 +314,10 @@ function resetCurrentMissionState() {
   const clearCsvButtons = document.querySelectorAll(".clear-upload");
   clearCsvButtons.forEach((btn) => (btn.style.display = "none"));
 
-  console.log("Mission state reset complete.");
+  // Force garbage collection if available (browser debugging only)
+  if (window.gc) window.gc();
+
+  console.log("[OpenMission] Mission state reset complete.");
 }
 
 function populateForms(loadedData) {
@@ -871,7 +1033,7 @@ function populateDynamicMotorForm(
   );
   if (!form) {
     console.error(
-      `Motor form stage${stageUINumber}-motor${motorUINumber}-form not found.`
+      `[OpenMission] Motor form stage${stageUINumber}-motor${motorUINumber}-form not found.`
     );
     return;
   }
@@ -883,6 +1045,9 @@ function populateDynamicMotorForm(
     console.log(
       `[OpenMission] Set propulsion type to ${motorData.type_of_prop} for motor ${motorUINumber}`
     );
+
+    // Trigger change event to ensure UI updates correctly
+    propulsionTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
   } else {
     console.warn(
       `[OpenMission] Could not find propulsion type select for motor ${motorUINumber} in stage ${stageUINumber}, or no type_of_prop in data`
@@ -971,38 +1136,86 @@ function populateDynamicMotorForm(
     console.log(
       `[OpenMission] Stored thrust time data for ${thrustTimeKey} with ${motorData.thr_time.length} rows`
     );
+
+    // Show clear button if it exists
+    const clearBtn = form.querySelector(".clear-thrust-btn, .clear-upload");
+    if (clearBtn) clearBtn.style.display = "block";
   } else if (motorData.thr_time) {
     console.warn(
       `[OpenMission] Found thrust time data for motor ${motorUINumber} in stage ${stageUINumber}, but could not find the filename input element`
     );
-    if (allFilenameInputs.length === 0) {
-      console.error(
-        `[OpenMission] No elements with class 'filename' found in the form`
-      );
-    } else {
-      console.error(
-        `[OpenMission] Found filename inputs but couldn't match the expected pattern`
-      );
-    }
   } else {
     console.warn(
       `[OpenMission] No thrust time data found for motor ${motorUINumber} in stage ${stageUINumber}`
     );
   }
 
-  // After populating, populate associated nozzle(s)
-  if (motorData.nozzle) {
-    populateNozzleData(motorData.nozzle, stageUINumber, motorUINumber);
-  } else if (motorData.no_of_nozzles > 0) {
-    // Try to derive nozzle name if not explicitly provided
-    const nozzleNameKey = `S${stageUINumber}_MOTOR${motorUINumber}_NOZ1`; // Common naming convention
-    if (window.finalMissionData[nozzleNameKey]) {
-      populateNozzleData(nozzleNameKey, stageUINumber, motorUINumber);
+  // After populating motor data, ensure we have a nozzle form and populate it
+  console.log(`[OpenMission] Checking for nozzles to populate...`);
+
+  // First check if nozzle forms are auto-created with motor, or if we need to create them
+  setTimeout(() => {
+    // Different approaches to finding the nozzle reference
+    let nozzleRef = null;
+
+    // Approach 1: Direct reference in motor data
+    if (motorData.nozzle) {
+      nozzleRef = motorData.nozzle;
+      console.log(
+        `[OpenMission] Found direct nozzle reference in motor data:`,
+        nozzleRef
+      );
     }
-  }
+    // Approach 2: Try derived naming conventions if not explicitly referenced
+    else if (motorData.no_of_nozzles > 0) {
+      // Try different naming patterns
+      const possibleNozzleNames = [
+        `S${stageUINumber}_MOTOR${motorUINumber}_NOZ1`, // Common naming convention
+        `S${stageUINumber}_M${motorUINumber}_NOZ1`, // Alternative
+        `Stage${stageUINumber}_Motor${motorUINumber}_Nozzle1`, // More verbose
+        `Stage_${stageUINumber}_Motor_${motorUINumber}_Nozzle_1`, // Underscore version
+      ];
+
+      for (const name of possibleNozzleNames) {
+        if (window.finalMissionData[name]) {
+          nozzleRef = name;
+          console.log(`[OpenMission] Found nozzle data with key: ${nozzleRef}`);
+          break;
+        }
+      }
+    }
+
+    if (nozzleRef && window.finalMissionData[nozzleRef]) {
+      // Check if nozzle form already exists (it should, since addMotorAndNozzle creates both)
+      const nozzleFormId = `stage${stageUINumber}-motor${motorUINumber}-nozzle1-form`;
+      const nozzleForm = document.getElementById(nozzleFormId);
+
+      if (nozzleForm) {
+        console.log(
+          `[OpenMission] Nozzle form ${nozzleFormId} exists, populating it`
+        );
+        const nozzleData = window.finalMissionData[nozzleRef];
+        populateNozzleFormFields(
+          nozzleForm,
+          nozzleData,
+          stageUINumber,
+          motorUINumber,
+          1
+        );
+      } else {
+        console.error(
+          `[OpenMission] Nozzle form ${nozzleFormId} not found. This is unexpected since addMotorAndNozzle should create both forms.`
+        );
+      }
+    } else {
+      console.warn(
+        `[OpenMission] No nozzle data found for motor ${motorUINumber} in stage ${stageUINumber}`
+      );
+    }
+  }, 500); // Delay to ensure motor form is fully initialized
 
   console.log(
-    `Populated motor ${motorUINumber} for stage ${stageUINumber} form.`
+    `[OpenMission] Populated motor ${motorUINumber} for stage ${stageUINumber} form.`
   );
 }
 
@@ -1012,79 +1225,21 @@ function populateDynamicNozzleForm(
   motorUINumber,
   filePaths
 ) {
-  const form = document.getElementById(
-    `stage${stageUINumber}-motor${motorUINumber}-nozzle1-form`
-  );
+  const formId = `stage${stageUINumber}-motor${motorUINumber}-nozzle1-form`;
+  const form = document.getElementById(formId);
+
   if (!form || !nozzleData) {
-    console.error(
-      `Nozzle form/data for stage${stageUINumber}-motor${motorUINumber}-nozzle1 not found.`
-    );
+    console.error(`[OpenMission] Nozzle form/data for ${formId} not found.`);
     return;
   }
 
-  const etaThrustInput = form.querySelector(
-    'input[placeholder="Enter ETA thrust"]'
-  );
-  if (etaThrustInput && nozzleData.eta_thrust !== undefined)
-    etaThrustInput.value = nozzleData.eta_thrust;
-  const zetaThrustInput = form.querySelector(
-    'input[placeholder="Enter Zeta thrust"]'
-  );
-  if (zetaThrustInput && nozzleData.zeta_thrust !== undefined)
-    zetaThrustInput.value = nozzleData.zeta_thrust;
-
-  const radialDistanceInput = form.querySelector(
-    'input[placeholder="Enter radial distance"]'
-  );
-  if (radialDistanceInput && nozzleData.location_radial_distance !== undefined)
-    radialDistanceInput.value = nozzleData.location_radial_distance;
-  const phiInput = form.querySelector('input[placeholder="Enter Phi value"]');
-  if (phiInput && nozzleData.location_phi !== undefined)
-    phiInput.value = nozzleData.location_phi;
-
-  const sigmaThrustInput = form.querySelector(
-    'input[placeholder="Enter sigma thrust"]'
-  );
-  if (sigmaThrustInput && nozzleData.miss_align_sigma !== undefined)
-    sigmaThrustInput.value = nozzleData.miss_align_sigma;
-  const thauThrustInput = form.querySelector(
-    'input[placeholder="Enter thau thrust"]'
-  );
-  if (thauThrustInput && nozzleData.miss_align_thau !== undefined)
-    thauThrustInput.value = nozzleData.miss_align_thau;
-  const epsilonThrustInput = form.querySelector(
-    'input[placeholder="Enter epsilon thrust"]'
-  );
-  if (epsilonThrustInput && nozzleData.miss_align_epsilon !== undefined)
-    epsilonThrustInput.value = nozzleData.miss_align_epsilon;
-
-  const muInput = form.querySelector('input[placeholder="Enter MU value"]');
-  if (muInput && nozzleData.orientation_mu !== undefined)
-    muInput.value = nozzleData.orientation_mu;
-  const lambdaInput = form.querySelector(
-    'input[placeholder="Enter LAMDA value"]'
-  );
-  if (lambdaInput && nozzleData.orientation_lambda !== undefined)
-    lambdaInput.value = nozzleData.orientation_lambda;
-  const kappaInput = form.querySelector(
-    'input[placeholder="Enter KAPPA value"]'
-  );
-  if (kappaInput && nozzleData.orientation_kappa !== undefined)
-    kappaInput.value = nozzleData.orientation_kappa;
-
-  const xInput = form.querySelector('input[placeholder="Enter X value"]');
-  if (xInput && nozzleData.throat_location_x !== undefined)
-    xInput.value = nozzleData.throat_location_x;
-  const yInput = form.querySelector('input[placeholder="Enter Y value"]');
-  if (yInput && nozzleData.throat_location_y !== undefined)
-    yInput.value = nozzleData.throat_location_y;
-  const zInput = form.querySelector('input[placeholder="Enter Z value"]');
-  if (zInput && nozzleData.throat_location_z !== undefined)
-    zInput.value = nozzleData.throat_location_z;
-
   console.log(
-    `Populated nozzle 1 for motor ${motorUINumber}, stage ${stageUINumber} form.`
+    `[OpenMission] Beginning nozzle population for ${formId} with data:`,
+    nozzleData
   );
+
+  // Use the improved populateNozzleFormFields function
+  populateNozzleFormFields(form, nozzleData, stageUINumber, motorUINumber, 1);
 }
 
 // Placeholder for other main population functions
@@ -1106,9 +1261,9 @@ async function populateStagesAndMotors(
     "[OpenMission] Starting populateStagesAndMotors for vehicle:",
     vehicleNameKey,
     "with data:",
-    // JSON.stringify(vehicleData, null, 2) // Avoid stringifying large objects in logs
     { stages: vehicleData.stage ? vehicleData.stage.length : 0 }
   );
+
   if (!vehicleData || !vehicleData.stage || !Array.isArray(vehicleData.stage)) {
     console.warn(
       "[OpenMission] No stages found for vehicle or vehicleData is invalid:",
@@ -1125,8 +1280,54 @@ async function populateStagesAndMotors(
     return;
   }
 
+  // Reset cached elements to avoid stale references
+  window._cachedFormElements = {};
+
+  // ADDITIONAL SAFETY CHECK: Make sure no old stage forms remain
+  const existingForms = document.querySelectorAll('[id^="stage"][id$="-form"]');
+  if (existingForms.length > 0) {
+    console.warn(
+      `[OpenMission] Found ${existingForms.length} existing stage forms before population. Attempting final cleanup.`
+    );
+
+    // Try one more time to remove them
+    try {
+      existingForms.forEach((form) => {
+        if (form && form.parentNode) {
+          console.log(`[OpenMission] Final cleanup: removing form ${form.id}`);
+          form.parentNode.removeChild(form);
+        }
+      });
+
+      // Reset stage counter to ensure proper numbering
+      window.stageCounter = 0;
+      window.motorCounters = {};
+
+      console.log("[OpenMission] Final cleanup complete");
+    } catch (e) {
+      console.error("[OpenMission] Error during final cleanup:", e);
+    }
+  }
+
+  // Wait a moment to ensure UI is ready after reset
+  await new Promise((resolve) => setTimeout(resolve, 750));
+
   const stagesInFile = vehicleData.stage; // Array of stage names, e.g., ["Stage_1", "Stage_2"]
 
+  // Debug current state
+  console.log("[OpenMission] Current forms in DOM before adding stages:");
+  document
+    .querySelectorAll('[id^="stage"][id$="-form"]')
+    .forEach((form) => console.log(`- ${form.id}`));
+
+  // Track completed stages/motors for notification
+  const completedElements = {
+    stages: 0,
+    motors: 0,
+    nozzles: 0,
+  };
+
+  // Process stages sequentially to ensure proper creation order
   for (let i = 0; i < stagesInFile.length; i++) {
     const stageNameKey = stagesInFile[i]; // e.g., "Stage_1"
     const stageDataObject = loadedData[stageNameKey];
@@ -1143,37 +1344,464 @@ async function populateStagesAndMotors(
       `[OpenMission] Processing Stage ${stageUINumber} ('${stageNameKey}')`
     );
 
-    // Simulate click to create the stage UI elements
+    // Check if this stage form already exists (in case cleanup failed)
+    const existingStageForm = document.getElementById(
+      `stage${stageUINumber}-form`
+    );
+    if (existingStageForm) {
+      console.warn(
+        `[OpenMission] Stage ${stageUINumber} form already exists. Removing it first.`
+      );
+      if (existingStageForm.parentNode) {
+        existingStageForm.parentNode.removeChild(existingStageForm);
+      }
+
+      // Also remove any associated motor and nozzle forms
+      document
+        .querySelectorAll(`[id^="stage${stageUINumber}-motor"][id$="-form"]`)
+        .forEach((form) => {
+          if (form.parentNode) {
+            console.log(
+              `[OpenMission] Removing existing motor form: ${form.id}`
+            );
+            form.parentNode.removeChild(form);
+          }
+        });
+    }
+
+    // Click to create the stage UI elements
+    console.log(
+      `[OpenMission] Clicking "Add Stage" button to create stage ${stageUINumber}`
+    );
     addStageBtn.click();
 
     // Wait for the stage form to be available
-    await waitForElement(`#stage${stageUINumber}-form`, 3000);
+    try {
+      const stageForm = await waitForElement(
+        `#stage${stageUINumber}-form`,
+        3000
+      );
 
-    // Populate the newly created stage form
-    if (typeof populateDynamicStageForm === "function") {
-      populateDynamicStageForm(stageDataObject, stageUINumber, loadedData); // loadedData is filePaths
-    } else {
+      console.log(
+        `[OpenMission] Stage ${stageUINumber} form created successfully`
+      );
+      completedElements.stages++;
+
+      // Wait for handlers to attach
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Populate the stage form
+      populateDynamicStageForm(stageDataObject, stageUINumber, loadedData);
+
+      // Log before handling motors
+      console.log(
+        `[OpenMission] Stage ${stageUINumber} populated, now handling motors...`
+      );
+      console.log(
+        `[OpenMission] This stage has ${
+          stageDataObject.motor ? stageDataObject.motor.length : 0
+        } motors defined`
+      );
+
+      // Process motors for this stage
+      if (stageDataObject.motor && Array.isArray(stageDataObject.motor)) {
+        // Make sure motorCounters is initialized for this stage
+        if (!window.motorCounters) window.motorCounters = {};
+        window.motorCounters[`stage${stageUINumber}`] = 0;
+
+        // Process motors sequentially for better reliability
+        for (let j = 0; j < stageDataObject.motor.length; j++) {
+          const motorNameKey = stageDataObject.motor[j]; // e.g., "S1_MOTOR1"
+          const motorData = loadedData[motorNameKey];
+          const motorUINumber = j + 1;
+
+          if (!motorData) {
+            console.warn(
+              `[OpenMission] Data for motor '${motorNameKey}' not found. Skipping.`
+            );
+            continue;
+          }
+
+          // Process this motor - create form and populate it
+          await processMotor(
+            motorData,
+            motorNameKey,
+            stageUINumber,
+            motorUINumber
+          );
+          completedElements.motors++;
+
+          // Slight delay between motors to prevent UI conflicts
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+      } else {
+        console.log(
+          `[OpenMission] No motors defined for stage ${stageUINumber}`
+        );
+      }
+    } catch (error) {
       console.error(
-        "[OpenMission] populateDynamicStageForm is not defined globally."
+        `[OpenMission] Error processing stage ${stageUINumber}: ${error.message}`
       );
     }
 
-    // Process motors for this stage using our new motor population functions
-    populateMotorsData(loadedData, stageUINumber, stageNameKey);
+    // Slight delay between stages to prevent UI conflicts
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
+
+  console.log(`[OpenMission] Stages and motors population summary:
+  - Stages populated: ${completedElements.stages}
+  - Motors populated: ${completedElements.motors}
+  - Nozzles populated: ${completedElements.nozzles}
+  `);
+
   console.log("[OpenMission] populateStagesAndMotors finished.");
+
+  // Helper function to process a motor - create form, populate, handle nozzles
+  async function processMotor(
+    motorData,
+    motorNameKey,
+    stageUINumber,
+    motorUINumber
+  ) {
+    console.log(
+      `[OpenMission] Processing motor ${motorUINumber} (${motorNameKey}) for stage ${stageUINumber}`
+    );
+
+    // Check if this motor form already exists
+    const existingMotorForm = document.getElementById(
+      `stage${stageUINumber}-motor${motorUINumber}-form`
+    );
+
+    if (existingMotorForm) {
+      console.log(
+        `[OpenMission] Motor ${motorUINumber} form already exists for Stage ${stageUINumber}. Removing it.`
+      );
+      if (existingMotorForm.parentNode) {
+        existingMotorForm.parentNode.removeChild(existingMotorForm);
+      }
+
+      // Also remove any associated nozzle forms
+      document
+        .querySelectorAll(
+          `[id^="stage${stageUINumber}-motor${motorUINumber}-nozzle"][id$="-form"]`
+        )
+        .forEach((form) => {
+          if (form.parentNode) {
+            console.log(
+              `[OpenMission] Removing existing nozzle form: ${form.id}`
+            );
+            form.parentNode.removeChild(form);
+          }
+        });
+    }
+
+    // Use the new forceAddMotorAndNozzle function to create both motor and nozzle forms
+    console.log(
+      `[OpenMission] Creating motor ${motorUINumber} for stage ${stageUINumber} using forceAddMotorAndNozzle`
+    );
+    const result = await forceAddMotorAndNozzle(stageUINumber, motorUINumber);
+
+    if (result.success) {
+      // We've successfully created both motor and nozzle forms
+      console.log(`[OpenMission] Successfully created motor and nozzle forms`);
+
+      // Wait a moment for any event handlers to attach
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Populate motor data
+      console.log(
+        `[OpenMission] Populating motor ${motorUINumber} data for stage ${stageUINumber}`
+      );
+      populateDynamicMotorForm(motorData, stageUINumber, motorUINumber);
+
+      // Now populate the nozzle
+      await handleNozzles(motorData, stageUINumber, motorUINumber);
+
+      return;
+    }
+
+    // If the new approach failed, fall back to the old approach
+    console.log(
+      `[OpenMission] Falling back to standard approach for creating motor form`
+    );
+
+    // Find the Add Motor button for this stage
+    console.log(
+      `[OpenMission] Looking for Add Motor button for Stage ${stageUINumber}`
+    );
+    const addMotorBtnSelectors = [
+      `#stage${stageUINumber}-form .add-motor-btn`,
+      `#stage${stageUINumber}-add-motor-btn`,
+      `.stage-form[id="stage${stageUINumber}-form"] .add-motor-btn`,
+    ];
+
+    let addMotorBtn = null;
+    for (const selector of addMotorBtnSelectors) {
+      addMotorBtn = document.querySelector(selector);
+      if (addMotorBtn) {
+        console.log(
+          `[OpenMission] Found Add Motor button with selector: ${selector}`
+        );
+        break;
+      }
+    }
+
+    if (!addMotorBtn) {
+      console.error(
+        `[OpenMission] Add Motor button not found for Stage ${stageUINumber}. Cannot add motor.`
+      );
+      return;
+    }
+
+    // Now we know the motor form either doesn't exist or has been removed
+    console.log(
+      `[OpenMission] Clicking Add Motor button for Stage ${stageUINumber} to create Motor ${motorUINumber}`
+    );
+
+    // Click the button to create the motor form
+    addMotorBtn.click();
+
+    // Wait for the motor form to be created
+    try {
+      const motorForm = await waitForElement(
+        `#stage${stageUINumber}-motor${motorUINumber}-form`,
+        3000
+      );
+      console.log(
+        `[OpenMission] Motor ${motorUINumber} form created for Stage ${stageUINumber}`
+      );
+
+      // Wait a moment for any event handlers to attach
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Populate motor data
+      console.log(
+        `[OpenMission] Populating motor ${motorUINumber} data for stage ${stageUINumber}`
+      );
+      populateDynamicMotorForm(motorData, stageUINumber, motorUINumber);
+
+      // After populating motor data, check if we have nozzles to populate
+      await handleNozzles(motorData, stageUINumber, motorUINumber);
+    } catch (error) {
+      console.error(
+        `[OpenMission] Timeout or error waiting for motor ${motorUINumber} form: ${error.message}`
+      );
+    }
+  }
+
+  // Helper function to handle nozzle creation and population
+  async function handleNozzles(motorData, stageUINumber, motorUINumber) {
+    console.log(
+      `[OpenMission] Processing nozzles for motor ${motorUINumber}, stage ${stageUINumber}`
+    );
+
+    // Determine nozzle data source
+    let nozzleRef = null;
+
+    // Option 1: Directly referenced nozzle(s)
+    if (motorData.nozzle) {
+      nozzleRef = motorData.nozzle;
+      console.log(`[OpenMission] Found direct nozzle reference:`, nozzleRef);
+    }
+    // Option 2: Try standard naming patterns if motor indicates nozzles exist
+    else if (motorData.no_of_nozzles && motorData.no_of_nozzles > 0) {
+      // Try various naming patterns
+      const possibleNozzlePatterns = [
+        `S${stageUINumber}_MOTOR${motorUINumber}_NOZ1`,
+        `S${stageUINumber}_M${motorUINumber}_NOZ1`,
+        `${motorData.name}_NOZ1`,
+        `${motorData.name ? motorData.name.replace("MOTOR", "NOZ") : ""}`,
+        `Stage_${stageUINumber}_Motor_${motorUINumber}_Nozzle_1`,
+      ];
+
+      for (const pattern of possibleNozzlePatterns) {
+        if (window.finalMissionData[pattern]) {
+          nozzleRef = pattern;
+          console.log(
+            `[OpenMission] Found nozzle with key pattern: ${pattern}`
+          );
+          break;
+        }
+      }
+
+      if (!nozzleRef) {
+        // If still not found, scan for any keys that might match
+        const possibleKeys = Object.keys(window.finalMissionData).filter(
+          (key) =>
+            (key.includes(`S${stageUINumber}`) ||
+              key.includes(`Stage${stageUINumber}`) ||
+              key.includes(`Stage_${stageUINumber}`)) &&
+            (key.includes(`MOTOR${motorUINumber}`) ||
+              key.includes(`M${motorUINumber}`) ||
+              key.includes(`Motor${motorUINumber}`) ||
+              key.includes(`Motor_${motorUINumber}`)) &&
+            (key.includes("NOZ") || key.includes("Nozzle"))
+        );
+
+        if (possibleKeys.length > 0) {
+          nozzleRef = possibleKeys[0];
+          console.log(
+            `[OpenMission] Found possible nozzle key by scanning: ${nozzleRef}`
+          );
+        }
+      }
+    }
+
+    if (!nozzleRef) {
+      console.warn(
+        `[OpenMission] No nozzle data found for motor ${motorUINumber}, stage ${stageUINumber}`
+      );
+      return;
+    }
+
+    // Since addMotorAndNozzle creates both motor and nozzle forms together,
+    // the nozzle form should already exist. Let's check for it.
+    const nozzleFormId = `stage${stageUINumber}-motor${motorUINumber}-nozzle1-form`;
+    let nozzleForm = document.getElementById(nozzleFormId);
+
+    if (nozzleForm) {
+      // Form exists, populate it
+      console.log(`[OpenMission] Found existing nozzle form: ${nozzleFormId}`);
+
+      // Get the nozzle data
+      const nozzleData = window.finalMissionData[nozzleRef];
+      if (nozzleData) {
+        console.log(
+          `[OpenMission] Populating nozzle form with data from ${nozzleRef}`
+        );
+        populateNozzleFormFields(
+          nozzleForm,
+          nozzleData,
+          stageUINumber,
+          motorUINumber,
+          1
+        );
+        completedElements.nozzles++;
+      } else {
+        console.error(
+          `[OpenMission] No data found for nozzle key: ${nozzleRef}`
+        );
+      }
+    } else {
+      console.error(
+        `[OpenMission] Expected nozzle form ${nozzleFormId} not found. This shouldn't happen since addMotorAndNozzle creates both forms.`
+      );
+
+      // Debug: List all forms to see what's actually in the DOM
+      const allNozzleForms = document.querySelectorAll(
+        '[id*="nozzle"][id$="-form"]'
+      );
+      console.log(`[OpenMission] All nozzle forms in DOM:`);
+      allNozzleForms.forEach((form) => console.log(`- ${form.id}`));
+    }
+  }
+}
+
+// Add a new function to more directly handle clicking the Add Motor button
+async function forceAddMotor(stageNumber) {
+  console.log(`[OpenMission] Force adding motor for stage ${stageNumber}`);
+
+  // First try the standard button
+  const addMotorBtn = document.querySelector(
+    `#stage${stageNumber}-form .add-motor-btn`
+  );
+
+  if (addMotorBtn) {
+    console.log(
+      `[OpenMission] Found add motor button for stage ${stageNumber}, clicking it directly`
+    );
+    // Use a more direct approach to trigger the click
+    try {
+      // Try programmatic click first
+      addMotorBtn.click();
+
+      // Wait a bit for the click to take effect
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Check if the motor form was created
+      if (document.querySelector(`#stage${stageNumber}-motor1-form`)) {
+        console.log(`[OpenMission] Motor form created successfully via click`);
+        return true;
+      }
+
+      // If programmatic click didn't work, try dispatchEvent
+      console.log(
+        `[OpenMission] Trying event dispatch for click on add motor button`
+      );
+      addMotorBtn.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        })
+      );
+
+      // Wait again
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Check again
+      if (document.querySelector(`#stage${stageNumber}-motor1-form`)) {
+        console.log(
+          `[OpenMission] Motor form created successfully via event dispatch`
+        );
+        return true;
+      }
+    } catch (error) {
+      console.error(
+        `[OpenMission] Error trying to click add motor button: ${error.message}`
+      );
+    }
+  }
+
+  // If the button wasn't found or clicking didn't work, try to find the function that adds motors
+  console.log(
+    `[OpenMission] Standard click methods failed, looking for addMotorAndNozzle function`
+  );
+
+  // Check if the addMotorAndNozzle function is available
+  if (typeof window.addMotorAndNozzle === "function") {
+    try {
+      console.log(
+        `[OpenMission] Calling addMotorAndNozzle directly for stage ${stageNumber}`
+      );
+      window.addMotorAndNozzle(stageNumber);
+
+      // Wait for the function to complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      if (document.querySelector(`#stage${stageNumber}-motor1-form`)) {
+        console.log(
+          `[OpenMission] Motor form created successfully via direct function call`
+        );
+        return true;
+      }
+    } catch (error) {
+      console.error(
+        `[OpenMission] Error calling addMotorAndNozzle directly: ${error.message}`
+      );
+    }
+  }
+
+  console.log(
+    `[OpenMission] Failed to add motor for stage ${stageNumber} using all methods`
+  );
+  return false;
 }
 
 // Helper function to wait for an element to appear in the DOM
 async function waitForElement(selector, timeout = 2000) {
+  console.log(`[OpenMission] Waiting for element: ${selector}`);
   const startTime = Date.now();
-  while (true) {
+  while (Date.now() - startTime < timeout) {
     const element = document.querySelector(selector);
-    if (element) return element;
-    if (Date.now() - startTime > timeout)
-      throw new Error(`Timeout waiting for element: ${selector}`);
+    if (element) {
+      console.log(`[OpenMission] Element found: ${selector}`);
+      return element;
+    }
     await new Promise((resolve) => setTimeout(resolve, 50)); // Poll every 50ms
   }
+  throw new Error(`Timeout waiting for element: ${selector}`);
 }
 
 // Function to populate motors data for a given stage
@@ -1435,13 +2063,13 @@ function populateMotorFields(
 
   // After populating, populate associated nozzle(s)
   if (motorData.nozzle) {
-    populateNozzleData(motorData.nozzle, stageUINumber, motorUINumber);
+    console.log(
+      `[OpenMission] Motor has nozzle reference: ${motorData.nozzle}`
+    );
+    // Nozzle population is now handled in populateDynamicMotorForm
   } else if (motorData.no_of_nozzles > 0) {
-    // Try to derive nozzle name if not explicitly provided
-    const nozzleNameKey = `S${stageUINumber}_MOTOR${motorUINumber}_NOZ1`; // Common naming convention
-    if (window.finalMissionData[nozzleNameKey]) {
-      populateNozzleData(nozzleNameKey, stageUINumber, motorUINumber);
-    }
+    console.log(`[OpenMission] Motor has ${motorData.no_of_nozzles} nozzles`);
+    // Nozzle population is now handled in populateDynamicMotorForm
   }
 
   console.log(
@@ -1452,253 +2080,485 @@ function populateMotorFields(
 // Function to populate nozzle data
 function populateNozzleData(nozzleKey, stageUINumber, motorUINumber) {
   // Handle both array of nozzles or single nozzle key
+  if (!nozzleKey) {
+    console.error("[OpenMission] No nozzle key provided for population");
+    return;
+  }
+
+  // Debug log - what data are we working with?
+  console.log(
+    `[OpenMission] Attempting to populate nozzle for stage ${stageUINumber}, motor ${motorUINumber}`
+  );
+  console.log(
+    `[OpenMission] Nozzle key provided:`,
+    typeof nozzleKey === "object" ? "Array of keys" : nozzleKey
+  );
+
   const nozzleKeys = Array.isArray(nozzleKey) ? nozzleKey : [nozzleKey];
 
   for (let i = 0; i < nozzleKeys.length; i++) {
     const nozzleName = nozzleKeys[i];
     const nozzleData = window.finalMissionData[nozzleName];
-    const nozzleUINumber = i + 1;
+    const nozzleUINumber = i + 1; // UI is 1-indexed
+
+    // Debug what nozzle we're trying to populate
+    console.log(
+      `[OpenMission] Processing nozzle ${nozzleUINumber} (${nozzleName})`
+    );
 
     if (!nozzleData) {
-      console.warn(`Nozzle data for '${nozzleName}' not found. Skipping.`);
-      continue;
-    }
-
-    const form = document.getElementById(
-      `stage${stageUINumber}-motor${motorUINumber}-nozzle${nozzleUINumber}-form`
-    );
-    if (!form) {
       console.warn(
-        `Nozzle form stage${stageUINumber}-motor${motorUINumber}-nozzle${nozzleUINumber}-form not found.`
+        `[OpenMission] Nozzle data for '${nozzleName}' not found in finalMissionData. Available keys:`,
+        Object.keys(window.finalMissionData).filter(
+          (k) => k.includes("NOZ") || k.includes("Noz")
+        )
       );
       continue;
     }
 
-    // Debug logging
+    // Debug the nozzle data we found
     console.log(
-      `[OpenMission] Debug: Populating nozzle data for stage ${stageUINumber}, motor ${motorUINumber}, nozzle ${nozzleUINumber}`
+      `[OpenMission] Found nozzle data:`,
+      JSON.stringify(nozzleData, null, 2)
     );
-    console.log(`[OpenMission] Debug: Nozzle data:`, nozzleData);
 
-    // First, check if we need to get nozzle diameter from the motor
-    let nozzleDiameter = nozzleData.diameter || nozzleData.nozzledia;
-
-    // If no diameter in nozzle data, try to get it from the motor
-    if (nozzleDiameter === undefined) {
-      // Find the motor data to get the nozzle diameter
-      const motorKeys = Object.keys(window.finalMissionData).filter(
-        (key) =>
-          key.includes(`S${stageUINumber}_MOTOR${motorUINumber}`) &&
-          !key.includes("NOZ")
-      );
-
-      if (motorKeys.length > 0) {
-        const motorData = window.finalMissionData[motorKeys[0]];
-        if (motorData && motorData.nozzledia !== undefined) {
-          nozzleDiameter = motorData.nozzledia;
-          console.log(
-            `[OpenMission] Using nozzle diameter ${nozzleDiameter} from motor data`
-          );
-        }
-      }
-    }
-
-    // Find the nozzle diameter input with multiple selectors
-    let nozzleDiameterInput = null;
-
-    // Try multiple selectors to find the nozzle diameter input
-    const diameterSelectors = [
-      'input[placeholder="Enter nozzle diameter"]',
-      'input[id$="nozzle-diameter"]',
-      ".form-group:first-child input.input-field",
+    // Try to find the nozzle form using multiple possible ID patterns
+    let form = null;
+    const possibleFormIds = [
+      `stage${stageUINumber}-motor${motorUINumber}-nozzle${nozzleUINumber}-form`,
+      `stage${stageUINumber}-motor${motorUINumber}-nozzle-form`,
+      `motor${motorUINumber}-nozzle${nozzleUINumber}-form`,
     ];
 
-    for (const selector of diameterSelectors) {
-      nozzleDiameterInput = form.querySelector(selector);
-      if (nozzleDiameterInput) {
-        console.log(
-          `[OpenMission] Found nozzle diameter input with selector: ${selector}`
-        );
+    for (const formId of possibleFormIds) {
+      form = document.getElementById(formId);
+      if (form) {
+        console.log(`[OpenMission] Found nozzle form with ID: ${formId}`);
         break;
       }
     }
 
-    // Populate nozzle diameter if we found the input and have data
-    if (nozzleDiameterInput && nozzleDiameter !== undefined) {
-      nozzleDiameterInput.value = nozzleDiameter;
-      console.log(`[OpenMission] Set nozzle diameter to ${nozzleDiameter}`);
-    } else if (nozzleDiameter !== undefined) {
+    if (!form) {
       console.error(
-        `[OpenMission] Could not find nozzle diameter input element`
+        `[OpenMission] Could not find nozzle form for stage ${stageUINumber}, motor ${motorUINumber}, nozzle ${nozzleUINumber}`
       );
-    } else {
-      console.warn(
-        `[OpenMission] No nozzle diameter found in data for stage ${stageUINumber}, motor ${motorUINumber}, nozzle ${nozzleUINumber}`
+      console.log(`[OpenMission] Tried these form IDs:`, possibleFormIds);
+
+      // Check if we need to create the nozzle form first
+      const addNozzleBtn = document.querySelector(
+        `#stage${stageUINumber}-motor${motorUINumber}-add-nozzle-btn`
       );
+      if (addNozzleBtn) {
+        console.log(
+          `[OpenMission] Found Add Nozzle button, attempting to create nozzle form`
+        );
+        addNozzleBtn.click();
+
+        // Wait a moment for the form to be created
+        setTimeout(() => {
+          // Try to find the form again
+          for (const formId of possibleFormIds) {
+            form = document.getElementById(formId);
+            if (form) {
+              console.log(
+                `[OpenMission] Successfully created nozzle form with ID: ${formId}`
+              );
+              // Now populate it
+              populateNozzleFormFields(
+                form,
+                nozzleData,
+                stageUINumber,
+                motorUINumber,
+                nozzleUINumber
+              );
+              break;
+            }
+          }
+
+          if (!form) {
+            console.error(
+              `[OpenMission] Failed to create nozzle form even after clicking Add Nozzle button`
+            );
+          }
+        }, 500);
+      } else {
+        console.error(
+          `[OpenMission] No Add Nozzle button found for stage ${stageUINumber}, motor ${motorUINumber}`
+        );
+      }
+
+      continue;
     }
 
-    // Populate eta and zeta thrust
-    const etaThrustInput = form.querySelector(
-      'input[placeholder="Enter ETA thrust"]'
-    );
-    if (etaThrustInput && nozzleData.eta_thrust !== undefined) {
-      etaThrustInput.value = nozzleData.eta_thrust;
-    }
-
-    const zetaThrustInput = form.querySelector(
-      'input[placeholder="Enter Zeta thrust"]'
-    );
-    if (zetaThrustInput && nozzleData.zeta_thrust !== undefined) {
-      zetaThrustInput.value = nozzleData.zeta_thrust;
-    }
-
-    // Populate location parameters
-    const radialDistInput = form.querySelector(
-      'input[placeholder="Enter radial distance"]'
-    );
-    if (
-      radialDistInput &&
-      nozzleData.Location &&
-      nozzleData.Location.Radial_dist !== undefined
-    ) {
-      radialDistInput.value = nozzleData.Location.Radial_dist;
-    } else if (
-      radialDistInput &&
-      nozzleData.location_radial_distance !== undefined
-    ) {
-      radialDistInput.value = nozzleData.location_radial_distance;
-    }
-
-    const phiInput = form.querySelector('input[placeholder="Enter Phi value"]');
-    if (
-      phiInput &&
-      nozzleData.Location &&
-      nozzleData.Location.Phi !== undefined
-    ) {
-      phiInput.value = nozzleData.Location.Phi;
-    } else if (phiInput && nozzleData.location_phi !== undefined) {
-      phiInput.value = nozzleData.location_phi;
-    }
-
-    // Populate misalignment parameters
-    const sigmaThrustInput = form.querySelector(
-      'input[placeholder="Enter sigma thrust"]'
-    );
-    if (
-      sigmaThrustInput &&
-      nozzleData.mis_alignment &&
-      nozzleData.mis_alignment.sigma_thrust !== undefined
-    ) {
-      sigmaThrustInput.value = nozzleData.mis_alignment.sigma_thrust;
-    } else if (sigmaThrustInput && nozzleData.miss_align_sigma !== undefined) {
-      sigmaThrustInput.value = nozzleData.miss_align_sigma;
-    }
-
-    const tauThrustInput = form.querySelector(
-      'input[placeholder="Enter thau thrust"]'
-    );
-    if (
-      tauThrustInput &&
-      nozzleData.mis_alignment &&
-      nozzleData.mis_alignment.tau_thrust !== undefined
-    ) {
-      tauThrustInput.value = nozzleData.mis_alignment.tau_thrust;
-    } else if (tauThrustInput && nozzleData.miss_align_thau !== undefined) {
-      tauThrustInput.value = nozzleData.miss_align_thau;
-    }
-
-    const epsilonThrustInput = form.querySelector(
-      'input[placeholder="Enter epsilon thrust"]'
-    );
-    if (
-      epsilonThrustInput &&
-      nozzleData.mis_alignment &&
-      nozzleData.mis_alignment.epsilon_thrust !== undefined
-    ) {
-      epsilonThrustInput.value = nozzleData.mis_alignment.epsilon_thrust;
-    } else if (
-      epsilonThrustInput &&
-      nozzleData.miss_align_epsilon !== undefined
-    ) {
-      epsilonThrustInput.value = nozzleData.miss_align_epsilon;
-    }
-
-    // Populate orientation parameters
-    const muInput = form.querySelector('input[placeholder="Enter MU value"]');
-    if (
-      muInput &&
-      nozzleData.Orientation &&
-      nozzleData.Orientation.mu !== undefined
-    ) {
-      muInput.value = nozzleData.Orientation.mu;
-    } else if (muInput && nozzleData.orientation_mu !== undefined) {
-      muInput.value = nozzleData.orientation_mu;
-    }
-
-    const lambdaInput = form.querySelector(
-      'input[placeholder="Enter LAMDA value"]'
-    );
-    if (
-      lambdaInput &&
-      nozzleData.Orientation &&
-      nozzleData.Orientation.lamda !== undefined
-    ) {
-      lambdaInput.value = nozzleData.Orientation.lamda;
-    } else if (lambdaInput && nozzleData.orientation_lambda !== undefined) {
-      lambdaInput.value = nozzleData.orientation_lambda;
-    }
-
-    const kappaInput = form.querySelector(
-      'input[placeholder="Enter KAPPA value"]'
-    );
-    if (
-      kappaInput &&
-      nozzleData.Orientation &&
-      nozzleData.Orientation.kappa !== undefined
-    ) {
-      kappaInput.value = nozzleData.Orientation.kappa;
-    } else if (kappaInput && nozzleData.orientation_kappa !== undefined) {
-      kappaInput.value = nozzleData.orientation_kappa;
-    }
-
-    // Populate throat location
-    const xInput = form.querySelector('input[placeholder="Enter X value"]');
-    if (
-      xInput &&
-      nozzleData.Throat_location &&
-      nozzleData.Throat_location.x !== undefined
-    ) {
-      xInput.value = nozzleData.Throat_location.x;
-    } else if (xInput && nozzleData.throat_location_x !== undefined) {
-      xInput.value = nozzleData.throat_location_x;
-    }
-
-    const yInput = form.querySelector('input[placeholder="Enter Y value"]');
-    if (
-      yInput &&
-      nozzleData.Throat_location &&
-      nozzleData.Throat_location.y !== undefined
-    ) {
-      yInput.value = nozzleData.Throat_location.y;
-    } else if (yInput && nozzleData.throat_location_y !== undefined) {
-      yInput.value = nozzleData.throat_location_y;
-    }
-
-    const zInput = form.querySelector('input[placeholder="Enter Z value"]');
-    if (
-      zInput &&
-      nozzleData.Throat_location &&
-      nozzleData.Throat_location.z !== undefined
-    ) {
-      zInput.value = nozzleData.Throat_location.z;
-    } else if (zInput && nozzleData.throat_location_z !== undefined) {
-      zInput.value = nozzleData.throat_location_z;
-    }
-
-    console.log(
-      `[OpenMission] Populated nozzle ${nozzleUINumber} for motor ${motorUINumber}, stage ${stageUINumber}`
+    // If we found the form, populate its fields
+    populateNozzleFormFields(
+      form,
+      nozzleData,
+      stageUINumber,
+      motorUINumber,
+      nozzleUINumber
     );
   }
+}
+
+// Helper function to populate nozzle form fields
+function populateNozzleFormFields(
+  form,
+  nozzleData,
+  stageUINumber,
+  motorUINumber,
+  nozzleUINumber
+) {
+  console.log(
+    `[OpenMission] Populating nozzle form fields for stage ${stageUINumber}, motor ${motorUINumber}, nozzle ${nozzleUINumber}`
+  );
+
+  // Debug: Log the nozzle data structure
+  console.log(
+    `[OpenMission] Nozzle data structure:`,
+    JSON.stringify(nozzleData, null, 2)
+  );
+
+  // Log all input fields in the form to aid debugging
+  console.log(`[OpenMission] Form contains these inputs:`);
+  const inputs = form.querySelectorAll("input");
+  inputs.forEach((input) => {
+    console.log(
+      `- ${input.id || "no-id"}: placeholder="${
+        input.placeholder || "no-placeholder"
+      }", type=${input.type}, value="${input.value}"`
+    );
+  });
+
+  // Helper function to find and set a field value
+  const setFieldValue = (fieldSelectors, dataKeys, motorFallbackKeys = []) => {
+    console.log(
+      `[OpenMission] Trying to set field with selectors:`,
+      fieldSelectors
+    );
+    console.log(`[OpenMission] Looking for data with keys:`, dataKeys);
+
+    // Try each selector
+    let input = null;
+    for (const selector of fieldSelectors) {
+      input = form.querySelector(selector);
+      if (input) {
+        console.log(`[OpenMission] Found input with selector: ${selector}`);
+        break;
+      }
+    }
+
+    if (!input) {
+      console.warn(
+        `[OpenMission] Could not find input using selectors: ${fieldSelectors.join(
+          ", "
+        )}`
+      );
+      return false;
+    }
+
+    // Try each data key from nozzle data first
+    for (const key of dataKeys) {
+      // Handle nested properties with dot notation
+      const parts = key.split(".");
+      let value = nozzleData;
+      let found = true;
+
+      for (const part of parts) {
+        if (value && value[part] !== undefined) {
+          value = value[part];
+        } else {
+          found = false;
+          break;
+        }
+      }
+
+      if (found && value !== undefined) {
+        console.log(
+          `[OpenMission] SUCCESS: Setting ${
+            input.id || input.placeholder
+          } to "${value}" using nozzle data key "${key}"`
+        );
+        input.value = value;
+        return true;
+      }
+    }
+
+    // If not found in nozzle data, try motor fallback keys
+    if (motorFallbackKeys.length > 0) {
+      console.log(
+        `[OpenMission] Not found in nozzle data, trying motor fallback keys:`,
+        motorFallbackKeys
+      );
+
+      // Try to get motor data from global mission data
+      const motorFormId = `stage${stageUINumber}-motor${motorUINumber}-form`;
+      const motorForm = document.getElementById(motorFormId);
+
+      // Approach 1: Try to get value from motor form input
+      if (motorForm) {
+        console.log(
+          `[OpenMission] Found motor form, trying to inherit from motor input field`
+        );
+        const motorNozzleDiameterInput = motorForm.querySelector(
+          'input[placeholder="Enter Nozzle Diameter"]'
+        );
+        if (motorNozzleDiameterInput && motorNozzleDiameterInput.value) {
+          console.log(
+            `[OpenMission] SUCCESS: Inheriting nozzle diameter "${motorNozzleDiameterInput.value}" from motor form input`
+          );
+          input.value = motorNozzleDiameterInput.value;
+          return true;
+        }
+      }
+
+      // Approach 2: Try to get from motor data in global mission data
+      console.log(
+        `[OpenMission] Trying to find motor data to inherit nozzle diameter`
+      );
+
+      // Try to find motor data by scanning through global mission data
+      if (window.finalMissionData) {
+        const motorKeys = Object.keys(window.finalMissionData).filter(
+          (key) =>
+            (key.includes(`S${stageUINumber}`) ||
+              key.includes(`Stage${stageUINumber}`) ||
+              key.includes(`Stage_${stageUINumber}`)) &&
+            (key.includes(`MOTOR${motorUINumber}`) ||
+              key.includes(`M${motorUINumber}`) ||
+              key.includes(`Motor${motorUINumber}`) ||
+              key.includes(`Motor_${motorUINumber}`)) &&
+            !key.includes("NOZ") &&
+            !key.includes("Nozzle")
+        );
+
+        console.log(`[OpenMission] Found potential motor keys:`, motorKeys);
+
+        for (const motorKey of motorKeys) {
+          const motorData = window.finalMissionData[motorKey];
+          if (motorData) {
+            console.log(
+              `[OpenMission] Checking motor data for ${motorKey}:`,
+              motorData
+            );
+
+            for (const fallbackKey of motorFallbackKeys) {
+              if (motorData[fallbackKey] !== undefined) {
+                console.log(
+                  `[OpenMission] SUCCESS: Setting ${
+                    input.id || input.placeholder
+                  } to "${
+                    motorData[fallbackKey]
+                  }" using motor data key "${fallbackKey}" from ${motorKey}`
+                );
+                input.value = motorData[fallbackKey];
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    console.warn(
+      `[OpenMission] No matching data found for field with keys: ${dataKeys.join(
+        ", "
+      )} or motor fallback keys: ${motorFallbackKeys.join(", ")}`
+    );
+    return false;
+  };
+
+  // Try to populate each field with multiple possible selectors and keys
+  console.log(`[OpenMission] === Starting field population ===`);
+
+  // Nozzle diameter (inherited from motor) - FIXED TO INCLUDE MOTOR INHERITANCE
+  console.log(`[OpenMission] Setting nozzle diameter...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter nozzle diameter"]',
+      "#nozzle-diameter",
+      'input[id*="diameter"]',
+    ],
+    ["diameter", "nozzledia", "nozzle_diameter", "nozzle_dia"],
+    ["nozzledia", "nozzle_diameter", "diameter"] // Motor fallback keys
+  );
+
+  // Eta Thrust
+  console.log(`[OpenMission] Setting ETA thrust...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter ETA thrust"]',
+      "#eta-thrust",
+      'input[id*="eta-thrust"]',
+    ],
+    ["eta_thrust", "eta", "ETA", "Orientation.eta"],
+    [] // No motor fallback for this field
+  );
+
+  // Zeta Thrust
+  console.log(`[OpenMission] Setting Zeta thrust...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter Zeta thrust"]',
+      "#zeta-thrust",
+      'input[id*="zeta-thrust"]',
+    ],
+    ["zeta_thrust", "zeta", "ZETA", "Orientation.zeta"],
+    [] // No motor fallback for this field
+  );
+
+  // Location - Radial Distance
+  console.log(`[OpenMission] Setting radial distance...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter radial distance"]',
+      "#radial-distance",
+      'input[id*="radial"]',
+    ],
+    [
+      "Location.Radial_dist",
+      "location_radial_distance",
+      "radial_distance",
+      "Radial_dist",
+    ],
+    [] // No motor fallback for this field
+  );
+
+  // Location - Phi
+  console.log(`[OpenMission] Setting Phi value...`);
+  setFieldValue(
+    ['input[placeholder="Enter Phi value"]', "#phi-value", 'input[id*="phi"]'],
+    ["Location.Phi", "location_phi", "phi", "PHI"],
+    [] // No motor fallback for this field
+  );
+
+  // Miss Alignment - Sigma thrust
+  console.log(`[OpenMission] Setting sigma thrust...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter sigma thrust"]',
+      "#sigma-thrust",
+      'input[id*="sigma"]',
+    ],
+    [
+      "mis_alignment.sigma_thrust",
+      "miss_align_sigma",
+      "sigma_thrust",
+      "sigma",
+      "misalignment.sigma",
+    ],
+    [] // No motor fallback for this field
+  );
+
+  // Miss Alignment - Thau/Tau thrust
+  console.log(`[OpenMission] Setting thau/tau thrust...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter thau thrust"]',
+      'input[placeholder="Enter tau thrust"]',
+      "#thau-thrust",
+      "#tau-thrust",
+    ],
+    [
+      "mis_alignment.tau_thrust",
+      "mis_alignment.thau_thrust",
+      "miss_align_thau",
+      "miss_align_tau",
+      "tau_thrust",
+      "thau",
+      "tau",
+      "misalignment.tau",
+      "misalignment.thau",
+    ],
+    [] // No motor fallback for this field
+  );
+
+  // Miss Alignment - Epsilon thrust
+  console.log(`[OpenMission] Setting epsilon thrust...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter epsilon thrust"]',
+      "#epsilon-thrust",
+      'input[id*="epsilon"]',
+    ],
+    [
+      "mis_alignment.epsilon_thrust",
+      "miss_align_epsilon",
+      "epsilon_thrust",
+      "epsilon",
+      "misalignment.epsilon",
+    ],
+    [] // No motor fallback for this field
+  );
+
+  // Orientation - MU
+  console.log(`[OpenMission] Setting MU value...`);
+  setFieldValue(
+    ['input[placeholder="Enter MU value"]', "#mu-value", 'input[id*="mu"]'],
+    ["Orientation.mu", "orientation_mu", "mu", "MU"],
+    [] // No motor fallback for this field
+  );
+
+  // Orientation - LAMDA (note the typo in the HTML)
+  console.log(`[OpenMission] Setting LAMDA/LAMBDA value...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter LAMDA value"]',
+      'input[placeholder="Enter LAMBDA value"]',
+      "#lambda-value",
+      "#lamda-value",
+    ],
+    [
+      "Orientation.lamda",
+      "Orientation.lambda",
+      "orientation_lambda",
+      "lambda",
+      "lamda",
+      "LAMDA",
+      "LAMBDA",
+    ],
+    [] // No motor fallback for this field
+  );
+
+  // Orientation - KAPPA
+  console.log(`[OpenMission] Setting KAPPA value...`);
+  setFieldValue(
+    [
+      'input[placeholder="Enter KAPPA value"]',
+      "#kappa-value",
+      'input[id*="kappa"]',
+    ],
+    ["Orientation.kappa", "orientation_kappa", "kappa", "KAPPA"],
+    [] // No motor fallback for this field
+  );
+
+  // Throat Location - X
+  console.log(`[OpenMission] Setting throat location X...`);
+  setFieldValue(
+    ['input[placeholder="Enter X value"]', "#throat-x", 'input[id*="x-value"]'],
+    ["Throat_location.x", "throat_location_x", "x", "X"],
+    [] // No motor fallback for this field
+  );
+
+  // Throat Location - Y
+  console.log(`[OpenMission] Setting throat location Y...`);
+  setFieldValue(
+    ['input[placeholder="Enter Y value"]', "#throat-y", 'input[id*="y-value"]'],
+    ["Throat_location.y", "throat_location_y", "y", "Y"],
+    [] // No motor fallback for this field
+  );
+
+  // Throat Location - Z
+  console.log(`[OpenMission] Setting throat location Z...`);
+  setFieldValue(
+    ['input[placeholder="Enter Z value"]', "#throat-z", 'input[id*="z-value"]'],
+    ["Throat_location.z", "throat_location_z", "z", "Z"],
+    [] // No motor fallback for this field
+  );
+
+  console.log(
+    `[OpenMission] === Completed populating nozzle form for stage ${stageUINumber}, motor ${motorUINumber}, nozzle ${nozzleUINumber} ===`
+  );
 }
 
 // Function to populate event sequence data
@@ -2566,3 +3426,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("[OpenMission] Thrust time data handlers initialized");
 });
+
+// Helper function to force the creation of a motor and nozzle using the global addMotorAndNozzle function
+async function forceAddMotorAndNozzle(stageNumber, motorNumber) {
+  console.log(
+    `[OpenMission] Force adding motor and nozzle for stage ${stageNumber}, motor ${motorNumber}`
+  );
+
+  // Check if the function is available
+  if (typeof window.addMotorAndNozzle !== "function") {
+    console.error(
+      `[OpenMission] addMotorAndNozzle function is not available globally`
+    );
+    return { success: false };
+  }
+
+  try {
+    // Call the global function from ui-navigation.js
+    const result = window.addMotorAndNozzle(`stage${stageNumber}`);
+
+    if (result) {
+      console.log(
+        `[OpenMission] Successfully created motor and nozzle forms:`,
+        result
+      );
+
+      // Wait a bit for the DOM to update
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      return {
+        success: true,
+        motorForm: result.motorForm,
+        nozzleForm: result.nozzleForm,
+        motorCount: result.motorCount,
+      };
+    } else {
+      console.error(`[OpenMission] addMotorAndNozzle returned no result`);
+      return { success: false };
+    }
+  } catch (error) {
+    console.error(
+      `[OpenMission] Error in forceAddMotorAndNozzle: ${error.message}`
+    );
+    return { success: false };
+  }
+}
+
+// Add a new function to more directly handle clicking the Add Motor button

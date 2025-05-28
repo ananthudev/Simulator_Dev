@@ -1109,7 +1109,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     }
+
+    return {
+      motorCount: motorCount,
+      motorForm: motorForm,
+      nozzleForm: nozzleForm,
+    };
   }
+
+  // Expose addMotorAndNozzle globally for use in openMissionHandler.js
+  window.addMotorAndNozzle = addMotorAndNozzle;
 
   // Function to initialize steering tabs
   function initializeSteeringTabs() {
