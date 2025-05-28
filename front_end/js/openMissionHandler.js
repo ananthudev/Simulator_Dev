@@ -2572,68 +2572,63 @@ function populateEventSequence(loadedData, vehicleName) {
   }
 
   const eventSequence = loadedData[sequenceKey];
-  const eventSequenceContainer = document.getElementById(
-    "event-sequence-container"
-  );
-  if (!eventSequenceContainer) {
-    console.error("Event sequence container not found in the DOM.");
-    return;
-  }
 
   // Clear existing events first
-  window.eventSequence = [];
-
-  // Empty the event preview area
-  const eventPreviewArea = document.getElementById("event-sequence-preview");
-  if (eventPreviewArea) {
-    eventPreviewArea.innerHTML = "";
+  if (window.eventSequence) {
+    window.eventSequence = [];
+  } else {
+    window.eventSequence = [];
   }
 
-  // Register events in the global eventSequence array and update UI
-  eventSequence.forEach((event) => {
-    // Add to global event registry
-    window.eventSequence.push({
-      id: event.identity,
-      trigger: event.trigger,
-      value: event.value,
-      reference: event.reference,
-      comment: event.comment,
-    });
+  // Clear the event list in the UI
+  const eventList = document.getElementById("event-list");
+  if (eventList) {
+    eventList.innerHTML = "";
+  }
 
-    // Update UI preview
-    if (eventPreviewArea) {
-      const eventDiv = document.createElement("div");
-      eventDiv.className = "event-item";
-      eventDiv.innerHTML = `
-        <span class="event-id">${event.identity}</span>
-        <span class="event-trigger">${event.trigger}</span>
-        <span class="event-value">${event.value}</span>
-        <span class="event-reference">${event.reference || "none"}</span>
-      `;
-      eventPreviewArea.appendChild(eventDiv);
-    }
+  // Convert each event from JSON format to the format expected by addEventToSequence
+  eventSequence.forEach((event) => {
+    // Map JSON format to the expected format
+    const eventData = {
+      flag: event.identity,
+      triggerType: mapTriggerType(event.trigger),
+      triggerValue: event.value,
+      referenceFlag: event.reference || "none",
+      comment: event.comment || "",
+    };
+
+    // Use the existing addEventToSequence function to add the event
+    addEventToSequence(eventData);
 
     // Register in the global flag registry for dropdown selections
     if (window.flagRegistry) {
-      // Determine event type from the id prefix
-      let eventType = "event"; // Default
+      // Determine event type from the identity prefix
+      let eventType = "stages"; // Default
       if (event.identity.includes("_INI") || event.identity.includes("_SEP")) {
-        eventType = "stage";
+        eventType = "stages";
       } else if (
         event.identity.includes("_IGN") ||
         event.identity.includes("_Burnout") ||
         event.identity.includes("_CUTOFF")
       ) {
-        eventType = "motor";
+        eventType = "motors";
       } else if (event.identity.includes("HSS")) {
-        eventType = "heatshield";
+        eventType = "heatShieldFlags";
       } else if (event.identity.includes("STEER")) {
         eventType = "steering";
       }
 
-      // Add to the appropriate registry
+      // Add to the appropriate registry if it exists
       if (window.flagRegistry[eventType]) {
-        window.flagRegistry[eventType][event.identity] = event.identity;
+        if (Array.isArray(window.flagRegistry[eventType])) {
+          // For arrays (like motors, heatShieldFlags)
+          if (!window.flagRegistry[eventType].includes(event.identity)) {
+            window.flagRegistry[eventType].push(event.identity);
+          }
+        } else if (typeof window.flagRegistry[eventType] === "object") {
+          // For objects (like stages)
+          window.flagRegistry[eventType][event.identity] = event.identity;
+        }
       }
     }
   });
@@ -2641,6 +2636,30 @@ function populateEventSequence(loadedData, vehicleName) {
   console.log(
     `[OpenMission] Populated ${eventSequence.length} events in the sequence.`
   );
+
+  // Update dropdowns and other dependent components
+  updateReferenceFlagDropdown();
+  populateStoppingFlagDropdown();
+
+  // Dispatch sequence updated event to notify other components
+  document.dispatchEvent(new CustomEvent("sequenceUpdated"));
+}
+
+// Helper function to map trigger types from JSON format to UI format
+function mapTriggerType(trigger) {
+  switch (trigger) {
+    case "MISSION_TIME":
+      return "mission-time";
+    case "PHASE_TIME":
+      return "phase-time";
+    case "ALTITUDE":
+      return "altitude";
+    default:
+      console.warn(
+        `Unknown trigger type: ${trigger}, defaulting to mission-time`
+      );
+      return "mission-time";
+  }
 }
 
 // Function to populate steering components data

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Button Fix Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .test-form {
+        border: 1px solid #ccc;
+        padding: 20px;
+        margin: 20px 0;
+      }
+      .event-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: #f5f5f5;
+        margin: 10px 0;
+      }
+      button {
+        margin: 5px;
+        padding: 5px 10px;
+      }
+      .edit-event,
+      .delete-event {
+        background: #007bff;
+        color: white;
+        border: none;
+      }
+      .status {
+        margin: 10px 0;
+        padding: 10px;
+        background: #e9ecef;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Button Fix Test</h1>
+
+    <div class="status" id="status">Ready - No form submissions detected</div>
+
+    <form class="test-form" onsubmit="handleFormSubmit(event)">
+      <h3>Test Form (Should NOT submit when buttons are clicked)</h3>
+
+      <div class="event-item">
+        <span>Test Event: ST_1_IGN</span>
+        <div>
+          <button
+            type="button"
+            class="edit-event"
+            onclick="handleEditClick(event)"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            class="delete-event"
+            onclick="handleDeleteClick(event)"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <input type="text" placeholder="Test input" />
+      <button type="submit">Submit Form (This should work)</button>
+    </form>
+
+    <script>
+      let clickCount = 0;
+
+      function handleFormSubmit(event) {
+        event.preventDefault();
+        document.getElementById(
+          "status"
+        ).innerHTML = `<strong style="color: red;">⚠️ FORM SUBMITTED!</strong> This should only happen when clicking "Submit Form" button.`;
+      }
+
+      function handleEditClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        clickCount++;
+        document.getElementById(
+          "status"
+        ).innerHTML = `<strong style="color: green;">✅ Edit clicked ${clickCount} times</strong> - No form submission (GOOD!)`;
+      }
+
+      function handleDeleteClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        clickCount++;
+        document.getElementById(
+          "status"
+        ).innerHTML = `<strong style="color: green;">✅ Delete clicked ${clickCount} times</strong> - No form submission (GOOD!)`;
+      }
+    </script>
+  </body>
+</html>

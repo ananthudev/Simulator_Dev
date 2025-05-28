@@ -3253,10 +3253,84 @@
         <h3 id="modal-algorithm-title">Algorithm Parameters</h3>
         <div id="modal-algorithm-params"></div>
         <div class="modal-footer">
-          <button id="save-algorithm-params" class="btn btn-primary">
+          <button
+            type="button"
+            id="save-algorithm-params"
+            class="btn btn-primary"
+          >
             Save
           </button>
-          <button id="reset-algorithm-params" class="btn">Reset</button>
+          <button type="button" id="reset-algorithm-params" class="btn">
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Event Modal -->
+    <div id="edit-event-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal" id="close-edit-event-modal">&times;</span>
+        <h3 id="edit-event-modal-title">Edit Event</h3>
+        <div id="edit-event-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label">Event Flag:</label>
+              <input
+                type="text"
+                class="input-field"
+                id="edit-event-flag"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label">Trigger Type:</label>
+              <select class="input-field" id="edit-trigger-type">
+                <option value="" disabled>Select Trigger Type</option>
+                <option value="mission-time">Mission Time</option>
+                <option value="phase-time">Phase Time</option>
+                <option value="altitude">Altitude</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label">Trigger Value:</label>
+              <input
+                type="number"
+                class="input-field"
+                id="edit-trigger-value"
+                placeholder="Enter trigger value"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label">Reference Flag:</label>
+              <select class="input-field" id="edit-dependent-event">
+                <option value="none">None</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label">Comment:</label>
+              <input
+                type="text"
+                class="input-field"
+                id="edit-event-comment"
+                placeholder="Enter comment"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="save-edit-event" class="btn btn-primary">
+            Save Changes
+          </button>
+          <button type="button" id="cancel-edit-event" class="btn">
+            Cancel
+          </button>
         </div>
       </div>
     </div>

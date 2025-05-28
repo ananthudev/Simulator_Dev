@@ -2896,3 +2896,54 @@ function similarityScore(str1, str2) {
 
   return score / Math.max(str1.length, str2.length);
 }
+
+// Test edit event modal functionality
+function testEditEventModal() {
+  console.log("Testing edit event modal functionality...");
+
+  // Check if modal exists
+  const modal = document.getElementById("edit-event-modal");
+  if (!modal) {
+    console.error("❌ Edit event modal not found");
+    return false;
+  }
+
+  // Check if modal form elements exist
+  const requiredElements = [
+    "edit-event-flag",
+    "edit-trigger-type",
+    "edit-trigger-value",
+    "edit-dependent-event",
+    "edit-event-comment",
+    "save-edit-event",
+    "cancel-edit-event",
+  ];
+
+  let allElementsFound = true;
+  requiredElements.forEach((id) => {
+    if (!document.getElementById(id)) {
+      console.error(`❌ Element ${id} not found`);
+      allElementsFound = false;
+    }
+  });
+
+  if (!allElementsFound) {
+    return false;
+  }
+
+  console.log("✅ Edit event modal elements found");
+
+  // Check if openEditEventModal function exists
+  if (typeof openEditEventModal !== "function") {
+    console.error("❌ openEditEventModal function not found");
+    return false;
+  }
+
+  console.log("✅ Edit event modal functionality ready");
+  return true;
+}
+
+// Add to test suite
+if (window.addTestToSuite) {
+  window.addTestToSuite("Edit Event Modal", testEditEventModal);
+}

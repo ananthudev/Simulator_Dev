@@ -2067,7 +2067,13 @@ function addEventToSequence(eventData) {
       }
     </div>
     <div class="event-actions">
-      <button class="delete-event" title="Delete Event">
+      <button type="button" class="edit-event" title="Edit Event">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+      </button>
+      <button type="button" class="delete-event" title="Delete Event">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"></path>
         </svg>
@@ -2075,9 +2081,19 @@ function addEventToSequence(eventData) {
     </div>
   `;
 
+  // Add click handler for edit button
+  const editBtn = eventItem.querySelector(".edit-event");
+  editBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openEditEventModal(eventData.flag);
+  });
+
   // Add click handler for delete button
   const deleteBtn = eventItem.querySelector(".delete-event");
-  deleteBtn.addEventListener("click", () => {
+  deleteBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     // Show confirmation dialog
     Swal.fire({
       title: "Delete Event?",
@@ -3975,3 +3991,231 @@ if (stoppingBtn) {
     }, 100);
   });
 }
+
+// Function to validate trigger value based on trigger type
+function validateTriggerValue(triggerType, value) {
+  const numValue = parseFloat(value);
+
+  if (isNaN(numValue)) {
+    return {
+      isValid: false,
+      message: "Trigger value must be a number",
+    };
+  }
+
+  if (numValue < 0) {
+    return {
+      isValid: false,
+      message: "Trigger value cannot be negative",
+    };
+  }
+
+  switch (triggerType) {
+    case "mission-time":
+    case "phase-time":
+      return {
+        isValid: true,
+        message: "Value in seconds",
+      };
+    case "altitude":
+      return {
+        isValid: true,
+        message: "Value in meters",
+      };
+    default:
+      return {
+        isValid: false,
+        message: "Invalid trigger type",
+      };
+  }
+}
+
+// Edit Event Modal Functions
+function openEditEventModal(eventFlag) {
+  const modal = document.getElementById("edit-event-modal");
+  const event = window.eventSequence.find((e) => e.flag === eventFlag);
+
+  if (!event) {
+    console.error("Event not found:", eventFlag);
+    return;
+  }
+
+  // Populate modal fields with current event data
+  document.getElementById("edit-event-flag").value = event.flag;
+  document.getElementById("edit-trigger-type").value = event.triggerType;
+  document.getElementById("edit-trigger-value").value = event.triggerValue;
+  document.getElementById("edit-event-comment").value = event.comment || "";
+
+  // Populate reference flag dropdown for edit modal
+  populateEditEventReferenceDropdown(event.flag, event.referenceFlag);
+
+  // Show modal
+  modal.style.display = "block";
+
+  // Store current editing flag
+  modal.dataset.editingFlag = eventFlag;
+}
+
+function populateEditEventReferenceDropdown(
+  currentEventFlag,
+  selectedFlag = "none"
+) {
+  const dropdown = document.getElementById("edit-dependent-event");
+  dropdown.innerHTML = '<option value="none">None</option>';
+
+  // Get all available flags except the current event's flag
+  const availableFlags = window.eventSequence
+    .filter((event) => event.flag !== currentEventFlag)
+    .map((event) => event.flag);
+
+  availableFlags.forEach((flag) => {
+    const option = document.createElement("option");
+    option.value = flag;
+    option.textContent = flag;
+    if (flag === selectedFlag) {
+      option.selected = true;
+    }
+    dropdown.appendChild(option);
+  });
+
+  // Set selected value
+  dropdown.value = selectedFlag;
+}
+
+function saveEditedEvent() {
+  const modal = document.getElementById("edit-event-modal");
+  const editingFlag = modal.dataset.editingFlag;
+
+  if (!editingFlag) {
+    console.error("No editing flag found");
+    return;
+  }
+
+  // Get form values
+  const eventFlag = document.getElementById("edit-event-flag").value;
+  const triggerType = document.getElementById("edit-trigger-type").value;
+  const triggerValue = document.getElementById("edit-trigger-value").value;
+  const referenceFlag = document.getElementById("edit-dependent-event").value;
+  const comment = document.getElementById("edit-event-comment").value;
+
+  // Validate inputs
+  if (!triggerType) {
+    showError("Please select a trigger type");
+    return;
+  }
+
+  if (!triggerValue) {
+    showError("Please enter a trigger value");
+    return;
+  }
+
+  const validation = validateTriggerValue(triggerType, triggerValue);
+  if (!validation.isValid) {
+    showError(validation.message);
+    return;
+  }
+
+  // Find and update the event in the sequence
+  const eventIndex = window.eventSequence.findIndex(
+    (e) => e.flag === editingFlag
+  );
+  if (eventIndex === -1) {
+    console.error("Event not found in sequence:", editingFlag);
+    return;
+  }
+
+  // Update event data
+  const updatedEvent = {
+    ...window.eventSequence[eventIndex],
+    triggerType: triggerType,
+    triggerValue: parseFloat(triggerValue),
+    referenceFlag: referenceFlag || "none",
+    comment: comment,
+  };
+
+  window.eventSequence[eventIndex] = updatedEvent;
+
+  // Update UI
+  updateEventInUI(updatedEvent);
+
+  // Close modal
+  closeEditEventModal();
+
+  // Update reference flag dropdown for main form
+  updateReferenceFlagDropdown();
+
+  // Show success message
+  showSuccess("Event updated successfully", "Event Saved");
+
+  // Dispatch sequenceUpdated event
+  document.dispatchEvent(new CustomEvent("sequenceUpdated"));
+}
+
+function updateEventInUI(eventData) {
+  const eventItem = document.querySelector(
+    `.event-item[data-flag="${eventData.flag}"]`
+  );
+  if (!eventItem) {
+    console.error("Event item not found in UI:", eventData.flag);
+    return;
+  }
+
+  // Update the event content
+  const eventContent = eventItem.querySelector(".event-content");
+  eventContent.innerHTML = `
+    <span class="event-flag" title="Event Flag">${eventData.flag}</span>
+    <span class="trigger-type" title="Trigger Type">${
+      eventData.triggerType
+    }</span>
+    <span class="trigger-value" title="Trigger Value">${
+      eventData.triggerValue
+    }</span>
+    <span class="reference-flag" title="Reference Flag">${
+      eventData.referenceFlag
+    }</span>
+    ${
+      eventData.comment
+        ? `<span class="event-comment" title="Comment">${eventData.comment}</span>`
+        : ""
+    }
+  `;
+}
+
+function closeEditEventModal() {
+  const modal = document.getElementById("edit-event-modal");
+  modal.style.display = "none";
+  delete modal.dataset.editingFlag;
+
+  // Clear form
+  document.getElementById("edit-event-flag").value = "";
+  document.getElementById("edit-trigger-type").value = "";
+  document.getElementById("edit-trigger-value").value = "";
+  document.getElementById("edit-dependent-event").value = "none";
+  document.getElementById("edit-event-comment").value = "";
+}
+
+// Initialize edit event modal event listeners
+function initializeEditEventModal() {
+  const modal = document.getElementById("edit-event-modal");
+
+  // Close modal handlers
+  const closeBtn = document.getElementById("close-edit-event-modal");
+  const cancelBtn = document.getElementById("cancel-edit-event");
+  const saveBtn = document.getElementById("save-edit-event");
+
+  closeBtn.addEventListener("click", closeEditEventModal);
+  cancelBtn.addEventListener("click", closeEditEventModal);
+  saveBtn.addEventListener("click", saveEditedEvent);
+
+  // Close modal when clicking outside
+  window.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeEditEventModal();
+    }
+  });
+}
+
+// Initialize when DOM is loaded
+document.addEventListener("DOMContentLoaded", function () {
+  initializeEditEventModal();
+});
