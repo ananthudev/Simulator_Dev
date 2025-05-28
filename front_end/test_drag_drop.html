@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Drag and Drop Event Sequence</title>
+    <link rel="stylesheet" href="css/desktop-theme.css" />
+    <style>
+      body {
+        background: #1a1a1a;
+        color: white;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .test-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: #4a90e2;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .instructions {
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border-left: 4px solid #4a90e2;
+      }
+      .event-list-container {
+        width: 100%;
+      }
+      .event-list-container > .label {
+        color: #ccc;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 10px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-container">
+      <h1>Event Sequence Drag & Drop Test</h1>
+
+      <div class="instructions">
+        <h3>Instructions:</h3>
+        <ul>
+          <li>Hover over the event list to see the tooltip</li>
+          <li>
+            Click and drag the grip handle (⋮⋮) on the left of any event to
+            reorder
+          </li>
+          <li>Events will highlight when you drag over them</li>
+          <li>Use the edit (✏) and delete (🗑) buttons to modify events</li>
+        </ul>
+      </div>
+
+      <div class="event-list-container">
+        <label class="label">Event Sequence:</label>
+        <div id="event-list" class="event-list">
+          <!-- Events will be populated here -->
+        </div>
+      </div>
+
+      <button
+        id="add-test-events"
+        style="
+          margin-top: 20px;
+          padding: 10px 20px;
+          background: #4a90e2;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        "
+      >
+        Add Test Events
+      </button>
+      <button
+        id="clear-events"
+        style="
+          margin-top: 20px;
+          margin-left: 10px;
+          padding: 10px 20px;
+          background: #e74c3c;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        "
+      >
+        Clear Events
+      </button>
+    </div>
+
+    <!-- Include SweetAlert for notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      // Initialize eventSequence
+      window.eventSequence = [];
+
+      // Test event data
+      const testEvents = [
+        {
+          flag: "ST1_INIT",
+          triggerType: "mission-time",
+          triggerValue: "0",
+          referenceFlag: "none",
+          comment: "Stage 1 Initialization",
+        },
+        {
+          flag: "ST1_IGN",
+          triggerType: "phase-time",
+          triggerValue: "2",
+          referenceFlag: "ST1_INIT",
+          comment: "Stage 1 Motor Ignition",
+        },
+        {
+          flag: "ST1_BURNOUT",
+          triggerType: "altitude",
+          triggerValue: "50000",
+          referenceFlag: "ST1_IGN",
+          comment: "Stage 1 Motor Burnout",
+        },
+        {
+          flag: "ST1_SEP",
+          triggerType: "phase-time",
+          triggerValue: "5",
+          referenceFlag: "ST1_BURNOUT",
+          comment: "Stage 1 Separation",
+        },
+        {
+          flag: "ST2_IGN",
+          triggerType: "mission-time",
+          triggerValue: "120",
+          referenceFlag: "ST1_SEP",
+          comment: "Stage 2 Motor Ignition",
+        },
+      ];
+
+      // Utility functions from formHandler.js
+      function showSuccess(message, title = "Success") {
+        Swal.fire({
+          icon: "success",
+          title: title,
+          text: message,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+      }
+
+      // Mock functions that would normally exist
+      function updateReferenceFlagDropdown() {
+        // Mock function
+        console.log("updateReferenceFlagDropdown called");
+      }
+
+      function openEditEventModal(flag) {
+        Swal.fire({
+          title: "Edit Event",
+          text: `This would open the edit modal for event: ${flag}`,
+          icon: "info",
+          confirmButtonText: "OK",
+        });
+      }
+
+      // Drag and Drop Variables
+      let draggedElement = null;
+      let draggedFlag = null;
+      let dropIndicator = null;
+
+      // Drag and Drop Event Handlers (copied from formHandler.js)
+      function handleDragStart(e) {
+        draggedElement = this;
+        draggedFlag = this.getAttribute("data-flag");
+        this.classList.add("dragging");
+
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/html", this.outerHTML);
+        e.dataTransfer.setData("text/plain", draggedFlag);
+      }
+
+      function handleDragEnd(e) {
+        this.classList.remove("dragging");
+
+        if (dropIndicator && dropIndicator.parentNode) {
+          dropIndicator.parentNode.removeChild(dropIndicator);
+        }
+        dropIndicator = null;
+        draggedElement = null;
+        draggedFlag = null;
+
+        document.querySelectorAll(".event-item.drag-over").forEach((item) => {
+          item.classList.remove("drag-over");
+        });
+      }
+
+      function handleDragOver(e) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = "move";
+        return false;
+      }
+
+      function handleDragEnter(e) {
+        if (this !== draggedElement) {
+          this.classList.add("drag-over");
+        }
+      }
+
+      function handleDragLeave(e) {
+        if (!this.contains(e.relatedTarget)) {
+          this.classList.remove("drag-over");
+        }
+      }
+
+      function handleDrop(e) {
+        if (e.stopPropagation) {
+          e.stopPropagation();
+        }
+
+        if (this !== draggedElement) {
+          const eventList = document.getElementById("event-list");
+          const draggedIndex = Array.from(eventList.children).indexOf(
+            draggedElement
+          );
+          const targetIndex = Array.from(eventList.children).indexOf(this);
+
+          if (draggedIndex < targetIndex) {
+            this.parentNode.insertBefore(draggedElement, this.nextSibling);
+          } else {
+            this.parentNode.insertBefore(draggedElement, this);
+          }
+
+          reorderEventSequence(draggedFlag, this.getAttribute("data-flag"));
+          showSuccess(
+            "Event sequence reordered successfully!",
+            "Sequence Updated"
+          );
+        }
+
+        this.classList.remove("drag-over");
+        return false;
+      }
+
+      function reorderEventSequence(draggedFlag, targetFlag) {
+        const draggedIndex = window.eventSequence.findIndex(
+          (event) => event.flag === draggedFlag
+        );
+        const targetIndex = window.eventSequence.findIndex(
+          (event) => event.flag === targetFlag
+        );
+
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+          const draggedItem = window.eventSequence.splice(draggedIndex, 1)[0];
+          const newTargetIndex =
+            draggedIndex < targetIndex ? targetIndex : targetIndex;
+          window.eventSequence.splice(newTargetIndex, 0, draggedItem);
+
+          console.log(
+            "Reordered sequence:",
+            window.eventSequence.map((e) => e.flag)
+          );
+          updateReferenceFlagDropdown();
+        }
+      }
+
+      function addEventToSequence(eventData) {
+        window.eventSequence.push(eventData);
+
+        const eventList = document.getElementById("event-list");
+        const eventItem = document.createElement("div");
+        eventItem.className = "event-item";
+        eventItem.setAttribute("data-flag", eventData.flag);
+        eventItem.setAttribute("draggable", "true");
+
+        eventItem.innerHTML = `
+                <div class="drag-handle" title="Drag to reorder">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="12" r="1"></circle>
+                        <circle cx="9" cy="5" r="1"></circle>
+                        <circle cx="9" cy="19" r="1"></circle>
+                        <circle cx="15" cy="12" r="1"></circle>
+                        <circle cx="15" cy="5" r="1"></circle>
+                        <circle cx="15" cy="19" r="1"></circle>
+                    </svg>
+                </div>
+                <div class="event-content">
+                    <span class="event-flag" title="Event Flag">${
+                      eventData.flag
+                    }</span>
+                    <span class="trigger-type" title="Trigger Type">${
+                      eventData.triggerType
+                    }</span>
+                    <span class="trigger-value" title="Trigger Value">${
+                      eventData.triggerValue
+                    }</span>
+                    <span class="reference-flag" title="Reference Flag">${
+                      eventData.referenceFlag
+                    }</span>
+                    ${
+                      eventData.comment
+                        ? `<span class="event-comment" title="Comment">${eventData.comment}</span>`
+                        : ""
+                    }
+                </div>
+                <div class="event-actions">
+                    <button type="button" class="edit-event" title="Edit Event">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                    <button type="button" class="delete-event" title="Delete Event">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+        // Add drag event listeners
+        eventItem.addEventListener("dragstart", handleDragStart);
+        eventItem.addEventListener("dragend", handleDragEnd);
+        eventItem.addEventListener("dragover", handleDragOver);
+        eventItem.addEventListener("drop", handleDrop);
+        eventItem.addEventListener("dragenter", handleDragEnter);
+        eventItem.addEventListener("dragleave", handleDragLeave);
+
+        // Add click handlers
+        const editBtn = eventItem.querySelector(".edit-event");
+        editBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openEditEventModal(eventData.flag);
+        });
+
+        const deleteBtn = eventItem.querySelector(".delete-event");
+        deleteBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          Swal.fire({
+            title: "Delete Event?",
+            text: `Are you sure you want to delete this event (${eventData.flag})?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ff3b30",
+            cancelButtonColor: "#8e8e93",
+            confirmButtonText: "Yes, delete it",
+            cancelButtonText: "Cancel",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Remove from sequence
+              const index = window.eventSequence.findIndex(
+                (event) => event.flag === eventData.flag
+              );
+              if (index !== -1) {
+                window.eventSequence.splice(index, 1);
+              }
+              eventItem.remove();
+              showSuccess("Event deleted successfully!", "Event Deleted");
+            }
+          });
+        });
+
+        eventList.appendChild(eventItem);
+      }
+
+      function initializeEventSequenceDragDrop() {
+        const eventList = document.getElementById("event-list");
+        if (eventList && !eventList.querySelector(".drag-tooltip")) {
+          const tooltip = document.createElement("div");
+          tooltip.className = "drag-tooltip";
+          tooltip.textContent =
+            "Drag events to reorder • Click icons to edit or delete";
+          eventList.appendChild(tooltip);
+        }
+      }
+
+      // Initialize when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        initializeEventSequenceDragDrop();
+
+        // Add test events button
+        document
+          .getElementById("add-test-events")
+          .addEventListener("click", function () {
+            testEvents.forEach((event) => {
+              addEventToSequence({ ...event }); // Clone to avoid reference issues
+            });
+            showSuccess("Test events added successfully!");
+          });
+
+        // Clear events button
+        document
+          .getElementById("clear-events")
+          .addEventListener("click", function () {
+            window.eventSequence = [];
+            document.getElementById("event-list").innerHTML = "";
+            initializeEventSequenceDragDrop();
+            showSuccess("All events cleared!");
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -317,6 +317,11 @@ function loadSequenceConfiguration(config) {
     addEventToSequence(event);
   });
 
+  // Initialize drag and drop tooltip after loading events
+  setTimeout(() => {
+    initializeEventSequenceDragDrop();
+  }, 100);
+
   // Show success message
   Swal.fire({
     icon: "success",
@@ -2047,8 +2052,19 @@ function addEventToSequence(eventData) {
   const eventItem = document.createElement("div");
   eventItem.className = "event-item";
   eventItem.setAttribute("data-flag", eventData.flag);
+  eventItem.setAttribute("draggable", "true");
 
   eventItem.innerHTML = `
+    <div class="drag-handle" title="Drag to reorder">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="9" cy="12" r="1"></circle>
+        <circle cx="9" cy="5" r="1"></circle>
+        <circle cx="9" cy="19" r="1"></circle>
+        <circle cx="15" cy="12" r="1"></circle>
+        <circle cx="15" cy="5" r="1"></circle>
+        <circle cx="15" cy="19" r="1"></circle>
+      </svg>
+    </div>
     <div class="event-content">
       <span class="event-flag" title="Event Flag">${eventData.flag}</span>
       <span class="trigger-type" title="Trigger Type">${
@@ -2080,6 +2096,14 @@ function addEventToSequence(eventData) {
       </button>
     </div>
   `;
+
+  // Add drag event listeners
+  eventItem.addEventListener("dragstart", handleDragStart);
+  eventItem.addEventListener("dragend", handleDragEnd);
+  eventItem.addEventListener("dragover", handleDragOver);
+  eventItem.addEventListener("drop", handleDrop);
+  eventItem.addEventListener("dragenter", handleDragEnter);
+  eventItem.addEventListener("dragleave", handleDragLeave);
 
   // Add click handler for edit button
   const editBtn = eventItem.querySelector(".edit-event");
@@ -4218,4 +4242,146 @@ function initializeEditEventModal() {
 // Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   initializeEditEventModal();
+});
+
+// Drag and Drop Variables
+let draggedElement = null;
+let draggedFlag = null;
+let dropIndicator = null;
+
+// Drag and Drop Event Handlers
+function handleDragStart(e) {
+  draggedElement = this;
+  draggedFlag = this.getAttribute("data-flag");
+  this.classList.add("dragging");
+
+  // Set drag data
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/html", this.outerHTML);
+  e.dataTransfer.setData("text/plain", draggedFlag);
+}
+
+function handleDragEnd(e) {
+  this.classList.remove("dragging");
+
+  // Clean up
+  if (dropIndicator && dropIndicator.parentNode) {
+    dropIndicator.parentNode.removeChild(dropIndicator);
+  }
+  dropIndicator = null;
+  draggedElement = null;
+  draggedFlag = null;
+
+  // Remove drag-over classes from all items
+  document.querySelectorAll(".event-item.drag-over").forEach((item) => {
+    item.classList.remove("drag-over");
+  });
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+
+  e.dataTransfer.dropEffect = "move";
+  return false;
+}
+
+function handleDragEnter(e) {
+  if (this !== draggedElement) {
+    this.classList.add("drag-over");
+  }
+}
+
+function handleDragLeave(e) {
+  // Only remove drag-over if we're actually leaving the element
+  if (!this.contains(e.relatedTarget)) {
+    this.classList.remove("drag-over");
+  }
+}
+
+function handleDrop(e) {
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+
+  if (this !== draggedElement) {
+    const eventList = document.getElementById("event-list");
+    const draggedIndex = Array.from(eventList.children).indexOf(draggedElement);
+    const targetIndex = Array.from(eventList.children).indexOf(this);
+
+    // Reorder elements in the DOM
+    if (draggedIndex < targetIndex) {
+      // Moving down
+      this.parentNode.insertBefore(draggedElement, this.nextSibling);
+    } else {
+      // Moving up
+      this.parentNode.insertBefore(draggedElement, this);
+    }
+
+    // Reorder the eventSequence array
+    reorderEventSequence(draggedFlag, this.getAttribute("data-flag"));
+
+    // Show success message
+    showSuccess("Event sequence reordered successfully!", "Sequence Updated");
+  }
+
+  this.classList.remove("drag-over");
+  return false;
+}
+
+function reorderEventSequence(draggedFlag, targetFlag) {
+  const draggedIndex = window.eventSequence.findIndex(
+    (event) => event.flag === draggedFlag
+  );
+  const targetIndex = window.eventSequence.findIndex(
+    (event) => event.flag === targetFlag
+  );
+
+  if (draggedIndex !== -1 && targetIndex !== -1) {
+    // Remove the dragged item
+    const draggedItem = window.eventSequence.splice(draggedIndex, 1)[0];
+
+    // Insert it at the new position
+    const newTargetIndex =
+      draggedIndex < targetIndex ? targetIndex : targetIndex;
+    window.eventSequence.splice(newTargetIndex, 0, draggedItem);
+
+    // Dispatch sequenceUpdated event
+    document.dispatchEvent(new CustomEvent("sequenceUpdated"));
+
+    // Update any dependencies that might be affected
+    updateReferenceFlagDropdown();
+  }
+}
+
+// Initialize drag and drop tooltip for event list
+function initializeEventSequenceDragDrop() {
+  const eventList = document.getElementById("event-list");
+  if (eventList && !eventList.querySelector(".drag-tooltip")) {
+    const tooltip = document.createElement("div");
+    tooltip.className = "drag-tooltip";
+    tooltip.textContent =
+      "Drag events to reorder • Click icons to edit or delete";
+    eventList.appendChild(tooltip);
+  }
+}
+
+// Initialize drag and drop when the sequence form is shown
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize tooltip when sequence form becomes visible
+  const sequenceBtn = document.getElementById("sequence-btn");
+  if (sequenceBtn) {
+    sequenceBtn.addEventListener("click", function () {
+      setTimeout(() => {
+        initializeEventSequenceDragDrop();
+      }, 100);
+    });
+  }
+
+  // Also initialize if sequence form is already visible
+  const sequenceForm = document.getElementById("sequence-form");
+  if (sequenceForm && !sequenceForm.classList.contains("hidden")) {
+    initializeEventSequenceDragDrop();
+  }
 });
