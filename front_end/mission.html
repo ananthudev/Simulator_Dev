@@ -1144,7 +1144,22 @@
               <!-- Event List - Now on the right side -->
               <div class="event-list-container">
                 <div class="form-group full-width">
-                  <label class="label">Event Sequence:</label>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      margin-bottom: 10px;
+                    "
+                  >
+                    <label class="label">Event Sequence:</label>
+                    <div
+                      class="sequence-help-icon"
+                      style="margin-left: 8px"
+                      title="Events are executed in chronological order. Click and drag events to reorder them. Use the edit (✏️) button to modify event details or delete (🗑️) button to remove events."
+                    >
+                      ?
+                    </div>
+                  </div>
                   <div id="event-list" class="event-list">
                     <!-- Events will be listed here dynamically -->
                   </div>
