@@ -2800,11 +2800,22 @@ function saveSteeringConfigToFinalData() {
       case "profile":
         // Assign common profile properties first
         steeringUpdate[componentKey].steering.mode = params.mode || "normal"; // Default to normal if not set
+
+        // FIXED: Use proper conversion function for camelCase to UPPER_CASE_WITH_UNDERSCORES
+        const convertToUpperUnderscore = (str) => {
+          if (!str) return "";
+          // Insert underscore before capital letters (except the first char), then uppercase
+          return str.replace(/([A-Z])/g, "_$1").toUpperCase();
+        };
+
         steeringUpdate[componentKey].steering.quantity = params.quantity
-          ? params.quantity.toUpperCase()
-          : ""; // Map to uppercase
+          ? convertToUpperUnderscore(params.quantity)
+          : ""; // Map to uppercase with underscores
+
         steeringUpdate[componentKey].steering.ind_variable =
-          params.independentVar ? params.independentVar.toUpperCase() : ""; // Map to uppercase
+          params.independentVar
+            ? convertToUpperUnderscore(params.independentVar)
+            : ""; // Map to uppercase with underscores
 
         // Process parsed CSV data based on mode
         const csvData = config.profile_csv_data;

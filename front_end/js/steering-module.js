@@ -1278,6 +1278,39 @@ class SteeringConfigHandler {
       console.warn("Steering comment element not found during population.");
     }
 
+    // --- ADDED: Update CSV upload UI state based on component data ---
+    const profileCsvFilename = document.getElementById("profile-csv-filename");
+    const profileCsvClearBtn = document.getElementById("profile-csv-clear-btn");
+    const profileCsvUploadInput = document.getElementById("profile-csv-upload");
+
+    if (profileCsvFilename && profileCsvClearBtn && profileCsvUploadInput) {
+      // Update the CSV upload UI based on the component's stored CSV data
+      if (
+        config.profile_csv_filename &&
+        config.profile_csv_filename.trim() !== ""
+      ) {
+        // Component has a CSV file
+        profileCsvFilename.value = config.profile_csv_filename;
+        profileCsvClearBtn.style.display = "inline-block";
+        profileCsvFilename.classList.remove("error-field");
+        console.log(
+          `Restored CSV state for ${componentId}: ${config.profile_csv_filename}`
+        );
+      } else {
+        // Component has no CSV file
+        profileCsvFilename.value = "No file chosen";
+        profileCsvClearBtn.style.display = "none";
+        profileCsvFilename.classList.remove("error-field");
+        profileCsvUploadInput.value = ""; // Clear the file input
+        console.log(`Cleared CSV state for ${componentId}: no file`);
+      }
+    } else {
+      console.warn(
+        "CSV upload UI elements not found during component population."
+      );
+    }
+    // --- END ADDED ---
+
     if (typeof generateSteeringFields === "function") {
       console.log(
         `Populating steering fields for type: ${config.steering_type} with params:`,

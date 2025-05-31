@@ -115,209 +115,124 @@ function readFileAndProcess(file) {
 function resetCurrentMissionState() {
   console.log("[OpenMission] Resetting current mission state...");
 
-  // 1. Reset global data
-  window.finalMissionData = {};
-  window.flagRegistry = {
-    event: {},
-    motor: {},
-    stage: {},
-    steering: {},
-    heatshield: {},
-  };
-  window.eventSequence = [];
-  if (window.steeringState) {
-    window.steeringState.activeComponents = [];
-    // Potentially more resets needed for steeringState internals
-  }
-  window.thrustTimeData = {}; // Ensure thrust time data is cleared
-
-  // Clear any cached element references
-  window._cachedFormElements = {};
-
-  // Ensure counters are reset
-  window.stageCounter = 0;
-  window.motorCounters = {};
-
-  // Reset any other form-specific state
-  if (window.formState) window.formState = {};
-
-  // 2. Clear static form fields (example for mission form)
-  const missionForm = document.getElementById("mission-form");
-  if (missionForm) missionForm.reset();
-  const enviroForm = document.getElementById("enviro-form");
-  if (enviroForm) enviroForm.reset();
-  const vehicleForm = document.getElementById("vehicle-form");
-  if (vehicleForm) vehicleForm.reset();
-  // Reset other static forms
-  const sequenceForm = document.getElementById("sequence-form");
-  if (sequenceForm) sequenceForm.reset();
-  const steeringForm = document.getElementById("steering-form");
-  if (steeringForm) steeringForm.reset();
-  const stoppingForm = document.getElementById("stopping-form");
-  if (stoppingForm) stoppingForm.reset();
-
-  // 3. Clear dynamic UI elements
-  // Example: Clear stages from sidebar
-  const vehicleStagesList = document.getElementById("vehicle-stages");
-  if (vehicleStagesList) vehicleStagesList.innerHTML = "";
-
-  // IMPROVED FORM REMOVAL: Use a more robust process with verification
-  console.log("[OpenMission] Starting dynamic form removal process...");
-
-  // Log all current forms before removal
-  console.log("[OpenMission] Current forms before removal:");
-  const allForms = document.querySelectorAll('[id$="-form"]');
-  allForms.forEach((form) => console.log(`- ${form.id}`));
-
-  // Get a reference to the forms container
-  const formsContainer = document.getElementById("forms-container");
-  if (formsContainer) {
-    try {
-      // STEP 1: Try the conventional approach first - select and remove forms by type
-      const stageForms = document.querySelectorAll(
-        '[id^="stage"][id$="-form"]'
-      );
-      console.log(
-        `[OpenMission] Found ${stageForms.length} stage forms to remove`
-      );
-      stageForms.forEach((form) => {
-        try {
-          if (form && form.parentNode) {
-            console.log(`[OpenMission] Removing stage form: ${form.id}`);
-            form.parentNode.removeChild(form);
-          }
-        } catch (e) {
-          console.error(
-            `[OpenMission] Error removing stage form ${form.id}:`,
-            e
-          );
-        }
-      });
-
-      // STEP 2: If that failed, try a more aggressive approach - clear entire container
-      // First check if all forms were successfully removed
-      const remainingForms = formsContainer.querySelectorAll(
-        '[id^="stage"][id$="-form"]'
-      );
-      if (remainingForms.length > 0) {
-        console.warn(
-          `[OpenMission] ${remainingForms.length} stage forms remain after attempted removal. Using container reset approach.`
-        );
-        try {
-          // Save the original container
-          const originalHTML = formsContainer.innerHTML;
-
-          // Clear all dynamic content
-          formsContainer.innerHTML = "";
-
-          // Re-insert only the static forms that should always be present
-          // This approach ensures we don't lose any static forms while clearing dynamic ones
-          const staticForms = [
-            "mission-form",
-            "enviro-form",
-            "vehicle-form",
-            "sequence-form",
-            "steering-form",
-            "stopping-form",
-            "objective-function-form",
-            "constraints-form",
-            "mode-form",
-            "design-variables-form",
-          ];
-
-          const tempContainer = document.createElement("div");
-          tempContainer.innerHTML = originalHTML;
-
-          staticForms.forEach((formId) => {
-            const staticForm = tempContainer.querySelector(`#${formId}`);
-            if (staticForm) {
-              formsContainer.appendChild(staticForm);
-            }
-          });
-
-          console.log(
-            "[OpenMission] Container reset complete. Re-inserted static forms."
-          );
-        } catch (e) {
-          console.error("[OpenMission] Error during container reset:", e);
-        }
-      }
-    } catch (e) {
-      console.error("[OpenMission] Error during form removal process:", e);
-    }
-
-    // Verify all dynamic forms were removed
-    const finalCheck = formsContainer.querySelectorAll(
-      '[id^="stage"][id$="-form"]'
-    );
-    console.log(
-      `[OpenMission] Final check: ${finalCheck.length} stage forms remain after cleanup`
-    );
-
-    if (finalCheck.length > 0) {
-      console.warn(
-        "[OpenMission] Some forms still remain. Forcing container reset..."
-      );
-      // As a last resort, if we still have forms, try one more approach
-      try {
-        // Create a new div to replace the forms container
-        const newFormsContainer = document.createElement("div");
-        newFormsContainer.id = "forms-container";
-        newFormsContainer.className = formsContainer.className;
-
-        // Replace the old container with the new one
-        if (formsContainer.parentNode) {
-          formsContainer.parentNode.replaceChild(
-            newFormsContainer,
-            formsContainer
-          );
-          console.log("[OpenMission] Forms container completely replaced");
-
-          // Re-add the static forms that should always be present
-          const staticForms = document.querySelectorAll(
-            '[id$="-form"]:not([id^="stage"])'
-          );
-          staticForms.forEach((form) => {
-            if (!form.id.includes("motor") && !form.id.includes("nozzle")) {
-              newFormsContainer.appendChild(form);
-            }
-          });
-        }
-      } catch (e) {
-        console.error("[OpenMission] Error during container replacement:", e);
-      }
-    }
-  } else {
-    console.error(
-      "[OpenMission] Could not find forms container! Form removal failed."
-    );
-  }
-
-  // Clear any stage tabs in the sidebar
-  const stageTabs = document.querySelectorAll(".stage-tab");
-  console.log(`[OpenMission] Removing ${stageTabs.length} stage tabs`);
-  stageTabs.forEach((tab) => {
-    if (tab.parentNode) {
-      tab.parentNode.removeChild(tab);
+  // Clear all form fields
+  const forms = document.querySelectorAll(
+    "#mission-form, #environment-form, #vehicle-form"
+  );
+  forms.forEach((form) => {
+    if (form) {
+      form.reset();
     }
   });
 
-  // 4. Hide all forms and show welcome, then navigate (example)
-  if (window.uiNav) {
-    // Assuming uiNav is globally accessible from ui-navigation.js
-    window.uiNav.hideAllForms();
+  // Clear dynamic vehicle stages
+  const stagesContainer = document.getElementById("stages-container");
+  if (stagesContainer) {
+    stagesContainer.innerHTML = "";
   }
 
-  // Clear any displayed filenames for CSV uploads
-  const csvFilenames = document.querySelectorAll(".filename");
-  csvFilenames.forEach((fn) => (fn.value = "No file chosen"));
-  const clearCsvButtons = document.querySelectorAll(".clear-upload");
-  clearCsvButtons.forEach((btn) => (btn.style.display = "none"));
+  // Clear event sequence
+  const eventSequenceContainer = document.getElementById(
+    "eventSequenceContainer"
+  );
+  if (eventSequenceContainer) {
+    eventSequenceContainer.innerHTML = "";
+  }
 
-  // Force garbage collection if available (browser debugging only)
-  if (window.gc) window.gc();
+  // Reset stage counter
+  if (window.stageCount !== undefined) {
+    window.stageCount = 0;
+  }
 
-  console.log("[OpenMission] Mission state reset complete.");
+  // Clear steering components properly
+  const activeComponentsList = document.getElementById(
+    "active-components-list"
+  );
+  if (activeComponentsList) {
+    activeComponentsList.innerHTML = "";
+  }
+
+  // Reset steering state
+  if (window.steeringState) {
+    window.steeringState.activeComponents = {};
+    window.steeringState.selectedComponentId = null;
+
+    // Hide configuration panel
+    const configContentArea = document.getElementById(
+      "steering-config-content"
+    );
+    const configPlaceholder = document.getElementById(
+      "steering-config-placeholder"
+    );
+    const currentConfigTitleSpan = document.querySelector(
+      "#current-config-title span"
+    );
+
+    if (configContentArea) configContentArea.classList.add("hidden");
+    if (configPlaceholder) configPlaceholder.classList.remove("hidden");
+    if (currentConfigTitleSpan) currentConfigTitleSpan.textContent = "";
+
+    // Reset component counters
+    const componentTypes = [
+      "verticalAscend",
+      "pitchHold",
+      "constantPitch",
+      "gravityTurn",
+      "profile",
+      "coasting",
+    ];
+    componentTypes.forEach((type) => {
+      if (typeof updateComponentCounter === "function") {
+        updateComponentCounter(type);
+      }
+    });
+  }
+
+  // Clear steering sequence dropdown
+  const sequenceSelect = document.getElementById("sequence");
+  if (sequenceSelect) {
+    sequenceSelect.value = "";
+  }
+
+  // Clear optimization forms
+  const optimizationForms = document.querySelectorAll(
+    "#objective-function-form, #constraints-form, #optimization-mode-form, #design-variables-form"
+  );
+  optimizationForms.forEach((form) => {
+    if (form) {
+      form.reset();
+    }
+  });
+
+  // Clear optimization containers
+  const optimizationContainers = [
+    "constraints-container",
+    "design-variables-container",
+  ];
+  optimizationContainers.forEach((id) => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.innerHTML = "";
+    }
+  });
+
+  // Clear stopping condition form
+  const stoppingConditionForm = document.getElementById(
+    "stopping-condition-form"
+  );
+  if (stoppingConditionForm) {
+    stoppingConditionForm.reset();
+  }
+
+  // Reset global variables
+  if (window.constraintCount !== undefined) {
+    window.constraintCount = 0;
+  }
+  if (window.designVariableCount !== undefined) {
+    window.designVariableCount = 0;
+  }
+
+  console.log("[OpenMission] Mission state reset complete");
 }
 
 function populateForms(loadedData) {
@@ -2664,242 +2579,711 @@ function mapTriggerType(trigger) {
 
 // Function to populate steering components data
 function populateSteering(loadedData, vehicleName) {
+  console.log(
+    `[OpenMission] Starting steering population for vehicle: ${vehicleName}`
+  );
+
   const steeringKey = vehicleName + "_Steering";
-  if (
-    !loadedData[steeringKey] ||
-    !Array.isArray(loadedData[steeringKey].steering)
-  ) {
-    console.warn(`Steering data for '${steeringKey}' not found or invalid.`);
+  const steeringMainData = loadedData[steeringKey];
+
+  if (!steeringMainData) {
+    console.warn(`Steering data for '${steeringKey}' not found.`);
     return;
   }
 
-  const steeringComponents = loadedData[steeringKey].steering;
-
-  // Clear existing steering components first
-  if (window.steeringState) {
-    window.steeringState.activeComponents = [];
+  // 1. Set the steering sequence first
+  if (steeringMainData.Steering_Sequence) {
+    const sequenceSelect = document.getElementById("sequence");
+    if (sequenceSelect) {
+      sequenceSelect.value = steeringMainData.Steering_Sequence;
+      console.log(
+        `[OpenMission] Set steering sequence to: ${steeringMainData.Steering_Sequence}`
+      );
+    }
   }
 
-  // Clear the steering components container
-  const steeringComponentsContainer = document.getElementById(
-    "steering-components-container"
+  // 2. Get the list of steering components to load
+  const steeringComponents = steeringMainData.steering;
+  if (!Array.isArray(steeringComponents)) {
+    console.warn(
+      `Steering components list not found or invalid in '${steeringKey}'.`
+    );
+    return;
+  }
+
+  console.log(
+    `[OpenMission] Found ${steeringComponents.length} steering components to populate:`,
+    steeringComponents
   );
-  if (steeringComponentsContainer) {
-    steeringComponentsContainer.innerHTML = "";
+
+  // 3. Clear existing components properly - remove all at once
+  const activeComponentsList = document.getElementById(
+    "active-components-list"
+  );
+  if (activeComponentsList) {
+    // Clear the UI list
+    activeComponentsList.innerHTML = "";
+
+    // Clear the state
+    if (window.steeringState) {
+      window.steeringState.activeComponents = {};
+      window.steeringState.selectedComponentId = null;
+
+      // Hide configuration panel
+      const configContentArea = document.getElementById(
+        "steering-config-content"
+      );
+      const configPlaceholder = document.getElementById(
+        "steering-config-placeholder"
+      );
+      const currentConfigTitleSpan = document.querySelector(
+        "#current-config-title span"
+      );
+
+      if (configContentArea) configContentArea.classList.add("hidden");
+      if (configPlaceholder) configPlaceholder.classList.remove("hidden");
+      if (currentConfigTitleSpan) currentConfigTitleSpan.textContent = "";
+    }
+
+    // Reset component counters
+    const componentTypes = [
+      "verticalAscend",
+      "pitchHold",
+      "constantPitch",
+      "gravityTurn",
+      "profile",
+      "coasting",
+    ];
+    componentTypes.forEach((type) => {
+      if (typeof updateComponentCounter === "function") {
+        updateComponentCounter(type);
+      }
+    });
+
+    console.log(`[OpenMission] Cleared all existing steering components`);
   }
 
-  // Add each steering component
-  steeringComponents.forEach((componentKey) => {
-    const componentData = loadedData[componentKey];
-    if (!componentData) {
-      console.warn(`Data for steering component '${componentKey}' not found.`);
+  // 4. Process each steering component with proper delays
+  let componentIndex = 0;
+  const processNextComponent = () => {
+    if (componentIndex >= steeringComponents.length) {
+      console.log(
+        `[OpenMission] Completed steering population for all ${steeringComponents.length} components.`
+      );
       return;
     }
 
-    // Add new steering component through UI
-    const addSteeringComponentBtn = document.getElementById(
-      "add-steering-component-btn"
-    );
-    if (addSteeringComponentBtn) {
-      addSteeringComponentBtn.click();
+    const componentKey = steeringComponents[componentIndex];
+    const componentData = loadedData[componentKey];
 
-      // Wait for the component to be created, then populate it
-      setTimeout(() => {
-        const componentIndex =
-          window.steeringState?.activeComponents?.length - 1 || 0;
-        populateSteeringComponent(componentData, componentKey, componentIndex);
-      }, 200);
+    if (!componentData) {
+      console.warn(
+        `Data for steering component '${componentKey}' not found in loaded data.`
+      );
+      componentIndex++;
+      setTimeout(processNextComponent, 100);
+      return;
     }
-  });
 
-  console.log(
-    `[OpenMission] Added ${steeringComponents.length} steering components.`
-  );
+    console.log(
+      `[OpenMission] Processing component ${componentIndex + 1}/${
+        steeringComponents.length
+      }: ${componentKey}`
+    );
+    populateSteeringComponent(componentData, componentKey, () => {
+      componentIndex++;
+      setTimeout(processNextComponent, 500); // Wait between components
+    });
+  };
+
+  // Start processing the first component
+  setTimeout(processNextComponent, 300);
 }
 
-function populateSteeringComponent(
-  componentData,
-  componentKey,
-  componentIndex
-) {
+function populateSteeringComponent(componentData, componentKey, callback) {
+  console.log(
+    `[OpenMission] Populating steering component: ${componentKey}`,
+    componentData
+  );
+
   if (
     !componentData ||
     !componentData.start ||
     !componentData.stop ||
     !componentData.steering
   ) {
-    console.warn(`Steering component data invalid for ${componentKey}`);
+    console.warn(`Invalid steering component data for ${componentKey}`);
+    if (callback) callback();
     return;
   }
 
-  // Get the tabs for this component
-  const startTab = document.getElementById(
-    `steering-component-${componentIndex}-start-tab`
-  );
-  const stopTab = document.getElementById(
-    `steering-component-${componentIndex}-stop-tab`
-  );
-  const steeringTab = document.getElementById(
-    `steering-component-${componentIndex}-steering-tab`
-  );
-
-  if (!startTab || !stopTab || !steeringTab) {
-    console.warn(`Tabs for steering component ${componentIndex} not found`);
+  // 1. Determine the component type from the key name
+  const componentType = deriveSteeringComponentType(componentKey);
+  if (!componentType) {
+    console.warn(`Could not determine component type for ${componentKey}`);
+    if (callback) callback();
     return;
   }
 
-  // 1. Populate Start tab
-  startTab.click(); // Show start tab
-  setTimeout(() => {
-    const startForm = document.getElementById(
-      `steering-component-${componentIndex}-start-form`
+  // 2. Add the component using the steering module's function
+  if (typeof addSteeringComponent === "function") {
+    console.log(
+      `[OpenMission] Adding steering component of type: ${componentType.type}`
     );
-    if (startForm) {
-      const startIdInput = startForm.querySelector(
-        'input[placeholder="Enter start Identity"]'
-      );
-      if (startIdInput) startIdInput.value = componentData.start.identity;
+    addSteeringComponent(componentType.type, componentType.displayName);
 
-      const startTriggerSelect = startForm.querySelector(
-        'select[id$="-start-trigger"]'
-      );
-      if (startTriggerSelect)
-        startTriggerSelect.value = componentData.start.trigger;
+    // 3. Wait for component to be created and DOM to update
+    setTimeout(() => {
+      // Get the most recently added component ID
+      const componentIds = Object.keys(window.steeringState.activeComponents);
+      const latestComponentId = componentIds[componentIds.length - 1];
 
-      const startValueInput = startForm.querySelector(
-        'input[placeholder="Enter start value"]'
-      );
-      if (startValueInput) startValueInput.value = componentData.start.value;
+      if (
+        latestComponentId &&
+        window.steeringState.activeComponents[latestComponentId]
+      ) {
+        console.log(
+          `[OpenMission] Found component ${latestComponentId}, populating data from ${componentKey}`
+        );
 
-      const startReferenceSelect = startForm.querySelector(
-        'select[id$="-start-reference"]'
-      );
-      if (startReferenceSelect && componentData.start.reference !== "none") {
-        startReferenceSelect.value = componentData.start.reference;
+        // Populate the component data first
+        populateSteeringComponentData(
+          latestComponentId,
+          componentData,
+          componentKey,
+          callback
+        );
+      } else {
+        console.error(`Could not find component after adding: ${componentKey}`);
+        if (callback) callback();
       }
+    }, 300);
+  } else {
+    console.error("addSteeringComponent function not available");
+    if (callback) callback();
+  }
+}
+
+function deriveSteeringComponentType(componentKey) {
+  // Map component keys to their types and display names
+  const typeMapping = {
+    Vertical_Ascend: { type: "verticalAscend", displayName: "Vertical Ascend" },
+    Pitch_Hold: { type: "pitchHold", displayName: "Pitch Hold" },
+    Constant_Pitch: {
+      type: "constantPitch",
+      displayName: "Constant Pitch Rate",
+    },
+    Gravity_Turn: { type: "gravityTurn", displayName: "Gravity Turn" },
+    Profile: { type: "profile", displayName: "Profile" },
+    Coasting: { type: "coasting", displayName: "Coasting" },
+  };
+
+  // Extract the base type from the component key (remove _1, _2, etc.)
+  const baseKey = componentKey.replace(/_\d+$/, "");
+
+  return typeMapping[baseKey] || null;
+}
+
+function populateSteeringComponentData(
+  componentId,
+  componentData,
+  componentKey,
+  callback
+) {
+  console.log(
+    `[OpenMission] Populating data for component ${componentId}:`,
+    componentData
+  );
+
+  const component = window.steeringState.activeComponents[componentId];
+  if (!component) {
+    console.error(`Component ${componentId} not found in active components`);
+    if (callback) callback();
+    return;
+  }
+
+  // 1. Populate Start Configuration
+  if (componentData.start) {
+    component.config.start_identity = componentData.start.identity || "";
+    component.config.start_trigger_type = mapTriggerTypeToUI(
+      componentData.start.trigger
+    );
+    // Ensure trigger value is properly converted to string for UI display
+    component.config.start_trigger_value =
+      componentData.start.value !== null &&
+      componentData.start.value !== undefined
+        ? String(componentData.start.value)
+        : "";
+    component.config.start_reference = componentData.start.reference || "none";
+    component.config.start_comment =
+      cleanComment(componentData.start.comment) || "";
+
+    console.log(
+      `[OpenMission] Start config - trigger: ${component.config.start_trigger_type}, value: ${component.config.start_trigger_value}, reference: ${component.config.start_reference}`
+    );
+  }
+
+  // 2. Populate Stop Configuration
+  if (componentData.stop) {
+    component.config.stop_identity = componentData.stop.identity || "";
+    component.config.stop_trigger_type = mapTriggerTypeToUI(
+      componentData.stop.trigger
+    );
+    // Ensure trigger value is properly converted to string for UI display
+    component.config.stop_trigger_value =
+      componentData.stop.value !== null &&
+      componentData.stop.value !== undefined
+        ? String(componentData.stop.value)
+        : "";
+    component.config.stop_reference = componentData.stop.reference || "none";
+    component.config.stop_comment =
+      cleanComment(componentData.stop.comment) || "";
+
+    console.log(
+      `[OpenMission] Stop config - trigger: ${component.config.stop_trigger_type}, value: ${component.config.stop_trigger_value}, reference: ${component.config.stop_reference}`
+    );
+  }
+
+  // 3. Populate Steering Configuration
+  if (componentData.steering) {
+    component.config.steering_type = mapSteeringTypeToUI(
+      componentData.steering.type
+    );
+    component.config.steering_comment =
+      cleanComment(componentData.steering.comment) || "";
+
+    // Handle steering parameters based on type
+    const params = parseSteeringParams(componentData.steering);
+    component.config.steering_params = params;
+
+    // For profile type, also set the CSV data directly in the config
+    if (
+      component.config.steering_type === "profile" &&
+      params.profile_csv_filename
+    ) {
+      component.config.profile_csv_filename = params.profile_csv_filename;
+      component.config.profile_csv_data = params.profile_data;
+      console.log(
+        `[OpenMission] Set profile CSV data for component ${componentId}: ${params.profile_csv_filename}`
+      );
     }
 
-    // 2. Populate Stop tab
-    stopTab.click(); // Show stop tab
+    console.log(
+      `[OpenMission] Steering config - type: ${component.config.steering_type}, params:`,
+      component.config.steering_params
+    );
+  }
+
+  // 4. Mark as saved and not dirty
+  component.config.isSaved = true;
+  component.config.isDirty = false;
+
+  // 5. Select the component and populate the UI fields
+  if (typeof selectSteeringComponent === "function") {
+    selectSteeringComponent(componentId);
+
+    // 6. Wait for UI to update, then populate fields
     setTimeout(() => {
-      const stopForm = document.getElementById(
-        `steering-component-${componentIndex}-stop-form`
+      populateSteeringUIFields(componentId, componentData);
+
+      // 7. Call callback after a short delay
+      setTimeout(() => {
+        if (callback) callback();
+      }, 200);
+    }, 400);
+  } else {
+    if (callback) callback();
+  }
+
+  console.log(
+    `[OpenMission] Successfully configured component ${componentId} with data from ${componentKey}`
+  );
+}
+
+function populateSteeringUIFields(componentId, componentData) {
+  console.log(
+    `[OpenMission] Populating UI fields for component ${componentId}`
+  );
+
+  const component = window.steeringState.activeComponents[componentId];
+  if (!component) {
+    console.error(`Component ${componentId} not found for UI population`);
+    return;
+  }
+
+  // Helper function to set field value safely with better selector handling
+  const setFieldValue = (selector, value) => {
+    // Try multiple selector approaches for better compatibility
+    const selectors = [
+      selector,
+      `#steering-config-content ${selector}`,
+      `.steering-configuration ${selector}`,
+    ];
+
+    let field = null;
+    for (const sel of selectors) {
+      field = document.querySelector(sel);
+      if (field) break;
+    }
+
+    if (field) {
+      const displayValue =
+        value === null || value === undefined ? "" : String(value);
+      field.value = displayValue;
+
+      // Trigger change event for dropdowns
+      if (field.tagName === "SELECT") {
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      console.log(`[OpenMission] Set ${selector} = "${displayValue}"`);
+      return true;
+    } else {
+      console.warn(
+        `[OpenMission] Field not found with any selector for: ${selector}`
       );
-      if (stopForm) {
-        const stopIdInput = stopForm.querySelector(
-          'input[placeholder="Enter stop Identity"]'
-        );
-        if (stopIdInput) stopIdInput.value = componentData.stop.identity;
+      return false;
+    }
+  };
 
-        const stopTriggerSelect = stopForm.querySelector(
-          'select[id$="-stop-trigger"]'
-        );
-        if (stopTriggerSelect)
-          stopTriggerSelect.value = componentData.stop.trigger;
+  // 1. Populate Start Tab Fields
+  console.log(`[OpenMission] Populating start tab fields`);
+  setFieldValue(
+    '[data-field="start_identity"]',
+    component.config.start_identity
+  );
+  setFieldValue(
+    '[data-field="start_trigger_type"]',
+    component.config.start_trigger_type
+  );
+  setFieldValue(
+    '[data-field="start_trigger_value"]',
+    component.config.start_trigger_value
+  );
+  setFieldValue(
+    '[data-field="start_reference"]',
+    component.config.start_reference
+  );
+  setFieldValue('[data-field="start_comment"]', component.config.start_comment);
 
-        const stopValueInput = stopForm.querySelector(
-          'input[placeholder="Enter stop value"]'
-        );
-        if (stopValueInput) stopValueInput.value = componentData.stop.value;
+  // 2. Populate Stop Tab Fields
+  console.log(`[OpenMission] Populating stop tab fields`);
+  setFieldValue('[data-field="stop_identity"]', component.config.stop_identity);
+  setFieldValue(
+    '[data-field="stop_trigger_type"]',
+    component.config.stop_trigger_type
+  );
+  setFieldValue(
+    '[data-field="stop_trigger_value"]',
+    component.config.stop_trigger_value
+  );
+  setFieldValue(
+    '[data-field="stop_reference"]',
+    component.config.stop_reference
+  );
+  setFieldValue('[data-field="stop_comment"]', component.config.stop_comment);
 
-        const stopReferenceSelect = stopForm.querySelector(
-          'select[id$="-stop-reference"]'
+  // 3. Populate Steering Tab Fields
+  console.log(`[OpenMission] Populating steering tab fields`);
+  const steeringTypeSet = setFieldValue(
+    '[data-field="steering_type"]',
+    component.config.steering_type
+  );
+  setFieldValue(
+    '[data-field="steering_comment"]',
+    component.config.steering_comment
+  );
+
+  // 4. Wait for dynamic steering fields to be generated, then populate them
+  if (steeringTypeSet && component.config.steering_type) {
+    setTimeout(() => {
+      populateSteeringParameters(
+        component.config.steering_type,
+        component.config.steering_params
+      );
+    }, 300);
+  }
+}
+
+function populateSteeringParameters(steeringType, params) {
+  console.log(
+    `[OpenMission] Populating steering parameters for type ${steeringType}:`,
+    params
+  );
+
+  if (!params || Object.keys(params).length === 0) {
+    console.log(`[OpenMission] No parameters to populate for ${steeringType}`);
+    return;
+  }
+
+  // Helper function to set parameter field value
+  const setParamValue = (paramName, value) => {
+    const field = document.querySelector(`[data-param="${paramName}"]`);
+    if (field) {
+      field.value = value || "";
+      if (field.tagName === "SELECT") {
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      console.log(`[OpenMission] Set parameter ${paramName} = "${value}"`);
+      return true;
+    } else {
+      console.warn(`[OpenMission] Parameter field not found: ${paramName}`);
+      return false;
+    }
+  };
+
+  // Populate parameters based on steering type
+  switch (steeringType) {
+    case "constantBodyRate":
+      setParamValue("axis", params.axis);
+      setParamValue("value", params.value);
+      break;
+
+    case "clg":
+      setParamValue("algorithm", params.algorithm);
+      if (params.algorithm) {
+        // Wait for CLG sub-fields to be generated
+        setTimeout(() => {
+          setParamValue("max_qaoa", params.max_qaoa);
+          setParamValue("alpha_time", params.alpha_time);
+          setParamValue("pitch_gain", params.pitch_gain);
+          setParamValue("yaw_gain", params.yaw_gain);
+        }, 200);
+      }
+      break;
+
+    case "profile":
+      setParamValue("mode", params.mode);
+      setParamValue("quantity", params.quantity);
+      setParamValue("independentVar", params.independentVar);
+
+      // The CSV file UI state is handled by populateAndValidatePanel in steering-module.js
+      // We just need to ensure the component's config has the CSV data, which is done in populateSteeringComponentData
+      console.log(
+        `[OpenMission] Profile steering parameters set. CSV handling delegated to steering-module.js`
+      );
+      break;
+
+    case "zeroRate":
+      // No additional parameters for zero rate
+      console.log(`[OpenMission] Zero rate type has no additional parameters`);
+      break;
+
+    default:
+      console.warn(
+        `[OpenMission] Unknown steering type for parameter population: ${steeringType}`
+      );
+  }
+}
+
+function mapTriggerTypeToUI(jsonTrigger) {
+  // Map JSON trigger types to UI dropdown values
+  const triggerMapping = {
+    MISSION_TIME: "missiontime",
+    PHASE_TIME: "time",
+    PROFILE_TIME: "profiletime",
+    ALTITUDE: "altitude",
+  };
+
+  const result =
+    triggerMapping[jsonTrigger] || jsonTrigger?.toLowerCase() || "";
+  console.log(`[OpenMission] Mapped trigger ${jsonTrigger} -> ${result}`);
+  return result;
+}
+
+function mapSteeringTypeToUI(jsonSteeringType) {
+  // Map JSON steering types to UI dropdown values
+  const steeringMapping = {
+    ZERO_RATE: "zeroRate",
+    CONST_BODYRATE: "constantBodyRate",
+    CLG: "clg",
+    PROFILE: "profile",
+  };
+
+  const result =
+    steeringMapping[jsonSteeringType] || jsonSteeringType?.toLowerCase() || "";
+  console.log(
+    `[OpenMission] Mapped steering type ${jsonSteeringType} -> ${result}`
+  );
+  return result;
+}
+
+function parseSteeringParams(steeringData) {
+  const params = {};
+
+  switch (steeringData.type) {
+    case "ZERO_RATE":
+      // Zero rate has no additional parameters
+      break;
+
+    case "CONST_BODYRATE":
+      if (steeringData.axis) {
+        params.axis = steeringData.axis.toLowerCase(); // Convert to lowercase to match dropdown
+      }
+      if (steeringData.value !== undefined) {
+        params.value = steeringData.value;
+      }
+      break;
+
+    case "CLG":
+      // Handle CLG parameters if present
+      if (steeringData.algorithm) {
+        params.algorithm = steeringData.algorithm;
+      }
+      if (steeringData.max_qaoa !== undefined) {
+        params.max_qaoa = steeringData.max_qaoa;
+      }
+      if (steeringData.alpha_time !== undefined) {
+        params.alpha_time = steeringData.alpha_time;
+      }
+      if (steeringData.pitch_gain !== undefined) {
+        params.pitch_gain = steeringData.pitch_gain;
+      }
+      if (steeringData.yaw_gain !== undefined) {
+        params.yaw_gain = steeringData.yaw_gain;
+      }
+      break;
+
+    case "PROFILE":
+      if (steeringData.mode) {
+        params.mode = steeringData.mode.toLowerCase(); // Convert to lowercase to match dropdown
+      }
+      if (steeringData.quantity) {
+        // Map quantity to UI dropdown values
+        const quantityMapping = {
+          EULER_RATE: "eulerRate",
+          BODY_RATE: "bodyRate",
+          QUATERNION: "quaternion",
+          EULER_ANGLE: "eulerAngle",
+          BODY_ANGLE: "bodyAngle",
+        };
+        params.quantity =
+          quantityMapping[steeringData.quantity] ||
+          steeringData.quantity.toLowerCase();
+      }
+      if (steeringData.ind_variable) {
+        params.independentVar = mapIndependentVariable(
+          steeringData.ind_variable
         );
-        if (stopReferenceSelect && componentData.stop.reference !== "none") {
-          stopReferenceSelect.value = componentData.stop.reference;
+      }
+
+      // Handle profile data based on mode
+      let csvContent = "";
+      let profileData = null;
+
+      if (steeringData.mode && steeringData.mode.toLowerCase() === "step") {
+        // Handle step mode: separate arrays for Time, Roll, Yaw, Pitch
+        console.log(`[OpenMission] Processing step mode profile data`);
+
+        if (steeringData.Time && Array.isArray(steeringData.Time)) {
+          // Build CSV content from separate arrays
+          const timeArray = steeringData.Time;
+          const rollArray = steeringData.Roll || [];
+          const yawArray = steeringData.Yaw || [];
+          const pitchArray = steeringData.Pitch || [];
+
+          // Create header row
+          const headers = ["Time", "ROLL", "YAW", "PITCH"];
+          const csvRows = [headers];
+
+          // Create data rows (Time array length determines number of rows)
+          // Note: Pitch array is usually one element shorter than Time array
+          for (let i = 0; i < timeArray.length; i++) {
+            const row = [
+              timeArray[i],
+              rollArray[i] !== undefined ? rollArray[i] : 0,
+              yawArray[i] !== undefined ? yawArray[i] : 0,
+              pitchArray[i] !== undefined
+                ? pitchArray[i]
+                : pitchArray[i - 1] !== undefined
+                ? pitchArray[i - 1]
+                : 0,
+            ];
+            csvRows.push(row);
+          }
+
+          profileData = csvRows;
+          csvContent = convertProfileArrayToCSV(csvRows);
+          console.log(`[OpenMission] Step mode CSV content created:`, csvRows);
+        }
+      } else {
+        // Handle normal mode: 2D array structure in "value" field
+        console.log(`[OpenMission] Processing normal mode profile data`);
+
+        if (steeringData.value && Array.isArray(steeringData.value)) {
+          profileData = steeringData.value;
+          csvContent = convertProfileArrayToCSV(steeringData.value);
+          console.log(
+            `[OpenMission] Normal mode CSV content created from value array`
+          );
         }
       }
 
-      // 3. Populate Steering tab
-      steeringTab.click(); // Show steering tab
-      setTimeout(() => {
-        const steeringForm = document.getElementById(
-          `steering-component-${componentIndex}-steering-form`
+      // Create CSV blob if we have profile data
+      if (profileData && csvContent) {
+        params.profile_data = profileData;
+        const csvBlob = new Blob([csvContent], { type: "text/csv" });
+
+        // Create a filename based on the component and mode
+        const mode = steeringData.mode || "normal";
+        params.profile_csv_filename = `profile_${mode}_data.csv`;
+
+        // Store the blob as a File-like object for later use
+        params.profile_csv = csvBlob;
+
+        console.log(
+          `[OpenMission] Profile CSV blob created: ${params.profile_csv_filename}`
         );
-        if (steeringForm) {
-          const steeringTypeSelect = steeringForm.querySelector(
-            'select[id$="-steering-type"]'
-          );
-          if (steeringTypeSelect) {
-            steeringTypeSelect.value = componentData.steering.type;
-            // Trigger change event to show relevant fields
-            steeringTypeSelect.dispatchEvent(
-              new Event("change", { bubbles: true })
-            );
-
-            // Wait for fields to update based on type
-            setTimeout(() => {
-              // Handle different types of steering
-              switch (componentData.steering.type) {
-                case "CONST_BODYRATE":
-                  const axisSelect = steeringForm.querySelector(
-                    'select[id$="-axis-select"]'
-                  );
-                  if (axisSelect)
-                    axisSelect.value = componentData.steering.axis;
-
-                  const rateValueInput = steeringForm.querySelector(
-                    'input[id$="-rate-value"]'
-                  );
-                  if (rateValueInput)
-                    rateValueInput.value = componentData.steering.value;
-                  break;
-
-                case "PROFILE":
-                  const modeSelect = steeringForm.querySelector(
-                    'select[id$="-mode-select"]'
-                  );
-                  if (modeSelect)
-                    modeSelect.value = componentData.steering.mode;
-
-                  const quantitySelect = steeringForm.querySelector(
-                    'select[id$="-quantity-select"]'
-                  );
-                  if (quantitySelect)
-                    quantitySelect.value = componentData.steering.quantity;
-
-                  const indVarSelect = steeringForm.querySelector(
-                    'select[id$="-indvar-select"]'
-                  );
-                  if (indVarSelect)
-                    indVarSelect.value = componentData.steering.ind_variable;
-
-                  // Handle profile data as CSV
-                  if (
-                    componentData.steering.value &&
-                    Array.isArray(componentData.steering.value)
-                  ) {
-                    const profileCsvFilename = steeringForm.querySelector(
-                      `#profile-csv-filename-${componentIndex}`
-                    );
-                    if (profileCsvFilename) {
-                      profileCsvFilename.value = `${componentKey}_profile.csv`;
-
-                      // Show clear button if it exists
-                      const clearProfileBtn =
-                        steeringForm.querySelector(".clear-profile-btn");
-                      if (clearProfileBtn)
-                        clearProfileBtn.style.display = "block";
-                    }
-                  }
-                  break;
-
-                case "ZERO_RATE":
-                  // No additional fields for ZERO_RATE
-                  break;
-
-                // Add other steering types as needed
-              }
-            }, 200);
-          }
-        }
-      }, 200);
-    }, 200);
-  }, 200);
+      } else {
+        console.warn(
+          `[OpenMission] No valid profile data found for CSV creation`
+        );
+      }
+      break;
+  }
 
   console.log(
-    `[OpenMission] Populated steering component ${componentIndex} (${componentKey})`
+    `[OpenMission] Parsed steering params for ${steeringData.type}:`,
+    params
   );
+  return params;
+}
+
+function mapIndependentVariable(jsonIndVar) {
+  const indVarMapping = {
+    PHASE_TIME: "phaseTime",
+    PROFILE_TIME: "profileTime",
+    MISSION_TIME: "missionTime",
+  };
+
+  return indVarMapping[jsonIndVar] || jsonIndVar?.toLowerCase() || "";
+}
+
+function convertProfileArrayToCSV(profileArray) {
+  if (!Array.isArray(profileArray) || profileArray.length === 0) {
+    return "";
+  }
+
+  // Convert array to CSV string
+  return profileArray
+    .map((row) => {
+      if (Array.isArray(row)) {
+        return row.join(",");
+      }
+      return String(row);
+    })
+    .join("\n");
+}
+
+function cleanComment(comment) {
+  if (!comment) return "";
+
+  // Remove the JSON formatting artifacts from comments
+  return comment
+    .replace(/^\s*"comment"\s*:\s*"/, "") // Remove opening JSON
+    .replace(/"\s*$/, "") // Remove closing quote
+    .replace(/\\"/g, '"') // Unescape quotes
+    .trim();
 }
 
 // Function to populate stopping condition data
