@@ -242,6 +242,43 @@ function populateForms(loadedData) {
   );
   window.finalMissionData = loadedData; // Make loaded data globally accessible
 
+  // Seed eventSequence from JSON based on loaded vehicle key
+  (function seedFlags() {
+    const missionVehicles = loadedData.mission && loadedData.mission.vehicle;
+    if (Array.isArray(missionVehicles) && missionVehicles.length > 0) {
+      const vehicleName = missionVehicles[0];
+      const seqKey = `${vehicleName}_Sequence`;
+      if (Array.isArray(loadedData[seqKey])) {
+        window.eventSequence = loadedData[seqKey].map((evt) => ({
+          flag: evt.identity,
+          triggerType: mapTriggerType(evt.trigger),
+          triggerValue: evt.value,
+          referenceFlag: evt.reference || "none",
+          comment: evt.comment || "",
+        }));
+        console.log(
+          "[OpenMission] Seeded window.eventSequence from JSON:",
+          window.eventSequence
+        );
+        // Update dropdowns immediately with seeded flags
+        if (typeof updateReferenceFlagDropdown === "function") {
+          updateReferenceFlagDropdown();
+        }
+        if (typeof populateStoppingFlagDropdown === "function") {
+          populateStoppingFlagDropdown();
+        }
+      } else {
+        console.warn(
+          `[OpenMission] No sequence array found under key ${seqKey}`
+        );
+      }
+    } else {
+      console.warn(
+        "[OpenMission] No mission.vehicle array found in loadedData.mission"
+      );
+    }
+  })();
+
   if (!loadedData.mission) {
     console.error("Mission data is missing!");
     Swal.fire(
@@ -336,9 +373,21 @@ function populateForms(loadedData) {
     populateOptimization(loadedData);
   }
 
-  // Populate stopping condition
-  if (loadedData.stopping_condition) {
+  // Populate stopping condition depending on mode
+  const mode = loadedData.mission.MODE?.toLowerCase() || "simulation";
+  if (mode === "simulation" && loadedData.stopping_criteria) {
+    populateSimulationStopping(loadedData.stopping_criteria);
+  }
+  if (mode === "optimization" && loadedData.stopping_condition) {
     populateStoppingCondition(loadedData);
+  }
+
+  // Final refresh of flag dropdowns in case other routines overwrote them
+  if (typeof updateReferenceFlagDropdown === "function") {
+    updateReferenceFlagDropdown();
+  }
+  if (typeof populateStoppingFlagDropdown === "function") {
+    populateStoppingFlagDropdown();
   }
 
   console.log("[OpenMission] Form population process completed.");
@@ -517,6 +566,75 @@ function populateEnvironment(environmentData) {
   if (coreSelect) coreSelect.value = coeComponent; // e.g., "MSL"
 
   console.log("[OpenMission] populateEnvironment finished.");
+}
+
+// Function to populate simulation-mode stopping condition fields
+function populateSimulationStopping(stoppingData) {
+  if (!stoppingData) return;
+  // Store stopping condition data globally so navigation restore logic can use it
+  window.stoppingConditionData = {
+    flagValue: stoppingData.flag_name,
+    timeValue: stoppingData.value,
+    altitudeValue: stoppingData.value,
+    condition: stoppingData.condition,
+    type: stoppingData.type,
+  };
+  const typeValue = stoppingData.type.toLowerCase();
+  const radio = document.querySelector(
+    `input[name="stopping-criteria"][value="${typeValue}"]`
+  );
+  if (radio) {
+    radio.checked = true;
+    radio.dispatchEvent(new Event("change", { bubbles: true }));
+    console.log(`[OpenMission] Selected stopping criteria radio: ${typeValue}`);
+    setTimeout(() => {
+      if (typeValue === "flag") {
+        const flagSelect = document.getElementById("flag-name");
+        if (flagSelect) {
+          if (
+            ![...flagSelect.options].some(
+              (opt) => opt.value === stoppingData.flag_name
+            )
+          ) {
+            const newOpt = document.createElement("option");
+            newOpt.value = stoppingData.flag_name;
+            newOpt.textContent = stoppingData.flag_name;
+            flagSelect.appendChild(newOpt);
+          }
+          flagSelect.value = stoppingData.flag_name;
+          console.log(
+            `[OpenMission] Set stopping flag: ${stoppingData.flag_name}`
+          );
+        }
+        const valueInput = document.getElementById("flag-value");
+        if (valueInput) {
+          valueInput.value = stoppingData.value;
+          console.log(`[OpenMission] Set flag value: ${stoppingData.value}`);
+        }
+        const condSelect = document.getElementById("flag-condition");
+        if (condSelect) {
+          condSelect.value = stoppingData.condition.toLowerCase();
+          console.log(
+            `[OpenMission] Set flag condition: ${stoppingData.condition.toLowerCase()}`
+          );
+        }
+      } else if (typeValue === "time") {
+        const timeVal = document.getElementById("time-value");
+        if (timeVal) timeVal.value = stoppingData.value;
+        const timeCond = document.getElementById("time-condition");
+        if (timeCond) timeCond.value = stoppingData.condition.toLowerCase();
+      } else if (typeValue === "altitude") {
+        const altVal = document.getElementById("altitude-value");
+        if (altVal) altVal.value = stoppingData.value;
+        const altCond = document.getElementById("altitude-condition");
+        if (altCond) altCond.value = stoppingData.condition.toLowerCase();
+      }
+    }, 100);
+  } else {
+    console.warn(
+      `[OpenMission] Stopping criteria radio not found for type: ${typeValue}`
+    );
+  }
 }
 
 function populateVehicle(

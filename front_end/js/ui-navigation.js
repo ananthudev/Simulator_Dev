@@ -1393,7 +1393,74 @@ document.addEventListener("DOMContentLoaded", function () {
   // Add event listener for stopping condition button
   stoppingButton.addEventListener("click", (event) => {
     event.preventDefault();
+
+    // Store the current flag dropdown value before showing the form
+    let currentFlagValue = null;
+    const flagSelect = document.getElementById("flag-name");
+    if (flagSelect) {
+      currentFlagValue = flagSelect.value;
+    }
+
+    // Check if the form is already showing (to avoid unnecessary rerendering)
+    const stoppingFormElement = document.getElementById("stopping-form");
+    if (
+      stoppingFormElement &&
+      stoppingFormElement.classList.contains("active-form")
+    ) {
+      console.log("[Navigation] Stopping form already active, not reloading");
+      return;
+    }
+
+    // Show the form
     showForm(stoppingForm);
+
+    // After showing the form, restore the dropdown value if needed
+    setTimeout(() => {
+      // Get the flag dropdown again (in case it was recreated)
+      const flagSelectAfter = document.getElementById("flag-name");
+      if (flagSelectAfter && currentFlagValue) {
+        // Ensure the dropdown is populated first
+        if (typeof manuallyPopulateStoppingFlagDropdown === "function") {
+          manuallyPopulateStoppingFlagDropdown();
+        } else if (typeof window.populateStoppingFlagDropdown === "function") {
+          window.populateStoppingFlagDropdown();
+        }
+
+        // Try to set the value directly
+        flagSelectAfter.value = currentFlagValue;
+
+        // If setting failed, we might need to add the option
+        if (flagSelectAfter.value !== currentFlagValue) {
+          const options = Array.from(flagSelectAfter.options);
+          if (!options.some((opt) => opt.value === currentFlagValue)) {
+            const newOption = document.createElement("option");
+            newOption.value = currentFlagValue;
+            newOption.textContent = currentFlagValue;
+            flagSelectAfter.appendChild(newOption);
+            flagSelectAfter.value = currentFlagValue;
+          }
+        }
+      }
+
+      // If we have stored stopping condition data, use it
+      if (
+        window.stoppingConditionData &&
+        window.stoppingConditionData.flagValue
+      ) {
+        const flagValue = window.stoppingConditionData.flagValue;
+        if (flagSelectAfter) {
+          // Check if the option exists
+          const options = Array.from(flagSelectAfter.options);
+          if (!options.some((opt) => opt.value === flagValue)) {
+            const newOption = document.createElement("option");
+            newOption.value = flagValue;
+            newOption.textContent = flagValue;
+            flagSelectAfter.appendChild(newOption);
+          }
+          flagSelectAfter.value = flagValue;
+        }
+      }
+    }, 10);
   });
 
   // Stopping condition radio button logic

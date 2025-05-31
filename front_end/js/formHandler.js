@@ -3801,15 +3801,16 @@ function populateStoppingFlagDropdown() {
   const flagDropdown = document.getElementById("flag-name");
   if (!flagDropdown) return;
 
+  // Remember previous selection
+  const prevValue = flagDropdown.value;
   // Clear ALL existing options and optgroups completely
   flagDropdown.innerHTML = "";
 
-  // Add back the placeholder option
+  // Add back the placeholder option (will select it only if no valid previous value)
   const placeholderOption = document.createElement("option");
   placeholderOption.value = "";
   placeholderOption.textContent = "Select a stopping flag";
   placeholderOption.disabled = true;
-  placeholderOption.selected = true;
   flagDropdown.appendChild(placeholderOption);
 
   // Get all sequence flags
@@ -3920,8 +3921,18 @@ function populateStoppingFlagDropdown() {
     }
   });
 
+  // Restore previous selection if still available, else select placeholder
+  if (
+    prevValue &&
+    Array.from(flagDropdown.options).some((opt) => opt.value === prevValue)
+  ) {
+    flagDropdown.value = prevValue;
+  } else {
+    placeholderOption.selected = true;
+  }
   console.log(
-    "Populated stopping flag dropdown with flags from sequence and registry"
+    "Populated stopping flag dropdown with flags from sequence and registry, preserved selection:",
+    flagDropdown.value
   );
 }
 
