@@ -143,17 +143,31 @@
 - [x] Created data access interface (via `window.steeringState` and `finalMissionData` integration).
 - [x] Ensured component references update correctly (e.g., in dropdowns).
 
+### Mission Loading & Dropdown Fixes (`openMissionHandler.js`, `formHandler.js`)
+
+- [x] Implemented "Open Mission" button and `populateForms` to load and parse mission JSON, reset state, and navigate to Mission Details form.
+- [x] Added `seedFlags` logic in `populateForms` to initialize `window.eventSequence` from loaded data and refresh flag dropdowns (`updateReferenceFlagDropdown`, `populateStoppingFlagDropdown`).
+- [x] Modified `populateStoppingFlagDropdown` in `formHandler.js` to remember and preserve the user's previous dropdown selection, preventing reset to placeholder on focus change.
+
+### Form Handler Enhancements (`formHandler.js`)
+
+- [x] Added `saveNozzleData` and wired it into the UI navigation for nozzle form submissions.
+- [x] Integrated `saveMotorData` directly into motor form submissions through UI navigation.
+- [x] Implemented `updateStageNumberInData` logic for renaming stages, motors, and nozzles in `savedStages`, `finalMissionData`, and `flagRegistry`.
+- [x] Implemented `sortSavedStages` to maintain ordered `savedStages` array.
+- [x] Added `addMotorKeyToStage` to track new motors in `savedStages`.
+
 ## Pending Tasks
 
 ### Core Features & Integration
 
 - [ ] **Simultaneous Missions:** Enable the execution of multiple mission simulations concurrently (requires backend and UI handling for multiple processes/outputs).
-- [ ] **"Open Mission" Functionality:**
-  - Implement the "Open Mission" button to allow users to select a previously saved mission JSON file.
-  - Parse the selected JSON file.
-  - Auto-populate all corresponding form fields across all sections (Mission, Env, Vehicle, Stages, Motors, Nozzles, Sequence, Steering, Stopping, Optimization) with the loaded data.
-  - Handle potential parsing errors gracefully.
-  - Manage loaded file data (e.g., how to represent previously uploaded CSVs like Atmosphere, Wind, Aero, Thrust, Profile - maybe store filenames and prompt user if files are missing, or embed data if feasible).
+- [x] **"Open Mission" Functionality:**
+  - [x] Implement the "Open Mission" button to allow users to select a previously saved mission JSON file.
+  - [x] Parse the selected JSON file.
+  - [x] Auto-populate all corresponding form fields across all sections (Mission, Env, Vehicle, Stages, Motors, Nozzles, Sequence, Steering, Stopping, Optimization) with the loaded data.
+  - [x] Handle potential parsing errors gracefully.
+  - [x] Manage loaded file data (e.g., how to represent previously uploaded CSVs like Atmosphere, Wind, Aero, Thrust, Profile - maybe store filenames and prompt user if files are missing, or embed data if feasible).
 - [ ] **Edit Loaded Mission Data:** Allow users to modify data in forms after loading a mission JSON.
 - [ ] **Re-Save Prompt:** If a user modifies data loaded from a JSON, prompt them to save the changes before running the mission again.
 - [ ] **Re-run Mission:** Allow users to trigger the mission launch (sending updated data to the backend) after editing a loaded file.
@@ -176,6 +190,8 @@
   - Implement CSS variables or class toggling to apply theme changes across the entire application UI.
 - [ ] **Open Mission Loading Feedback:** Provide visual feedback (e.g., progress bar, status messages) while a mission JSON file is being parsed and forms are being populated.
 - [ ] **Loading Indicator:** Update or replace the existing loading GIF/indicator with a more modern or theme-consistent visual.
+- [ ] Refactor DOM-based data inheritance (e.g., structural mass, nozzle diameter) to use central data model in `formHandler.js` instead of brittle listeners in `ui-navigation.js`.
+- [ ] Implement motor deletion cleanup: call `formHandler` functions to remove motor and its nozzle entries from `savedStages`, `finalMissionData`, and `flagRegistry` when a motor is deleted via the UI.
 
 ### Data Management & Persistence
 
@@ -256,95 +272,24 @@
 
 - [ ] **Global Namespace Management:**
 
-  - Reduce reliance on `window` object properties (`finalMissionData`, `eventSequence`, `flagRegistry`, etc.).
-  - Implement module pattern or ES modules to better encapsulate functionality.
-  - Create a centralized data manager to handle all mission data access/updates.
+  - Reduce reliance on `window` object properties (`finalMissionData`, `
 
-- [ ] **Event Listener Management:**
+## Documentation: Astra GUI Overview
 
-  - Audit and refactor multiple event listeners on same elements (e.g., save buttons).
-  - Use event delegation more consistently for dynamically created elements.
-  - Create a registry of attached listeners to prevent duplicates.
-  - Implement better cleanup of listeners when forms/elements are removed.
+This Electron-based desktop application (the Astra GUI) provides a complete interface for configuring, running, and visualizing ASTRA mission simulations:
 
-- [ ] **CSS Style Conflicts:**
+- **Mission Workflow**: Build missions via forms covering Mission Details, Environment (planet, atmosphere, wind, gravity/COE), Vehicle (type, initial conditions, payload, PLF), Stages/Motors/Nozzles, Event Sequence, Steering, Stopping Criteria, and (in Optimization mode) Objective Function, Constraints, Optimization Mode, and Design Variables.
+- **Mode-Aware UI**: Selecting "simulation" shows only simulation settings; selecting "optimization" reveals additional navigation items and forms for objective, constraints, mode settings, and design variables.
+- **Dynamic Form Generation**: "Add Stage/Motor/Component" buttons create numbered form sections on-the-fly, each with limits and unique IDs (e.g., `profile_1`, `profile_2`).
+- **CSV Upload Support**: Users can upload CSV files for atmosphere, wind, thrust curves, and steering profiles; the file names and parsed data are stored in memory and reloaded when opening saved missions.
+- **Event-Driven Interactions**: Custom events (e.g., `sequenceUpdated`, `download-thrust-data`) and change/listeners manage UI updates and data synchronization.
+- **Integration with ASTRA Engine**: Launches the ASTRA C binary via WSL, captures and colorizes its ANSI output in a pop-up terminal, and displays key results (COE, ΔV, mission info) in the GUI.
+- **Mission Persistence**: Save and re-open mission JSON files with full state preservation; detect unsaved changes and prompt for re-save before re-running.
+- **Testing & CI**: Cypress end-to-end tests, mock-server fixtures, and a GitLab CI pipeline ensure robust validation of core functionality, including form validation and engine integration.
+- **Modular Architecture**: Organized into JavaScript modules (formHandler, missionDataHandler, openMissionHandler, steering-module, optimization.js) and styled with CSS; uses SweetAlert2 for notifications and modals.
+- **State Management**: Uses global `window.finalMissionData` and `window.steeringState` objects for in-memory storage; aims to reduce direct DOM data mixing in future refactors.
+- **UX Enhancements**: Real-time validation feedback, save/done indicators, component previews, theme support, offline map tile caching, and dynamic help/tooltips for a seamless user experience.
 
-  - Move inline style injections (like in `formHandler.js`) to proper CSS files.
-  - Standardize class naming conventions to prevent selector collisions.
-  - Consider adopting a CSS methodology like BEM for more robust component styling.
+These points summarize the core capabilities, architecture, and workflow of the Astra GUI front-end.
 
-- [ ] **Unified API for Common Operations:**
-
-  - Create standardized APIs for file handling, form validation, and data saving.
-  - Implement consistent error handling and user feedback approaches.
-  - Document these APIs for future development reference.
-
-- [ ] **Documentation Improvements:**
-
-  - Add JSDoc comments to clarify function purposes, parameters, and dependencies.
-  - Document component interactions and data flow between modules.
-  - Create architectural diagrams showing module relationships.
-
-- [ ] **Integration Testing:**
-  - Develop test cases specifically focused on validating that refactored components work correctly together.
-  - Test boundary cases where multiple modules interact with the same data or DOM elements.
-
-### Electron.js Application Enhancements
-
-- [ ] **Architecture Improvements:**
-
-  - Integrate a modern JavaScript framework (React, Vue, or Svelte) for more maintainable UI components
-  - Implement component-based architecture for better code organization and reusability
-  - Use state management libraries (Redux, Vuex, or context API) to replace global window variables
-  - Gradually migrate to TypeScript for improved type safety and better IDE support
-  - Move heavy computations to background worker threads to prevent UI freezing
-  - Implement proper IPC communication between renderer and main processes
-
-- [ ] **Performance Optimizations:**
-
-  - Improve memory management with better cleanup of large objects
-  - Monitor memory usage with Electron DevTools and address leaks
-  - Optimize handling of large CSV datasets and map components
-  - Implement app preloading for faster startup times
-  - Consider lazy-loading modules that aren't immediately needed
-  - Add debouncing/throttling to event handlers for better performance
-  - Virtualize long lists (like event sequences) to handle large datasets efficiently
-
-- [ ] **User Experience Enhancements:**
-
-  - Add keyboard shortcuts for common operations
-  - Improve tab navigation flow through complex forms
-  - Implement command palette (Ctrl+K) for quick access to functionality
-  - Enhance offline map functionality with better caching
-  - Allow users to customize workspace layout
-  - Save user preferences (units, recently used values, UI preferences)
-  - Implement dashboard with customizable widgets for frequently used tools
-
-- [ ] **Development Workflow:**
-
-  - Implement Spectron or Playwright for Electron-specific E2E testing
-  - Optimize Electron build size with better asset management
-  - Implement differential updates to reduce update package size
-  - Create better hot reloading for development
-
-- [ ] **Platform Integration:**
-
-  - Implement better OS integration (file associations, deep linking)
-  - Add system notifications for long-running processes
-  - Optimize for multiple displays and high-DPI screens
-  - Improve consistency between macOS, Windows, and Linux versions
-  - Implement platform-specific optimizations (native menus, etc.)
-
-- [ ] **Security Enhancements:**
-
-  - Implement proper CSP policies
-  - Use contextIsolation and secure IPC patterns
-  - Conduct regular security audits of dependencies
-
-- [ ] **Advanced Features:**
-  - Add multi-user collaboration features for team-based mission planning
-  - Implement WebRTC or server-based synchronization
-  - Add commenting and annotation capabilities
-  - Consider adding ML-based optimization suggestions
-  - Implement predictive input for common parameter configurations
-  - Add anomaly detection in simulation results
+// End of generated documentation

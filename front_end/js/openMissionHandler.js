@@ -131,6 +131,12 @@ function resetCurrentMissionState() {
     stagesContainer.innerHTML = "";
   }
 
+  // Clear sidebar stage list
+  const vehicleStagesList = document.getElementById("vehicle-stages");
+  if (vehicleStagesList) {
+    vehicleStagesList.innerHTML = "";
+  }
+
   // Clear event sequence
   const eventSequenceContainer = document.getElementById(
     "eventSequenceContainer"
@@ -139,54 +145,43 @@ function resetCurrentMissionState() {
     eventSequenceContainer.innerHTML = "";
   }
 
-  // Reset stage counter
+  // Reset stage counter in openMission and UI navigation
   if (window.stageCount !== undefined) {
     window.stageCount = 0;
+  }
+  if (window.uiNav && typeof window.uiNav.resetStageCounter === "function") {
+    window.uiNav.resetStageCounter();
   }
 
   // Clear steering components properly
   const activeComponentsList = document.getElementById(
-    "active-components-list"
+    "steering-config-content"
   );
-  if (activeComponentsList) {
-    activeComponentsList.innerHTML = "";
-  }
+  const configPlaceholder = document.getElementById(
+    "steering-config-placeholder"
+  );
+  const currentConfigTitleSpan = document.querySelector(
+    "#current-config-title span"
+  );
 
-  // Reset steering state
-  if (window.steeringState) {
-    window.steeringState.activeComponents = {};
-    window.steeringState.selectedComponentId = null;
+  if (activeComponentsList) activeComponentsList.classList.add("hidden");
+  if (configPlaceholder) configPlaceholder.classList.remove("hidden");
+  if (currentConfigTitleSpan) currentConfigTitleSpan.textContent = "";
 
-    // Hide configuration panel
-    const configContentArea = document.getElementById(
-      "steering-config-content"
-    );
-    const configPlaceholder = document.getElementById(
-      "steering-config-placeholder"
-    );
-    const currentConfigTitleSpan = document.querySelector(
-      "#current-config-title span"
-    );
-
-    if (configContentArea) configContentArea.classList.add("hidden");
-    if (configPlaceholder) configPlaceholder.classList.remove("hidden");
-    if (currentConfigTitleSpan) currentConfigTitleSpan.textContent = "";
-
-    // Reset component counters
-    const componentTypes = [
-      "verticalAscend",
-      "pitchHold",
-      "constantPitch",
-      "gravityTurn",
-      "profile",
-      "coasting",
-    ];
-    componentTypes.forEach((type) => {
-      if (typeof updateComponentCounter === "function") {
-        updateComponentCounter(type);
-      }
-    });
-  }
+  // Reset component counters
+  const componentTypes = [
+    "verticalAscend",
+    "pitchHold",
+    "constantPitch",
+    "gravityTurn",
+    "profile",
+    "coasting",
+  ];
+  componentTypes.forEach((type) => {
+    if (typeof updateComponentCounter === "function") {
+      updateComponentCounter(type);
+    }
+  });
 
   // Clear steering sequence dropdown
   const sequenceSelect = document.getElementById("sequence");
@@ -3481,341 +3476,948 @@ function populateStoppingCondition(loadedData) {
 // Main function to handle all optimization data
 function populateOptimization(loadedData) {
   if (
-    !loadedData.optimization ||
-    loadedData.mission.MODE?.toLowerCase() !== "optimization"
+    !loadedData ||
+    loadedData.mission?.MODE?.toLowerCase() !== "optimization"
   ) {
     console.log(
-      "No optimization data or not in optimization mode. Skipping optimization population."
+      "[OpenMission] No optimization data or not in optimization mode. Skipping optimization population."
     );
     return;
   }
 
-  // Show the optimization section in UI
-  const optimizationSection = document.getElementById("optimization-section");
-  if (optimizationSection) {
-    optimizationSection.classList.remove("hidden");
+  console.log("[OpenMission] Starting optimization data population");
+
+  // Show the optimization section in UI by updating sidebar
+  const modesSelect = document.getElementById("modes");
+  if (modesSelect) {
+    modesSelect.value = "optimization";
+    modesSelect.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  // Populate objective function
-  populateObjectiveFunction(loadedData.optimization.objective_function);
+  // Extract optimization-related data from the loaded JSON
+  // The structure is different from what the existing functions expect
+  // First extract objective and constraints from the optimization array
+  if (loadedData.optimization && Array.isArray(loadedData.optimization)) {
+    // Find objectives (entries with type: "OBJECTIVE")
+    const objectives = loadedData.optimization.filter(
+      (item) => item.type === "OBJECTIVE"
+    );
 
-  // Populate constraints
-  populateConstraints(loadedData.optimization.constraints);
+    // Find constraints (entries without type: "OBJECTIVE")
+    const constraints = loadedData.optimization.filter(
+      (item) => item.type !== "OBJECTIVE"
+    );
 
-  // Populate mode settings
-  populateOptimizationMode(loadedData.optimization.mode_settings);
+    console.log(
+      `[OpenMission] Found ${objectives.length} objectives and ${constraints.length} constraints`
+    );
+
+    // Populate objective function with objectives
+    if (objectives.length > 0) {
+      populateObjectiveFunctionFromArray(objectives);
+    }
+
+    // Populate constraints with constraints array and tolerances
+    if (constraints.length > 0) {
+      populateConstraintsFromArray(
+        constraints,
+        loadedData.constraint_tolerence
+      );
+    }
+  }
+
+  // Populate mode settings with mode, map, population, optimizer, etc.
+  populateOptimizationModeSettings(loadedData);
 
   // Populate design variables
-  populateDesignVariables(loadedData.optimization.design_variables);
+  if (loadedData.design_variables) {
+    populateDesignVariablesFromKeys(loadedData);
+  }
 
-  console.log("[OpenMission] Optimization data populated successfully.");
+  console.log("[OpenMission] Optimization data population completed");
 }
 
-// Populate objective function section
-function populateObjectiveFunction(objectiveData) {
-  if (!objectiveData) return;
+// Populate objective function from array format
+function populateObjectiveFunctionFromArray(objectivesArray) {
+  if (
+    !objectivesArray ||
+    !Array.isArray(objectivesArray) ||
+    objectivesArray.length === 0
+  ) {
+    console.warn("[OpenMission] No objective function data to populate");
+    return;
+  }
 
+  console.log(
+    "[OpenMission] Populating objective function from array:",
+    objectivesArray
+  );
+
+  // Get the objective function container
   const objFunctionContainer = document.getElementById(
     "objective-function-container"
   );
   if (!objFunctionContainer) {
-    console.warn("Objective function container not found.");
+    console.warn("[OpenMission] Objective function container not found");
     return;
   }
 
-  // Find the objective function type selection and set it
-  const objTypeSelect = document.getElementById("objective-type-select");
-  if (objTypeSelect && objectiveData.type) {
-    objTypeSelect.value = objectiveData.type;
-    objTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  // Debug: List all forms available before we start
+  const existingFormsBefore = document.querySelectorAll(
+    '.objective-form, [id^="objective-form"], .optimization-instance'
+  );
+  console.log(
+    `[OpenMission] Found ${existingFormsBefore.length} objective forms before population:`,
+    Array.from(existingFormsBefore).map((f) => ({
+      id: f.id,
+      class: f.className,
+    }))
+  );
 
-    // Wait for type-specific fields to be created
-    setTimeout(() => {
-      switch (objectiveData.type) {
-        case "minimum":
-        case "maximum":
-          const quantitySelect = document.getElementById("obj-quantity-select");
-          if (quantitySelect && objectiveData.quantity) {
-            quantitySelect.value = objectiveData.quantity;
-          }
-          break;
+  // Debug: Directly query for specific form elements that should exist by default
+  for (let i = 1; i <= 2; i++) {
+    // Try both ID patterns
+    const formById = document.getElementById(`objective-form-${i}`);
+    const nameSelectById = document.getElementById(`objective-name-${i}`);
+    const flagSelectById = document.getElementById(`objective-flag-${i}`);
+    const factorSelectById = document.getElementById(`objective-factor-${i}`);
 
-        case "target":
-          const targetQuantitySelect = document.getElementById(
-            "target-quantity-select"
-          );
-          if (targetQuantitySelect && objectiveData.quantity) {
-            targetQuantitySelect.value = objectiveData.quantity;
-          }
-
-          const targetValueInput =
-            document.getElementById("target-value-input");
-          if (targetValueInput && objectiveData.target_value !== undefined) {
-            targetValueInput.value = objectiveData.target_value;
-          }
-          break;
-
-        case "weighted_sum":
-          // Populate each term in the weighted sum
-          if (objectiveData.terms && Array.isArray(objectiveData.terms)) {
-            objectiveData.terms.forEach((term, index) => {
-              // Click add term button for each term except the first (which is created by default)
-              if (index > 0) {
-                const addTermBtn = document.getElementById(
-                  "add-weighted-term-btn"
-                );
-                if (addTermBtn) {
-                  addTermBtn.click();
-                }
-              }
-
-              // Wait for term to be created
-              setTimeout(() => {
-                const weightInput = document.getElementById(
-                  `weight-${index + 1}`
-                );
-                if (weightInput && term.weight !== undefined) {
-                  weightInput.value = term.weight;
-                }
-
-                const quantitySelect = document.getElementById(
-                  `quantity-${index + 1}`
-                );
-                if (quantitySelect && term.quantity) {
-                  quantitySelect.value = term.quantity;
-                }
-              }, 200);
-            });
-          }
-          break;
-      }
-    }, 200);
+    console.log(`[OpenMission] Direct element check for form ${i}:`, {
+      formFound: !!formById,
+      nameSelectFound: !!nameSelectById,
+      flagSelectFound: !!flagSelectById,
+      factorSelectFound: !!factorSelectById,
+    });
   }
 
+  // Since there should already be 2 forms present, let's try to populate them directly
+  // without adding or removing forms
+
+  // Get the maximum number of objectives to populate (up to 2)
+  const maxObjectives = Math.min(objectivesArray.length, 2);
+
+  // For each objective, try to populate the corresponding form
+  for (let i = 0; i < maxObjectives; i++) {
+    const objective = objectivesArray[i];
+    const formIndex = i + 1; // Form indices are 1-based in the HTML
+
+    console.log(
+      `[OpenMission] Attempting to populate objective ${formIndex} with:`,
+      objective
+    );
+
+    // Try to find the form by direct ID first, then by class/position
+    let form = document.getElementById(`objective-form-${formIndex}`);
+
+    // If not found by ID, try finding by class
+    if (!form) {
+      const allForms = document.querySelectorAll(
+        ".objective-form, .optimization-instance"
+      );
+      if (allForms.length > i) {
+        form = allForms[i];
+        console.log(`[OpenMission] Form found by class selector at index ${i}`);
+      }
+    }
+
+    if (!form) {
+      console.warn(
+        `[OpenMission] Could not find objective form ${formIndex} to populate`
+      );
+      continue;
+    }
+
+    console.log(`[OpenMission] Found form for objective ${formIndex}:`, {
+      id: form.id,
+      class: form.className,
+    });
+
+    // Now try to find the name select element in this form
+    let nameSelect = document.getElementById(`objective-name-${formIndex}`);
+    if (!nameSelect) {
+      nameSelect = form.querySelector(".objective-name-select");
+    }
+    if (!nameSelect) {
+      nameSelect = form.querySelector('select[id^="objective-name"]');
+    }
+
+    if (nameSelect && objective.name) {
+      console.log(`[OpenMission] Found name select:`, {
+        id: nameSelect.id,
+        options: nameSelect.options.length,
+      });
+
+      // Check if the option exists, if not add it
+      if (
+        ![...nameSelect.options].some((opt) => opt.value === objective.name)
+      ) {
+        const newOpt = document.createElement("option");
+        newOpt.value = objective.name;
+        newOpt.textContent = objective.name;
+        nameSelect.appendChild(newOpt);
+        console.log(`[OpenMission] Added option for ${objective.name}`);
+      }
+
+      // Set the value and trigger change
+      nameSelect.value = objective.name;
+      nameSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      console.log(`[OpenMission] Set name select to ${objective.name}`);
+    } else {
+      console.warn(
+        `[OpenMission] Could not find name select for objective ${formIndex}`
+      );
+    }
+
+    // Find and set the flag select
+    let flagSelect = document.getElementById(`objective-flag-${formIndex}`);
+    if (!flagSelect) {
+      flagSelect = form.querySelector(".objective-flag-select");
+    }
+    if (!flagSelect) {
+      flagSelect = form.querySelector('select[id^="objective-flag"]');
+    }
+
+    if (flagSelect && objective.flag) {
+      console.log(`[OpenMission] Found flag select:`, {
+        id: flagSelect.id,
+        options: flagSelect.options.length,
+      });
+
+      // Ensure flag option exists
+      if (
+        ![...flagSelect.options].some((opt) => opt.value === objective.flag)
+      ) {
+        const newOpt = document.createElement("option");
+        newOpt.value = objective.flag;
+        newOpt.textContent = objective.flag;
+        flagSelect.appendChild(newOpt);
+        console.log(`[OpenMission] Added flag option for ${objective.flag}`);
+      }
+
+      // Set value and trigger change
+      flagSelect.value = objective.flag;
+      flagSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      console.log(`[OpenMission] Set flag select to ${objective.flag}`);
+    } else {
+      console.warn(
+        `[OpenMission] Could not find flag select for objective ${formIndex}`
+      );
+    }
+
+    // Find and set the factor select
+    let factorSelect = document.getElementById(`objective-factor-${formIndex}`);
+    if (!factorSelect) {
+      factorSelect = form.querySelector(".objective-factor-select");
+    }
+    if (!factorSelect) {
+      factorSelect = form.querySelector('select[id^="objective-factor"]');
+    }
+
+    if (factorSelect && objective.factor !== undefined) {
+      console.log(`[OpenMission] Found factor select:`, {
+        id: factorSelect.id,
+        options: factorSelect.options.length,
+      });
+
+      // Convert the factor to the expected value in the dropdown
+      // According to HTML, +1 is "Minimize", -1 is "Maximize"
+      const factorValue = objective.factor > 0 ? "+1" : "-1";
+
+      // Set the value and trigger change
+      factorSelect.value = factorValue;
+      factorSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      console.log(
+        `[OpenMission] Set factor select to ${factorValue} (${
+          objective.factor > 0 ? "Minimize" : "Maximize"
+        })`
+      );
+    } else {
+      console.warn(
+        `[OpenMission] Could not find factor select for objective ${formIndex}`
+      );
+    }
+
+    // Final log of form state after population
+    console.log(`[OpenMission] Objective ${formIndex} population complete`);
+  }
+
+  // Debug: Check forms after population
+  const existingFormsAfter = document.querySelectorAll(
+    '.objective-form, [id^="objective-form"], .optimization-instance'
+  );
   console.log(
-    `[OpenMission] Populated objective function (${objectiveData.type})`
+    `[OpenMission] Found ${existingFormsAfter.length} objective forms after population`
   );
 }
 
-// Populate constraints section
-function populateConstraints(constraintsData) {
-  if (!constraintsData || !Array.isArray(constraintsData)) return;
-
-  const constraintsContainer = document.getElementById("constraints-container");
-  if (!constraintsContainer) {
-    console.warn("Constraints container not found.");
+// Populate constraints from array format
+function populateConstraintsFromArray(constraintsArray, tolerancesArray) {
+  if (
+    !constraintsArray ||
+    !Array.isArray(constraintsArray) ||
+    constraintsArray.length === 0
+  ) {
+    console.warn("[OpenMission] No constraints data to populate");
     return;
   }
 
-  // Remove any default constraints first
+  console.log(
+    "[OpenMission] Populating constraints from array:",
+    constraintsArray
+  );
+
+  // Find the constraints container and add button
+  const constraintsContainer = document.getElementById("constraints-container");
+  const addConstraintBtn = document.getElementById("add-constraint-btn");
+
+  if (!constraintsContainer || !addConstraintBtn) {
+    console.warn("[OpenMission] Constraints container or add button not found");
+    return;
+  }
+
+  // Clear existing constraints first
   const existingConstraints =
     constraintsContainer.querySelectorAll(".constraint-item");
-  existingConstraints.forEach((item) => item.remove());
-
-  // Add each constraint
-  constraintsData.forEach((constraint, index) => {
-    const addConstraintBtn = document.getElementById("add-constraint-btn");
-    if (addConstraintBtn) {
-      addConstraintBtn.click();
-
-      setTimeout(() => {
-        const constraintType = document.getElementById(
-          `constraint-type-${index}`
-        );
-        if (constraintType && constraint.type) {
-          constraintType.value = constraint.type;
-          constraintType.dispatchEvent(new Event("change", { bubbles: true }));
-
-          setTimeout(() => {
-            const quantitySelect = document.getElementById(
-              `constraint-quantity-${index}`
-            );
-            if (quantitySelect && constraint.quantity) {
-              quantitySelect.value = constraint.quantity;
-            }
-
-            // Handle different constraint types
-            switch (constraint.type) {
-              case "upper_bound":
-              case "lower_bound":
-                const boundValueInput = document.getElementById(
-                  `bound-value-${index}`
-                );
-                if (boundValueInput && constraint.bound_value !== undefined) {
-                  boundValueInput.value = constraint.bound_value;
-                }
-                break;
-
-              case "range":
-                const lowerBoundInput = document.getElementById(
-                  `lower-bound-${index}`
-                );
-                if (lowerBoundInput && constraint.lower_bound !== undefined) {
-                  lowerBoundInput.value = constraint.lower_bound;
-                }
-
-                const upperBoundInput = document.getElementById(
-                  `upper-bound-${index}`
-                );
-                if (upperBoundInput && constraint.upper_bound !== undefined) {
-                  upperBoundInput.value = constraint.upper_bound;
-                }
-                break;
-            }
-          }, 200);
-        }
-      }, 200);
+  existingConstraints.forEach((item) => {
+    if (item.parentNode) {
+      item.parentNode.removeChild(item);
     }
   });
 
-  console.log(`[OpenMission] Populated ${constraintsData.length} constraints.`);
+  // Add each constraint
+  constraintsArray.forEach((constraint, index) => {
+    console.log(`[OpenMission] Adding constraint ${index + 1}:`, constraint);
+
+    // Click to add a new constraint instance
+    addConstraintBtn.click();
+
+    // Wait for the constraint to be created and populated
+    setTimeout(() => {
+      // Find the constraint instance (might have different selectors depending on implementation)
+      const instances = constraintsContainer.querySelectorAll(
+        ".constraint-item, .optimization-instance"
+      );
+      const instance = instances[index];
+
+      if (!instance) {
+        console.warn(
+          `[OpenMission] Constraint instance ${index + 1} not found`
+        );
+        return;
+      }
+
+      // Set constraint name
+      const nameSelect = instance.querySelector(".constraint-name");
+      if (nameSelect && constraint.name) {
+        // Ensure the option exists in the dropdown
+        if (
+          ![...nameSelect.options].some((opt) => opt.value === constraint.name)
+        ) {
+          const newOpt = document.createElement("option");
+          newOpt.value = constraint.name;
+          newOpt.textContent = constraint.name;
+          nameSelect.appendChild(newOpt);
+        }
+        nameSelect.value = constraint.name;
+        nameSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      // Set constraint type (EQUALITY/INEQUALITY)
+      const typeSelect = instance.querySelector(".constraint-type");
+      if (typeSelect && constraint.type) {
+        typeSelect.value = constraint.type;
+        typeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      // Set condition (LESS_THAN/GREATER_THAN) for INEQUALITY types
+      const conditionSelect = instance.querySelector(".constraint-condition");
+      if (conditionSelect && constraint.condition) {
+        conditionSelect.value = constraint.condition;
+      }
+
+      // Set value
+      const valueInput = instance.querySelector(".constraint-value");
+      if (valueInput && constraint.value !== undefined) {
+        valueInput.value = constraint.value;
+      }
+
+      // Set flag
+      const flagSelect = instance.querySelector(".constraint-flag");
+      if (flagSelect && constraint.flag) {
+        // Ensure the option exists
+        if (
+          ![...flagSelect.options].some((opt) => opt.value === constraint.flag)
+        ) {
+          const newOpt = document.createElement("option");
+          newOpt.value = constraint.flag;
+          newOpt.textContent = constraint.flag;
+          flagSelect.appendChild(newOpt);
+        }
+        flagSelect.value = constraint.flag;
+      }
+
+      // Set enabled state
+      const enableToggle = instance.querySelector(".constraint-enable");
+      if (enableToggle && constraint.enable !== undefined) {
+        enableToggle.checked = constraint.enable;
+      }
+
+      // Set tolerance if available in the tolerances array
+      if (tolerancesArray && tolerancesArray[index] !== undefined) {
+        const toleranceInput = instance.querySelector(".constraint-tolerance");
+        if (toleranceInput) {
+          toleranceInput.value = tolerancesArray[index];
+          console.log(
+            `[OpenMission] Set constraint tolerance to: ${tolerancesArray[index]}`
+          );
+        }
+      }
+    }, 300);
+  });
 }
 
 // Populate optimization mode settings
-function populateOptimizationMode(modeData) {
-  if (!modeData) return;
+function populateOptimizationModeSettings(loadedData) {
+  console.log("[OpenMission] Populating optimization mode settings");
 
-  const modeContainer = document.getElementById("optimization-mode-container");
-  if (!modeContainer) {
-    console.warn("Optimization mode container not found.");
+  // Get the mode form and key elements
+  const modeForm = document.getElementById("mode-form");
+  const normalRadio = document.getElementById("mode-normal");
+  const archipelagoRadio = document.getElementById("mode-archipelago");
+
+  if (!modeForm || !normalRadio || !archipelagoRadio) {
+    console.warn("[OpenMission] Mode form elements not found");
     return;
   }
 
-  // Find mode type select and set it
-  const modeTypeSelect = document.getElementById("optimization-mode-select");
-  if (modeTypeSelect && modeData.type) {
-    modeTypeSelect.value = modeData.type;
-    modeTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  // Set mode (normal or archipelago)
+  const modeValue = loadedData.mode?.toLowerCase() || "normal";
+  if (modeValue === "normal") {
+    normalRadio.checked = true;
+  } else if (modeValue === "archipelago") {
+    archipelagoRadio.checked = true;
+  }
 
-    // Wait for type-specific fields to be created
+  // Trigger change event to show the correct fields
+  const activeRadio = modeValue === "normal" ? normalRadio : archipelagoRadio;
+  activeRadio.dispatchEvent(new Event("change", { bubbles: true }));
+
+  // Wait for the mode-specific fields to appear
+  setTimeout(() => {
+    if (modeValue === "normal") {
+      populateNormalModeSettings(loadedData);
+    } else {
+      populateArchipelagoModeSettings(loadedData);
+    }
+  }, 300);
+}
+
+// Helper for normal mode settings
+function populateNormalModeSettings(loadedData) {
+  console.log("[OpenMission] Populating normal mode settings");
+
+  // Set algorithm
+  const algorithmSelect = document.getElementById("normal-algorithm");
+  if (algorithmSelect && loadedData.optimizer) {
+    algorithmSelect.value = loadedData.optimizer;
+    algorithmSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    // Wait for algorithm-specific parameters to appear
     setTimeout(() => {
-      switch (modeData.type) {
-        case "gradient":
-          const maxIterInput = document.getElementById("max-iterations");
-          if (maxIterInput && modeData.max_iterations !== undefined) {
-            maxIterInput.value = modeData.max_iterations;
-          }
+      // Set algorithm specific parameters if they exist
+      if (loadedData[loadedData.optimizer]) {
+        const algorithmParams = loadedData[loadedData.optimizer];
+        const paramsContainer = document.getElementById(
+          "normal-algorithm-params"
+        );
 
-          const convergenceTolInput = document.getElementById(
-            "convergence-tolerance"
-          );
-          if (
-            convergenceTolInput &&
-            modeData.convergence_tolerance !== undefined
-          ) {
-            convergenceTolInput.value = modeData.convergence_tolerance;
-          }
-          break;
-
-        case "genetic":
-          const populationSizeInput =
-            document.getElementById("population-size");
-          if (populationSizeInput && modeData.population_size !== undefined) {
-            populationSizeInput.value = modeData.population_size;
-          }
-
-          const generationsInput = document.getElementById("generations");
-          if (generationsInput && modeData.generations !== undefined) {
-            generationsInput.value = modeData.generations;
-          }
-
-          const mutationRateInput = document.getElementById("mutation-rate");
-          if (mutationRateInput && modeData.mutation_rate !== undefined) {
-            mutationRateInput.value = modeData.mutation_rate;
-          }
-          break;
-
-        // Add other optimization modes as needed
+        if (paramsContainer) {
+          // Find all parameter inputs in the container
+          const inputs = paramsContainer.querySelectorAll("input, select");
+          inputs.forEach((input) => {
+            // Use dataset.parameter which is set by displayAlgorithmParameters
+            const paramName = input.dataset.parameter;
+            if (paramName && algorithmParams[paramName] !== undefined) {
+              if (input.type === "checkbox") {
+                input.checked = Boolean(algorithmParams[paramName]);
+              } else {
+                input.value = algorithmParams[paramName];
+              }
+              console.log(
+                `[OpenMission] Set algorithm parameter ${paramName} to: ${algorithmParams[paramName]}`
+              );
+            }
+          });
+        }
       }
-    }, 200);
+    }, 300);
+  }
+
+  // Set map bounds
+  if (
+    loadedData.map &&
+    Array.isArray(loadedData.map) &&
+    loadedData.map.length >= 2
+  ) {
+    const lowerBoundInput = document.getElementById("normal-lower-bound");
+    const upperBoundInput = document.getElementById("normal-upper-bound");
+
+    if (lowerBoundInput) lowerBoundInput.value = loadedData.map[0];
+    if (upperBoundInput) upperBoundInput.value = loadedData.map[1];
+  }
+
+  // Set population
+  const populationInput = document.getElementById("normal-population");
+  if (populationInput && loadedData.population !== undefined) {
+    populationInput.value = loadedData.population;
+  }
+
+  // Set population toggle
+  const setPopulationToggle = document.getElementById("normal-set-population");
+  if (setPopulationToggle && loadedData.initial_population) {
+    const setPopValue =
+      loadedData.initial_population[0]?.set_population === "YES";
+    setPopulationToggle.checked = setPopValue;
+  }
+
+  // Set problem strategy
+  const strategySelect = document.getElementById("normal-problem-strategy");
+  if (strategySelect && loadedData.problem_strategy) {
+    strategySelect.value = loadedData.problem_strategy;
+  }
+
+  // Handle initial population CSV if present
+  if (
+    loadedData.initial_population &&
+    loadedData.initial_population[0]?.population
+  ) {
+    const popDataKey = loadedData.initial_population[0].population;
+    const popData = loadedData[popDataKey];
+
+    if (popData) {
+      const csvFilenameInput = document.getElementById("normal-csv-filename");
+      const csvClearBtn = document.getElementById("normal-csv-clear-btn");
+
+      if (csvFilenameInput) {
+        csvFilenameInput.value = `${popDataKey}.csv`;
+        console.log(
+          `[OpenMission] Set initial population CSV: ${popDataKey}.csv`
+        );
+      }
+
+      if (csvClearBtn) {
+        csvClearBtn.style.display = "block";
+      }
+
+      // Store the data for later use
+      if (!window.initialPopulationData) {
+        window.initialPopulationData = {};
+      }
+      window.initialPopulationData[popDataKey] = popData;
+    }
+  }
+}
+
+// Helper for archipelago mode settings
+function populateArchipelagoModeSettings(loadedData) {
+  console.log("[OpenMission] Populating archipelago mode settings");
+
+  // Set topology
+  const topologySelect = document.getElementById("archipelago-topology");
+  if (topologySelect && loadedData.topology) {
+    topologySelect.value = loadedData.topology;
+  }
+
+  // Set migration type and handling
+  const migrationType = document.getElementById("archipelago-migration-type");
+  if (migrationType && loadedData.migration_type) {
+    migrationType.value = loadedData.migration_type;
+  }
+
+  const migrationHandling = document.getElementById(
+    "archipelago-migration-handling"
+  );
+  if (migrationHandling && loadedData.migration_handling) {
+    migrationHandling.value = loadedData.migration_handling;
+  }
+
+  // Set map bounds
+  if (
+    loadedData.map &&
+    Array.isArray(loadedData.map) &&
+    loadedData.map.length >= 2
+  ) {
+    const lowerBoundInput = document.getElementById("archipelago-lower-bound");
+    const upperBoundInput = document.getElementById("archipelago-upper-bound");
+
+    if (lowerBoundInput) lowerBoundInput.value = loadedData.map[0];
+    if (upperBoundInput) upperBoundInput.value = loadedData.map[1];
+  }
+
+  // Set population
+  const populationInput = document.getElementById("archipelago-population");
+  if (populationInput && loadedData.population !== undefined) {
+    populationInput.value = loadedData.population;
+  }
+
+  // Add algorithm tags if optimizer has multiple algorithms
+  if (
+    loadedData.optimizer &&
+    Array.isArray(loadedData.optimizer) &&
+    loadedData.optimizer.length > 0
+  ) {
+    const algoContainer = document.getElementById(
+      "selected-algorithms-container"
+    );
+
+    if (algoContainer) {
+      // Clear existing algorithm tags
+      const existingTags = algoContainer.querySelectorAll(".algorithm-tag");
+      existingTags.forEach((tag) => {
+        if (tag.parentNode) {
+          tag.parentNode.removeChild(tag);
+        }
+      });
+
+      // Add each algorithm
+      loadedData.optimizer.forEach((algoName) => {
+        if (typeof window.createAlgorithmTag === "function") {
+          const tag = window.createAlgorithmTag(algoName);
+
+          // Add tag to container
+          algoContainer.appendChild(tag);
+
+          // Store algorithm parameters if they exist
+          if (
+            loadedData[algoName] &&
+            window.optimizationHandler &&
+            window.optimizationHandler.storeArchipelagoAlgorithmParams
+          ) {
+            window.optimizationHandler.storeArchipelagoAlgorithmParams(
+              tag.id,
+              loadedData[algoName]
+            );
+            console.log(
+              `[OpenMission] Stored parameters for ${algoName}:`,
+              loadedData[algoName]
+            );
+          }
+        } else {
+          // Simple fallback if the function isn't available
+          const tag = document.createElement("div");
+          tag.className = "algorithm-tag";
+          tag.textContent = algoName;
+          algoContainer.appendChild(tag);
+        }
+      });
+
+      // Update the counter if available
+      if (
+        window.optimizationHandler &&
+        window.optimizationHandler.updateAlgorithmsCounter
+      ) {
+        window.optimizationHandler.updateAlgorithmsCounter();
+      }
+    }
+  }
+
+  // Handle initial population CSV if present
+  if (
+    loadedData.initial_population &&
+    loadedData.initial_population[0]?.population
+  ) {
+    const popDataKey = loadedData.initial_population[0].population;
+    const popData = loadedData[popDataKey];
+
+    if (popData) {
+      const csvFilenameInput = document.getElementById(
+        "archipelago-csv-filename"
+      );
+      const csvClearBtn = document.getElementById("archipelago-csv-clear-btn");
+
+      if (csvFilenameInput) {
+        csvFilenameInput.value = `${popDataKey}.csv`;
+        console.log(
+          `[OpenMission] Set archipelago initial population CSV: ${popDataKey}.csv`
+        );
+      }
+
+      if (csvClearBtn) {
+        csvClearBtn.style.display = "block";
+      }
+
+      // Store the data for later use
+      if (!window.initialPopulationData) {
+        window.initialPopulationData = {};
+      }
+      window.initialPopulationData[popDataKey] = popData;
+    }
+  }
+}
+
+// Populate design variables from the complex keyed structure
+function populateDesignVariablesFromKeys(loadedData) {
+  console.log("[OpenMission] Populating design variables");
+
+  if (
+    !loadedData.design_variables ||
+    !loadedData[loadedData.design_variables]
+  ) {
+    console.warn("[OpenMission] No design variables data found");
+    return;
+  }
+
+  // Get the main design variables array
+  const designVarList = loadedData[loadedData.design_variables];
+  if (!Array.isArray(designVarList) || designVarList.length === 0) {
+    console.warn("[OpenMission] Design variable list is empty or invalid");
+    return;
   }
 
   console.log(
-    `[OpenMission] Populated optimization mode settings (${modeData.type})`
+    `[OpenMission] Found ${designVarList.length} design variable groups:`,
+    designVarList
   );
-}
 
-// Populate design variables
-function populateDesignVariables(designVarsData) {
-  if (!designVarsData || !Array.isArray(designVarsData)) return;
+  // Get container and add button
+  const container = document.getElementById("design-variables-container");
+  const addButton = document.getElementById("add-design-variable-btn");
 
-  const designVarsContainer = document.getElementById(
-    "design-variables-container"
-  );
-  if (!designVarsContainer) {
-    console.warn("Design variables container not found.");
+  if (!container || !addButton) {
+    console.warn(
+      "[OpenMission] Design variables container or add button not found"
+    );
     return;
   }
 
-  // Remove any default design variables first
-  const existingVars = designVarsContainer.querySelectorAll(".design-var-item");
-  existingVars.forEach((item) => item.remove());
-
-  // Add each design variable
-  designVarsData.forEach((designVar, index) => {
-    const addDesignVarBtn = document.getElementById("add-design-var-btn");
-    if (addDesignVarBtn) {
-      addDesignVarBtn.click();
-
-      setTimeout(() => {
-        const nameInput = document.getElementById(`design-var-name-${index}`);
-        if (nameInput && designVar.name) {
-          nameInput.value = designVar.name;
-        }
-
-        const typeSelect = document.getElementById(`design-var-type-${index}`);
-        if (typeSelect && designVar.type) {
-          typeSelect.value = designVar.type;
-          typeSelect.dispatchEvent(new Event("change", { bubbles: true }));
-
-          // Wait for type-specific fields
-          setTimeout(() => {
-            const initialValueInput = document.getElementById(
-              `initial-value-${index}`
-            );
-            if (initialValueInput && designVar.initial_value !== undefined) {
-              initialValueInput.value = designVar.initial_value;
-            }
-
-            const lowerBoundInput = document.getElementById(
-              `design-var-lower-${index}`
-            );
-            if (lowerBoundInput && designVar.lower_bound !== undefined) {
-              lowerBoundInput.value = designVar.lower_bound;
-            }
-
-            const upperBoundInput = document.getElementById(
-              `design-var-upper-${index}`
-            );
-            if (upperBoundInput && designVar.upper_bound !== undefined) {
-              upperBoundInput.value = designVar.upper_bound;
-            }
-
-            // For steering variables, populate additional fields
-            if (designVar.type === "steering") {
-              const componentSelect = document.getElementById(
-                `steering-component-${index}`
-              );
-              if (componentSelect && designVar.component) {
-                componentSelect.value = designVar.component;
-              }
-
-              const parameterSelect = document.getElementById(
-                `steering-parameter-${index}`
-              );
-              if (parameterSelect && designVar.parameter) {
-                parameterSelect.value = designVar.parameter;
-              }
-            }
-          }, 200);
-        }
-      }, 200);
+  // Clear existing design variables
+  const existingVars = container.querySelectorAll(
+    ".design-var-item, .optimization-instance"
+  );
+  existingVars.forEach((item) => {
+    if (item.parentNode) {
+      item.parentNode.removeChild(item);
     }
   });
 
-  console.log(
-    `[OpenMission] Populated ${designVarsData.length} design variables.`
-  );
+  // Process each design variable group
+  designVarList.forEach((groupKey, index) => {
+    const groupData = loadedData[groupKey];
+
+    if (!groupData || !Array.isArray(groupData) || groupData.length === 0) {
+      console.warn(
+        `[OpenMission] No data found for design variable group: ${groupKey}`
+      );
+      return;
+    }
+
+    // The first entry contains the category and other key information
+    const dvData = groupData[0];
+    console.log(
+      `[OpenMission] Processing design variable group ${index + 1}:`,
+      dvData
+    );
+
+    // Click to add a new design variable instance
+    addButton.click();
+
+    // Wait for the instance to be created
+    setTimeout(() => {
+      // Find the instance
+      const instances = container.querySelectorAll(
+        ".design-var-item, .optimization-instance"
+      );
+      const instance = instances[index];
+
+      if (!instance) {
+        console.warn(
+          `[OpenMission] Design variable instance ${index + 1} not found`
+        );
+        return;
+      }
+
+      // Set the category
+      const categorySelect = instance.querySelector(".dv-category");
+      if (categorySelect && dvData.category) {
+        categorySelect.value = dvData.category;
+        categorySelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+        // Wait for category-specific fields to appear
+        setTimeout(() => {
+          // Set name
+          const nameInput = instance.querySelector(".dv-name");
+          if (nameInput) {
+            nameInput.value = groupKey;
+          }
+
+          // Set segment for STEERING category
+          if (dvData.category === "STEERING" && dvData.segment) {
+            const segmentSelect = instance.querySelector(".dv-segment");
+            if (segmentSelect) {
+              // Ensure the option exists
+              if (
+                ![...segmentSelect.options].some(
+                  (opt) => opt.value === dvData.segment
+                )
+              ) {
+                const newOpt = document.createElement("option");
+                newOpt.value = dvData.segment;
+                newOpt.textContent = dvData.segment;
+                segmentSelect.appendChild(newOpt);
+              }
+              segmentSelect.value = dvData.segment;
+              segmentSelect.dispatchEvent(
+                new Event("change", { bubbles: true })
+              );
+            }
+
+            // Set segment type
+            if (dvData.segment_type) {
+              const segmentTypeSelect =
+                instance.querySelector(".dv-segment-type");
+              if (segmentTypeSelect) {
+                segmentTypeSelect.value = dvData.segment_type;
+                segmentTypeSelect.dispatchEvent(
+                  new Event("change", { bubbles: true })
+                );
+
+                // Wait for segment type fields to appear
+                setTimeout(() => {
+                  populateDesignVariableTypeDetails(instance, dvData);
+                }, 300);
+              }
+            }
+          } else {
+            // For non-STEERING categories, populate type details directly
+            populateDesignVariableTypeDetails(instance, dvData);
+          }
+        }, 300);
+      }
+    }, 300);
+  });
+}
+
+// Helper to populate the type-specific details of a design variable
+function populateDesignVariableTypeDetails(instance, dvData) {
+  console.log("[OpenMission] Populating design variable type details:", dvData);
+
+  if (!dvData.type || !Array.isArray(dvData.type) || dvData.type.length === 0) {
+    console.warn("[OpenMission] No type details found for design variable");
+    return;
+  }
+
+  const typeData = dvData.type[0]; // First entry contains the control variables and bounds
+
+  // Set control variables
+  if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
+    // For checkbox-based control variables
+    const controlVarCheckboxes = instance.querySelectorAll(
+      ".dv-control-variable-cb"
+    );
+    if (controlVarCheckboxes.length > 0) {
+      controlVarCheckboxes.forEach((checkbox) => {
+        checkbox.checked = typeData.control_variable.includes(checkbox.value);
+      });
+    }
+    // For dropdown-based control variable
+    else {
+      const controlVarSelect = instance.querySelector(".dv-control-variable");
+      if (controlVarSelect && typeData.control_variable.length > 0) {
+        controlVarSelect.value = typeData.control_variable[0];
+      }
+    }
+  }
+
+  // For STEERING category with axis selection
+  if (
+    dvData.category === "STEERING" &&
+    typeData.axis &&
+    Array.isArray(typeData.axis)
+  ) {
+    const axisCheckboxes = instance.querySelectorAll(".dv-axis-select-cb");
+    if (axisCheckboxes.length > 0) {
+      // Check the appropriate axis checkboxes
+      axisCheckboxes.forEach((checkbox) => {
+        checkbox.checked = typeData.axis.includes(checkbox.value);
+        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+
+      // Now populate per-axis bounds
+      if (typeData.upper_bound && typeData.lower_bound) {
+        typeData.axis.forEach((axis, axisIndex) => {
+          // Find the per-axis bounds container for this axis
+          const axisContainer = instance.querySelector(
+            `.dv-axis-bounds-${axis}`
+          );
+          if (axisContainer) {
+            const lowerBoundInput = axisContainer.querySelector(
+              ".dv-axis-lower-bound"
+            );
+            const upperBoundInput = axisContainer.querySelector(
+              ".dv-axis-upper-bound"
+            );
+
+            // For single value bounds
+            if (lowerBoundInput && upperBoundInput) {
+              if (typeData.lower_bound[axisIndex] !== undefined) {
+                if (Array.isArray(typeData.lower_bound[axisIndex])) {
+                  // For PROFILE type with array of bounds
+                  lowerBoundInput.value =
+                    typeData.lower_bound[axisIndex].join(",");
+                } else {
+                  lowerBoundInput.value = typeData.lower_bound[axisIndex];
+                }
+              }
+
+              if (typeData.upper_bound[axisIndex] !== undefined) {
+                if (Array.isArray(typeData.upper_bound[axisIndex])) {
+                  // For PROFILE type with array of bounds
+                  upperBoundInput.value =
+                    typeData.upper_bound[axisIndex].join(",");
+                } else {
+                  upperBoundInput.value = typeData.upper_bound[axisIndex];
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+  // For non-axis bound cases
+  else if (typeData.lower_bound && typeData.upper_bound) {
+    const lowerBoundInput = instance.querySelector(".dv-lower-bound");
+    const upperBoundInput = instance.querySelector(".dv-upper-bound");
+
+    if (lowerBoundInput && typeData.lower_bound[0] !== undefined) {
+      if (Array.isArray(typeData.lower_bound[0])) {
+        lowerBoundInput.value = typeData.lower_bound[0].join(",");
+      } else {
+        lowerBoundInput.value = typeData.lower_bound[0];
+      }
+    }
+
+    if (upperBoundInput && typeData.upper_bound[0] !== undefined) {
+      if (Array.isArray(typeData.upper_bound[0])) {
+        upperBoundInput.value = typeData.upper_bound[0].join(",");
+      } else {
+        upperBoundInput.value = typeData.upper_bound[0];
+      }
+    }
+  }
+
+  // For PROFILE type with independent variable and vector
+  if (dvData.segment_type === "PROFILE" && typeData.ind_variable) {
+    const indVarSelect = instance.querySelector(".dv-ind-variable");
+    if (indVarSelect) {
+      indVarSelect.value = typeData.ind_variable.toLowerCase();
+    }
+
+    const indVectorInput = instance.querySelector(".dv-ind-vector");
+    if (indVectorInput && typeData.ind_vector) {
+      indVectorInput.value = typeData.ind_vector.join(",");
+    }
+  }
 }
 
 // Make sure this file is loaded after ui-navigation.js and missionDataHandler.js

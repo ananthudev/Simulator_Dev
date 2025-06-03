@@ -156,6 +156,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const maxStages = 4; // Maximum allowed stages
   let deletedStages = []; // Track deleted stage numbers
 
+  // Expose reset for stage counter and deleted stages
+  window.uiNav.resetStageCounter = function () {
+    stageCounter = 1;
+    deletedStages = [];
+    console.log(
+      "[UI Navigation] resetStageCounter called: stageCounter set to 1, deletedStages cleared"
+    );
+  };
+
   // Initially hide all forms except welcome message
   function hideAllForms() {
     const forms = [

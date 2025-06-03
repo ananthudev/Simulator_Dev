@@ -4337,6 +4337,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Auto-create an initial objective function form if the container exists and is empty
+  // Commenting out this block to prevent creating two forms on page load
+  // (one here and one in initOptimizationModule)
+  /*
   if (
     objectiveFunctionContainer &&
     objectiveFunctionContainer.children.length === 0
@@ -4346,6 +4349,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     addObjectiveFunctionForm();
   }
+  */
 
   // Auto-create an initial constraint form if the container exists and is empty
   if (constraintsContainer && constraintsContainer.children.length === 0) {

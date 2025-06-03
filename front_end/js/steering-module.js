@@ -452,6 +452,13 @@ function populateFields(container, params) {
   container
     .querySelectorAll("input[data-param], select[data-param]")
     .forEach((field) => {
+      // Skip file inputs entirely
+      if (field.type === "file") {
+        console.log(
+          `populateFields: skipping file input for param: ${field.dataset.param}`
+        );
+        return;
+      }
       const paramName = field.dataset.param;
       console.log(
         `Attempting to populate field for param: ${paramName} (Element: ${
