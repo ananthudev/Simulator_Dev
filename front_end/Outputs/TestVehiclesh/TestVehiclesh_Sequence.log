@@ -1,0 +1,5 @@
+EVENTS                                TIME(s)               CLOCK                                   FLAGS
+-------------------------------------------------------------------------------------------------------
+      "comment": "Motor 1 Ignition"     0                   2025-05-16 09:32:53.000                 S1_M1_IGN
+      "comment": "Stage 1 Start"        0                   2025-05-16 09:32:53.000                 ST_1_INI
+Vehicle is in Effective Altitude        0                   2025-05-16 09:32:53.000                 EFF_ALT_ENTER

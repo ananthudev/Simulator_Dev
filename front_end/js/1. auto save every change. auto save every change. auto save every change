@@ -1,0 +1,7 @@
+1. auto save every change
+2. automatically resave 
+3. keep it silent
+4. choose what is best
+5. dont respect validation rules for now, just show the user that section is not saved  do not save incomplete data, when that form is fxed by that user. sequentially save each form top  to bottom, show a slight message on the nav menu that it is auto saving. 
+6. choose what is best
+use small graphiocs possibly neutral color just show a white dot if the section is not saved, make it green if it is saved. 

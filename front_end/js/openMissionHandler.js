@@ -72,28 +72,7 @@ function readFileAndProcess(file) {
 
         // Populate forms with loadedMissionData
         populateForms(loadedMissionData);
-
-        // Navigate to mission details form after successful load
-        const missionFormElement = document.getElementById("mission-form");
-        if (
-          window.uiNav &&
-          typeof window.uiNav.showForm === "function" &&
-          missionFormElement
-        ) {
-          window.uiNav.showForm(missionFormElement);
-          console.log("[OpenMission] Navigated to Mission Details form.");
-        } else {
-          console.warn(
-            "[OpenMission] Could not navigate to Mission Details form. uiNav.showForm not available or form not found."
-          );
-        }
-
-        Swal.fire(
-          "Success!",
-          "Mission data loaded and forms populated successfully!",
-          "success"
-        );
-      }, 1000); // Increase from 500ms to 1000ms for a more reliable DOM reset
+      }, 750); // Increased delay
     } catch (error) {
       console.error("Error processing mission file:", error);
       Swal.fire(
@@ -191,7 +170,7 @@ function resetCurrentMissionState() {
 
   // Clear optimization forms
   const optimizationForms = document.querySelectorAll(
-    "#objective-function-form, #constraints-form, #optimization-mode-form, #design-variables-form"
+    "#objective-function-form, #constraints-form, #optimization-mode-form"
   );
   optimizationForms.forEach((form) => {
     if (form) {
@@ -200,10 +179,7 @@ function resetCurrentMissionState() {
   });
 
   // Clear optimization containers
-  const optimizationContainers = [
-    "constraints-container",
-    "design-variables-container",
-  ];
+  const optimizationContainers = ["constraints-container"];
   optimizationContainers.forEach((id) => {
     const container = document.getElementById(id);
     if (container) {
@@ -223,169 +199,515 @@ function resetCurrentMissionState() {
   if (window.constraintCount !== undefined) {
     window.constraintCount = 0;
   }
-  if (window.designVariableCount !== undefined) {
-    window.designVariableCount = 0;
-  }
 
   console.log("[OpenMission] Mission state reset complete");
 }
 
 function populateForms(loadedData) {
   console.log(
-    "[OpenMission] Starting populateForms with loadedData:",
+    "[OpenMission] Starting sequential form population with loadedData:",
     JSON.stringify(loadedData, null, 2)
   );
   window.finalMissionData = loadedData; // Make loaded data globally accessible
 
-  // Seed eventSequence from JSON based on loaded vehicle key
-  (function seedFlags() {
-    const missionVehicles = loadedData.mission && loadedData.mission.vehicle;
-    if (Array.isArray(missionVehicles) && missionVehicles.length > 0) {
-      const vehicleName = missionVehicles[0];
-      const seqKey = `${vehicleName}_Sequence`;
-      if (Array.isArray(loadedData[seqKey])) {
-        window.eventSequence = loadedData[seqKey].map((evt) => ({
-          flag: evt.identity,
-          triggerType: mapTriggerType(evt.trigger),
-          triggerValue: evt.value,
-          referenceFlag: evt.reference || "none",
-          comment: evt.comment || "",
-        }));
-        console.log(
-          "[OpenMission] Seeded window.eventSequence from JSON:",
-          window.eventSequence
-        );
-        // Update dropdowns immediately with seeded flags
-        if (typeof updateReferenceFlagDropdown === "function") {
-          updateReferenceFlagDropdown();
-        }
-        if (typeof populateStoppingFlagDropdown === "function") {
-          populateStoppingFlagDropdown();
-        }
-      } else {
-        console.warn(
-          `[OpenMission] No sequence array found under key ${seqKey}`
-        );
+  // Show loading screen with progress tracking
+  showSequentialLoadingScreen();
+
+  // Sequential loading with proper order and timing
+  sequentialFormPopulation(loadedData);
+}
+
+// Function to show the sequential loading screen
+function showSequentialLoadingScreen() {
+  const loadingHTML = `
+    <div id="sequential-loading-overlay" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    ">
+      <div style="
+        background: #2c3e50;
+        padding: 40px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+        min-width: 400px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      ">
+        <h2 style="margin-bottom: 30px; color: #3498db;">Loading Mission Data</h2>
+        <div id="loading-progress-container" style="text-align: left;">
+          <div class="loading-step" data-step="flags">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Initializing Event Flags...</span>
+          </div>
+          <div class="loading-step" data-step="mission">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Mission Details...</span>
+          </div>
+          <div class="loading-step" data-step="environment">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Environment Configuration...</span>
+          </div>
+          <div class="loading-step" data-step="vehicle">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Vehicle Configuration...</span>
+          </div>
+          <div class="loading-step" data-step="stages">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Stages and Motors...</span>
+          </div>
+          <div class="loading-step" data-step="sequence">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Event Sequence...</span>
+          </div>
+          <div class="loading-step" data-step="steering">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Steering Components...</span>
+          </div>
+          <div class="loading-step" data-step="optimization" style="display: none;">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Optimization Configuration...</span>
+          </div>
+          <div class="loading-step" data-step="stopping">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Loading Stopping Conditions...</span>
+          </div>
+          <div class="loading-step" data-step="finalization">
+            <span class="step-icon">⏳</span>
+            <span class="step-text">Finalizing Configuration...</span>
+          </div>
+        </div>
+        <div style="margin-top: 20px; font-size: 14px; color: #bdc3c7;">
+          Please wait while your mission data is being loaded...
+        </div>
+      </div>
+    </div>
+    <style>
+      .loading-step {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+        padding: 8px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
       }
+      .loading-step.active {
+        background-color: rgba(52, 152, 219, 0.2);
+        border-left: 3px solid #3498db;
+      }
+      .loading-step.completed {
+        background-color: rgba(46, 204, 113, 0.2);
+        border-left: 3px solid #2ecc71;
+      }
+      .step-icon {
+        margin-right: 10px;
+        font-size: 16px;
+        min-width: 20px;
+      }
+      .step-text {
+        font-size: 14px;
+      }
+    </style>
+  `;
+
+  // Add to body
+  document.body.insertAdjacentHTML("beforeend", loadingHTML);
+}
+
+// Function to update loading step status
+function updateLoadingStep(stepName, status) {
+  const step = document.querySelector(`[data-step="${stepName}"]`);
+  if (!step) return;
+
+  const icon = step.querySelector(".step-icon");
+  const text = step.querySelector(".step-text");
+
+  step.classList.remove("active", "completed");
+
+  switch (status) {
+    case "loading":
+      step.classList.add("active");
+      icon.textContent = "⏳";
+      break;
+    case "completed":
+      step.classList.add("completed");
+      icon.textContent = "✅";
+      break;
+    case "error":
+      icon.textContent = "❌";
+      step.style.borderLeft = "3px solid #e74c3c";
+      step.style.backgroundColor = "rgba(231, 76, 60, 0.2)";
+      break;
+  }
+}
+
+// Function to hide loading screen
+function hideSequentialLoadingScreen() {
+  const overlay = document.getElementById("sequential-loading-overlay");
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+// Main sequential form population function
+async function sequentialFormPopulation(loadedData) {
+  try {
+    // Step 1: Initialize Event Flags
+    updateLoadingStep("flags", "loading");
+    await initializeEventFlags(loadedData);
+    updateLoadingStep("flags", "completed");
+    await delay(300);
+
+    // Step 2: Mission Details
+    updateLoadingStep("mission", "loading");
+    await populateMissionDetailsSequential(loadedData.mission);
+    updateLoadingStep("mission", "completed");
+    await delay(300);
+
+    // Step 3: Environment
+    updateLoadingStep("environment", "loading");
+    await populateEnvironmentSequential(loadedData);
+    updateLoadingStep("environment", "completed");
+    await delay(300);
+
+    // Step 4: Vehicle Configuration
+    updateLoadingStep("vehicle", "loading");
+    const vehicleData = await populateVehicleSequential(loadedData);
+    updateLoadingStep("vehicle", "completed");
+    await delay(300);
+
+    // Step 5: Stages and Motors
+    if (vehicleData.success) {
+      updateLoadingStep("stages", "loading");
+      await populateStagesAndMotorsSequential(
+        loadedData,
+        vehicleData.vehicleName,
+        vehicleData.vehicleData
+      );
+      updateLoadingStep("stages", "completed");
+      await delay(500);
     } else {
-      console.warn(
-        "[OpenMission] No mission.vehicle array found in loadedData.mission"
+      updateLoadingStep("stages", "completed"); // Skip if no vehicle data
+      await delay(300);
+    }
+
+    // Step 6: Event Sequence
+    updateLoadingStep("sequence", "loading");
+    if (vehicleData.success) {
+      await populateEventSequenceSequential(
+        loadedData,
+        vehicleData.vehicleName
       );
     }
-  })();
+    updateLoadingStep("sequence", "completed");
+    await delay(300);
 
-  if (!loadedData.mission) {
-    console.error("Mission data is missing!");
-    Swal.fire(
-      "Error",
-      "Cannot populate forms: Mission section is missing in the loaded file.",
-      "error"
-    );
-    return;
-  }
-
-  // Already implemented sections
-  populateMissionDetails(loadedData.mission);
-  populateEnvironment({
-    planet_name: loadedData.mission?.planet_name,
-    EARTH: loadedData.EARTH,
-    Wind: loadedData.Wind,
-  });
-
-  // Find vehicle and mission data
-  let missionKey = null;
-  let vehicleType = null;
-  let vehicleName = null;
-  let vehicleData = null;
-  let initialConditionName = null;
-  let initialConditionData = null;
-
-  // Find the main mission key (e.g., SSPO)
-  for (const key in loadedData) {
-    if (
-      loadedData.hasOwnProperty(key) &&
-      typeof loadedData[key] === "object" &&
-      loadedData[key] !== null &&
-      loadedData[key].vehicle &&
-      Array.isArray(loadedData[key].vehicle)
-    ) {
-      missionKey = key;
-      break;
+    // Step 7: Steering Components
+    updateLoadingStep("steering", "loading");
+    if (vehicleData.success) {
+      await populateSteeringSequential(loadedData, vehicleData.vehicleName);
     }
-  }
+    updateLoadingStep("steering", "completed");
+    await delay(500);
 
-  if (missionKey && loadedData[missionKey]) {
-    vehicleType = loadedData[missionKey].vehicle_type;
+    // Step 8: Optimization (if applicable)
+    const isOptimizationMode =
+      loadedData.mission.MODE?.toLowerCase() === "optimization";
+    if (isOptimizationMode) {
+      document.querySelector('[data-step="optimization"]').style.display =
+        "flex";
+      updateLoadingStep("optimization", "loading");
+      await populateOptimizationSequential(loadedData);
+      updateLoadingStep("optimization", "completed");
+      await delay(500);
+    }
+
+    // Step 9: Stopping Conditions
+    updateLoadingStep("stopping", "loading");
+    await populateStoppingConditionsSequential(loadedData);
+    updateLoadingStep("stopping", "completed");
+    await delay(300);
+
+    // Step 10: Finalization
+    updateLoadingStep("finalization", "loading");
+    await finalizationSequential();
+    updateLoadingStep("finalization", "completed");
+    await delay(500);
+
+    // Hide loading screen and show success
+    hideSequentialLoadingScreen();
+
+    // Navigate to mission details form after successful load
+    const missionFormElement = document.getElementById("mission-form");
     if (
-      loadedData[missionKey].vehicle &&
-      loadedData[missionKey].vehicle.length > 0
+      window.uiNav &&
+      typeof window.uiNav.showForm === "function" &&
+      missionFormElement
     ) {
-      vehicleName = loadedData[missionKey].vehicle[0];
-      vehicleData = loadedData[vehicleName];
-      if (vehicleData) {
-        initialConditionName = vehicleData.Initial_condition;
-        if (
-          loadedData.Initial_States &&
-          loadedData.Initial_States[initialConditionName]
-        ) {
-          initialConditionData =
-            loadedData.Initial_States[initialConditionName];
+      window.uiNav.showForm(missionFormElement);
+      console.log("[OpenMission] Navigated to Mission Details form.");
+    }
+
+    Swal.fire(
+      "Success!",
+      "Mission data loaded and forms populated successfully!",
+      "success"
+    );
+
+    console.log(
+      "[OpenMission] Sequential form population completed successfully."
+    );
+  } catch (error) {
+    console.error("[OpenMission] Error during sequential population:", error);
+    updateLoadingStep("finalization", "error");
+
+    setTimeout(() => {
+      hideSequentialLoadingScreen();
+      Swal.fire("Error", `Failed to populate forms: ${error.message}`, "error");
+    }, 1000);
+  }
+}
+
+// Helper function for delays
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Sequential population helper functions
+async function initializeEventFlags(loadedData) {
+  // Seed eventSequence from JSON based on loaded vehicle key
+  const missionVehicles = loadedData.mission && loadedData.mission.vehicle;
+  if (Array.isArray(missionVehicles) && missionVehicles.length > 0) {
+    const vehicleName = missionVehicles[0];
+    const seqKey = `${vehicleName}_Sequence`;
+    if (Array.isArray(loadedData[seqKey])) {
+      window.eventSequence = loadedData[seqKey].map((evt) => ({
+        flag: evt.identity,
+        triggerType: mapTriggerType(evt.trigger),
+        triggerValue: evt.value,
+        referenceFlag: evt.reference || "none",
+        comment: evt.comment || "",
+      }));
+      console.log(
+        "[OpenMission] Seeded window.eventSequence from JSON:",
+        window.eventSequence
+      );
+
+      // Update dropdowns immediately with seeded flags
+      if (typeof updateReferenceFlagDropdown === "function") {
+        updateReferenceFlagDropdown();
+      }
+      if (typeof populateStoppingFlagDropdown === "function") {
+        populateStoppingFlagDropdown();
+      }
+    } else {
+      console.warn(`[OpenMission] No sequence array found under key ${seqKey}`);
+    }
+  } else {
+    console.warn(
+      "[OpenMission] No mission.vehicle array found in loadedData.mission"
+    );
+  }
+}
+
+async function populateMissionDetailsSequential(missionData) {
+  return new Promise((resolve) => {
+    populateMissionDetails(missionData);
+    resolve();
+  });
+}
+
+async function populateEnvironmentSequential(environmentData) {
+  return new Promise((resolve) => {
+    populateEnvironment(environmentData);
+    resolve();
+  });
+}
+
+async function populateVehicleSequential(loadedData) {
+  return new Promise((resolve) => {
+    // Find vehicle and mission data
+    let missionKey = null;
+    let vehicleType = null;
+    let vehicleName = null;
+    let vehicleData = null;
+    let initialConditionName = null;
+    let initialConditionData = null;
+
+    // Find the main mission key (e.g., SSPO)
+    for (const key in loadedData) {
+      if (
+        loadedData.hasOwnProperty(key) &&
+        typeof loadedData[key] === "object" &&
+        loadedData[key] !== null &&
+        loadedData[key].vehicle &&
+        Array.isArray(loadedData[key].vehicle)
+      ) {
+        missionKey = key;
+        break;
+      }
+    }
+
+    if (missionKey && loadedData[missionKey]) {
+      vehicleType = loadedData[missionKey].vehicle_type;
+      if (
+        loadedData[missionKey].vehicle &&
+        loadedData[missionKey].vehicle.length > 0
+      ) {
+        vehicleName = loadedData[missionKey].vehicle[0];
+        vehicleData = loadedData[vehicleName];
+        if (vehicleData) {
+          initialConditionName = vehicleData.Initial_condition;
+          if (
+            loadedData.Initial_States &&
+            loadedData.Initial_States[initialConditionName]
+          ) {
+            initialConditionData =
+              loadedData.Initial_States[initialConditionName];
+          }
         }
       }
     }
-  }
 
-  if (vehicleData && vehicleType && initialConditionData) {
-    populateVehicle(
-      vehicleData,
-      vehicleName,
-      vehicleType,
-      initialConditionData
-    );
+    if (vehicleData && vehicleType && initialConditionData) {
+      populateVehicle(
+        vehicleData,
+        vehicleName,
+        vehicleType,
+        initialConditionData
+      );
+      resolve({
+        success: true,
+        vehicleName,
+        vehicleData,
+        vehicleType,
+        initialConditionData,
+      });
+    } else {
+      console.warn(
+        "[OpenMission] Could not find all necessary vehicle data to populate vehicle form."
+      );
+      resolve({ success: false });
+    }
+  });
+}
 
-    // Populate stages including motors and nozzles
-    populateStagesAndMotors(loadedData, vehicleName, vehicleData);
+async function populateStagesAndMotorsSequential(
+  loadedData,
+  vehicleName,
+  vehicleData
+) {
+  return new Promise((resolve) => {
+    if (vehicleData && vehicleName) {
+      // Use the existing populateStagesAndMotors function but wait for completion
+      populateStagesAndMotors(loadedData, vehicleName, vehicleData)
+        .then(() => resolve())
+        .catch((error) => {
+          console.error("Error in populateStagesAndMotors:", error);
+          resolve(); // Continue even if there's an error
+        });
+    } else {
+      resolve();
+    }
+  });
+}
 
-    // Populate event sequence
+async function populateEventSequenceSequential(loadedData, vehicleName) {
+  return new Promise((resolve) => {
     const sequenceKey = vehicleName + "_Sequence";
     if (loadedData[sequenceKey]) {
       populateEventSequence(loadedData, vehicleName);
     }
+    resolve();
+  });
+}
 
-    // Populate steering components
+async function populateSteeringSequential(loadedData, vehicleName) {
+  return new Promise((resolve) => {
     populateSteering(loadedData, vehicleName);
-  } else {
-    console.warn(
-      "[OpenMission] Could not find all necessary vehicle data to populate vehicle form."
-    );
-  }
+    // Add extra delay to ensure steering components are fully loaded
+    setTimeout(() => {
+      resolve();
+    }, 1000);
+  });
+}
 
-  // Populate optimization data if in optimization mode
-  if (
-    loadedData.mission.MODE?.toLowerCase() === "optimization" &&
-    loadedData.optimization
-  ) {
-    populateOptimization(loadedData);
-  }
+async function populateOptimizationSequential(loadedData) {
+  return new Promise((resolve) => {
+    if (loadedData.optimization) {
+      // Populate optimization data but NOT design variables yet
+      populateOptimizationWithoutDesignVariables(loadedData);
+      // Add delay to ensure optimization forms are populated and steering components are loaded
+      setTimeout(() => {
+        // Explicitly refresh design variable segment dropdowns after all steering is loaded
+        if (
+          typeof window.optimizationHandler
+            ?.refreshAllDesignVariableSegmentDropdowns === "function"
+        ) {
+          window.optimizationHandler.refreshAllDesignVariableSegmentDropdowns();
+          console.log(
+            "[OpenMission] Triggered refresh of design variable segment dropdowns."
+          );
+        }
 
-  // Populate stopping condition depending on mode
-  const mode = loadedData.mission.MODE?.toLowerCase() || "simulation";
-  if (mode === "simulation" && loadedData.stopping_criteria) {
-    populateSimulationStopping(loadedData.stopping_criteria);
-  }
-  if (mode === "optimization" && loadedData.stopping_condition) {
-    populateStoppingCondition(loadedData);
-  }
+        // Now populate design variables after steering components are fully loaded
+        if (loadedData.design_variables) {
+          setTimeout(() => {
+            populateDesignVariables(loadedData);
+            console.log("[OpenMission] Design variables population completed");
+            resolve();
+          }, 500);
+        } else {
+          resolve();
+        }
+      }, 1500); // Increased delay to 1.5 seconds to allow steering components to be fully loaded
+    } else {
+      resolve();
+    }
+  });
+}
 
-  // Final refresh of flag dropdowns in case other routines overwrote them
-  if (typeof updateReferenceFlagDropdown === "function") {
-    updateReferenceFlagDropdown();
-  }
-  if (typeof populateStoppingFlagDropdown === "function") {
-    populateStoppingFlagDropdown();
-  }
+async function populateStoppingConditionsSequential(loadedData) {
+  return new Promise((resolve) => {
+    const mode = loadedData.mission.MODE?.toLowerCase() || "simulation";
+    if (mode === "simulation" && loadedData.stopping_criteria) {
+      populateSimulationStopping(loadedData.stopping_criteria);
+    }
+    if (mode === "optimization" && loadedData.stopping_condition) {
+      populateStoppingCondition(loadedData);
+    }
+    resolve();
+  });
+}
 
-  console.log("[OpenMission] Form population process completed.");
+async function finalizationSequential() {
+  return new Promise((resolve) => {
+    // Final refresh of flag dropdowns
+    if (typeof updateReferenceFlagDropdown === "function") {
+      updateReferenceFlagDropdown();
+    }
+    if (typeof populateStoppingFlagDropdown === "function") {
+      populateStoppingFlagDropdown();
+    }
+
+    // Final refresh of design variable dropdowns
+    if (
+      typeof window.optimizationHandler
+        ?.refreshAllDesignVariableSegmentDropdowns === "function"
+    ) {
+      window.optimizationHandler.refreshAllDesignVariableSegmentDropdowns();
+    }
+
+    resolve();
+  });
 }
 
 function populateMissionDetails(missionData) {
@@ -656,9 +978,7 @@ function populateVehicle(
   const vehicleNameInput = document.getElementById("vehicle-name");
   const payloadMassInput = document.getElementById("payload-mass");
   const plfMassInput = document.getElementById("plf-mass");
-  const plfSepValueInput = document.getElementById("plf-sep-value");
-  const plfTimeRadio = document.getElementById("plf-time");
-  const plfAltitudeRadio = document.getElementById("plf-altitude");
+  // PLF separation fields removed - duplicate of sequence functionality
   const integrationMethodSelect = document.getElementById("integration-method");
   const timeStepInput = document.getElementById("time-step");
   const effectiveAltitudeInput = document.getElementById("effective-alt");
@@ -684,28 +1004,7 @@ function populateVehicle(
       plfMassInput.value = plfObject.mass || "";
     }
 
-    // Populate PLF Separation Type and Value (if fields exist in HTML)
-    if (plfSepValueInput && plfTimeRadio && plfAltitudeRadio) {
-      // Check if these inputs are still in HTML
-      if (plfObject.separation_type) {
-        if (plfObject.separation_type.toLowerCase() === "time") {
-          plfTimeRadio.checked = true;
-        } else if (plfObject.separation_type.toLowerCase() === "altitude") {
-          plfAltitudeRadio.checked = true;
-        }
-        // Consider dispatching change event for radio group if its visibility/behavior depends on it
-        // plfTimeRadio.dispatchEvent(new Event('change', {bubbles: true}));
-
-        if (plfObject.separation_value !== undefined) {
-          plfSepValueInput.value = plfObject.separation_value;
-        }
-      } else {
-        // Default if not in JSON
-        plfTimeRadio.checked = true;
-        plfAltitudeRadio.checked = false;
-        plfSepValueInput.value = "";
-      }
-    }
+    // PLF separation population removed - handled by sequence functionality
   }
 
   if (integrationMethodSelect)
@@ -3024,8 +3323,13 @@ function populateSteeringUIFields(componentId, componentData) {
     return;
   }
 
+  // First, update reference dropdowns to ensure options are available
+  if (typeof updateSteeringReferenceDropdowns === "function") {
+    updateSteeringReferenceDropdowns();
+  }
+
   // Helper function to set field value safely with better selector handling
-  const setFieldValue = (selector, value) => {
+  const setFieldValue = (selector, value, addOptionIfMissing = false) => {
     // Try multiple selector approaches for better compatibility
     const selectors = [
       selector,
@@ -3042,6 +3346,24 @@ function populateSteeringUIFields(componentId, componentData) {
     if (field) {
       const displayValue =
         value === null || value === undefined ? "" : String(value);
+
+      // For select fields, check if option exists and add if missing
+      if (field.tagName === "SELECT" && displayValue && addOptionIfMissing) {
+        const optionExists = Array.from(field.options).some(
+          (option) => option.value === displayValue
+        );
+
+        if (!optionExists) {
+          console.log(
+            `[OpenMission] Adding missing option "${displayValue}" to ${selector}`
+          );
+          const newOption = document.createElement("option");
+          newOption.value = displayValue;
+          newOption.textContent = displayValue;
+          field.appendChild(newOption);
+        }
+      }
+
       field.value = displayValue;
 
       // Trigger change event for dropdowns
@@ -3059,63 +3381,74 @@ function populateSteeringUIFields(componentId, componentData) {
     }
   };
 
-  // 1. Populate Start Tab Fields
-  console.log(`[OpenMission] Populating start tab fields`);
-  setFieldValue(
-    '[data-field="start_identity"]',
-    component.config.start_identity
-  );
-  setFieldValue(
-    '[data-field="start_trigger_type"]',
-    component.config.start_trigger_type
-  );
-  setFieldValue(
-    '[data-field="start_trigger_value"]',
-    component.config.start_trigger_value
-  );
-  setFieldValue(
-    '[data-field="start_reference"]',
-    component.config.start_reference
-  );
-  setFieldValue('[data-field="start_comment"]', component.config.start_comment);
+  // Use a small delay to ensure reference dropdowns are fully populated
+  setTimeout(() => {
+    // 1. Populate Start Tab Fields
+    console.log(`[OpenMission] Populating start tab fields`);
+    setFieldValue(
+      '[data-field="start_identity"]',
+      component.config.start_identity
+    );
+    setFieldValue(
+      '[data-field="start_trigger_type"]',
+      component.config.start_trigger_type
+    );
+    setFieldValue(
+      '[data-field="start_trigger_value"]',
+      component.config.start_trigger_value
+    );
+    setFieldValue(
+      '[data-field="start_reference"]',
+      component.config.start_reference,
+      true // Add option if missing
+    );
+    setFieldValue(
+      '[data-field="start_comment"]',
+      component.config.start_comment
+    );
 
-  // 2. Populate Stop Tab Fields
-  console.log(`[OpenMission] Populating stop tab fields`);
-  setFieldValue('[data-field="stop_identity"]', component.config.stop_identity);
-  setFieldValue(
-    '[data-field="stop_trigger_type"]',
-    component.config.stop_trigger_type
-  );
-  setFieldValue(
-    '[data-field="stop_trigger_value"]',
-    component.config.stop_trigger_value
-  );
-  setFieldValue(
-    '[data-field="stop_reference"]',
-    component.config.stop_reference
-  );
-  setFieldValue('[data-field="stop_comment"]', component.config.stop_comment);
+    // 2. Populate Stop Tab Fields
+    console.log(`[OpenMission] Populating stop tab fields`);
+    setFieldValue(
+      '[data-field="stop_identity"]',
+      component.config.stop_identity
+    );
+    setFieldValue(
+      '[data-field="stop_trigger_type"]',
+      component.config.stop_trigger_type
+    );
+    setFieldValue(
+      '[data-field="stop_trigger_value"]',
+      component.config.stop_trigger_value
+    );
+    setFieldValue(
+      '[data-field="stop_reference"]',
+      component.config.stop_reference,
+      true // Add option if missing
+    );
+    setFieldValue('[data-field="stop_comment"]', component.config.stop_comment);
 
-  // 3. Populate Steering Tab Fields
-  console.log(`[OpenMission] Populating steering tab fields`);
-  const steeringTypeSet = setFieldValue(
-    '[data-field="steering_type"]',
-    component.config.steering_type
-  );
-  setFieldValue(
-    '[data-field="steering_comment"]',
-    component.config.steering_comment
-  );
+    // 3. Populate Steering Tab Fields
+    console.log(`[OpenMission] Populating steering tab fields`);
+    const steeringTypeSet = setFieldValue(
+      '[data-field="steering_type"]',
+      component.config.steering_type
+    );
+    setFieldValue(
+      '[data-field="steering_comment"]',
+      component.config.steering_comment
+    );
 
-  // 4. Wait for dynamic steering fields to be generated, then populate them
-  if (steeringTypeSet && component.config.steering_type) {
-    setTimeout(() => {
-      populateSteeringParameters(
-        component.config.steering_type,
-        component.config.steering_params
-      );
-    }, 300);
-  }
+    // 4. Wait for dynamic steering fields to be generated, then populate them
+    if (steeringTypeSet && component.config.steering_type) {
+      setTimeout(() => {
+        populateSteeringParameters(
+          component.config.steering_type,
+          component.config.steering_params
+        );
+      }, 300);
+    }
+  }, 100); // Small delay to ensure dropdown population is complete
 }
 
 function populateSteeringParameters(steeringType, params) {
@@ -3531,10 +3864,76 @@ function populateOptimization(loadedData) {
 
   // Populate design variables
   if (loadedData.design_variables) {
-    populateDesignVariablesFromKeys(loadedData);
+    populateDesignVariables(loadedData);
   }
 
   console.log("[OpenMission] Optimization data population completed");
+}
+
+// New function that populates optimization data without design variables
+function populateOptimizationWithoutDesignVariables(loadedData) {
+  if (
+    !loadedData ||
+    loadedData.mission?.MODE?.toLowerCase() !== "optimization"
+  ) {
+    console.log(
+      "[OpenMission] No optimization data or not in optimization mode. Skipping optimization population."
+    );
+    return;
+  }
+
+  console.log(
+    "[OpenMission] Starting optimization data population (without design variables)"
+  );
+
+  // Show the optimization section in UI by updating sidebar
+  const modesSelect = document.getElementById("modes");
+  if (modesSelect) {
+    modesSelect.value = "optimization";
+    modesSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // Extract optimization-related data from the loaded JSON
+  // The structure is different from what the existing functions expect
+  // First extract objective and constraints from the optimization array
+  if (loadedData.optimization && Array.isArray(loadedData.optimization)) {
+    // Find objectives (entries with type: "OBJECTIVE")
+    const objectives = loadedData.optimization.filter(
+      (item) => item.type === "OBJECTIVE"
+    );
+
+    // Find constraints (entries without type: "OBJECTIVE")
+    const constraints = loadedData.optimization.filter(
+      (item) => item.type !== "OBJECTIVE"
+    );
+
+    console.log(
+      `[OpenMission] Found ${objectives.length} objectives and ${constraints.length} constraints`
+    );
+
+    // Populate objective function with objectives
+    if (objectives.length > 0) {
+      populateObjectiveFunctionFromArray(objectives);
+    }
+
+    // Populate constraints with constraints array and tolerances
+    if (constraints.length > 0) {
+      populateConstraintsFromArray(
+        constraints,
+        loadedData.constraint_tolerence
+      );
+    }
+  }
+
+  // Populate mode settings with mode, map, population, optimizer, etc.
+  populateOptimizationModeSettings(loadedData);
+
+  // NOTE: Design variables are NOT populated here - they will be populated later
+  // after steering components are fully loaded
+
+  console.log(
+    "[OpenMission] Optimization data population completed (design variables will be populated later)"
+  );
 }
 
 // Populate objective function from array format
@@ -3872,6 +4271,19 @@ function populateConstraintsFromArray(constraintsArray, tolerancesArray) {
           );
         }
       }
+
+      // If this is the last constraint, renumber all constraints
+      if (index === constraintsArray.length - 1) {
+        setTimeout(() => {
+          if (
+            typeof window.optimizationHandler?.renumberConstraints ===
+            "function"
+          ) {
+            window.optimizationHandler.renumberConstraints();
+            console.log("[OpenMission] Constraints renumbered to start from 1");
+          }
+        }, 100);
+      }
     }, 300);
   });
 }
@@ -4155,271 +4567,6 @@ function populateArchipelagoModeSettings(loadedData) {
   }
 }
 
-// Populate design variables from the complex keyed structure
-function populateDesignVariablesFromKeys(loadedData) {
-  console.log("[OpenMission] Populating design variables");
-
-  if (
-    !loadedData.design_variables ||
-    !loadedData[loadedData.design_variables]
-  ) {
-    console.warn("[OpenMission] No design variables data found");
-    return;
-  }
-
-  // Get the main design variables array
-  const designVarList = loadedData[loadedData.design_variables];
-  if (!Array.isArray(designVarList) || designVarList.length === 0) {
-    console.warn("[OpenMission] Design variable list is empty or invalid");
-    return;
-  }
-
-  console.log(
-    `[OpenMission] Found ${designVarList.length} design variable groups:`,
-    designVarList
-  );
-
-  // Get container and add button
-  const container = document.getElementById("design-variables-container");
-  const addButton = document.getElementById("add-design-variable-btn");
-
-  if (!container || !addButton) {
-    console.warn(
-      "[OpenMission] Design variables container or add button not found"
-    );
-    return;
-  }
-
-  // Clear existing design variables
-  const existingVars = container.querySelectorAll(
-    ".design-var-item, .optimization-instance"
-  );
-  existingVars.forEach((item) => {
-    if (item.parentNode) {
-      item.parentNode.removeChild(item);
-    }
-  });
-
-  // Process each design variable group
-  designVarList.forEach((groupKey, index) => {
-    const groupData = loadedData[groupKey];
-
-    if (!groupData || !Array.isArray(groupData) || groupData.length === 0) {
-      console.warn(
-        `[OpenMission] No data found for design variable group: ${groupKey}`
-      );
-      return;
-    }
-
-    // The first entry contains the category and other key information
-    const dvData = groupData[0];
-    console.log(
-      `[OpenMission] Processing design variable group ${index + 1}:`,
-      dvData
-    );
-
-    // Click to add a new design variable instance
-    addButton.click();
-
-    // Wait for the instance to be created
-    setTimeout(() => {
-      // Find the instance
-      const instances = container.querySelectorAll(
-        ".design-var-item, .optimization-instance"
-      );
-      const instance = instances[index];
-
-      if (!instance) {
-        console.warn(
-          `[OpenMission] Design variable instance ${index + 1} not found`
-        );
-        return;
-      }
-
-      // Set the category
-      const categorySelect = instance.querySelector(".dv-category");
-      if (categorySelect && dvData.category) {
-        categorySelect.value = dvData.category;
-        categorySelect.dispatchEvent(new Event("change", { bubbles: true }));
-
-        // Wait for category-specific fields to appear
-        setTimeout(() => {
-          // Set name
-          const nameInput = instance.querySelector(".dv-name");
-          if (nameInput) {
-            nameInput.value = groupKey;
-          }
-
-          // Set segment for STEERING category
-          if (dvData.category === "STEERING" && dvData.segment) {
-            const segmentSelect = instance.querySelector(".dv-segment");
-            if (segmentSelect) {
-              // Ensure the option exists
-              if (
-                ![...segmentSelect.options].some(
-                  (opt) => opt.value === dvData.segment
-                )
-              ) {
-                const newOpt = document.createElement("option");
-                newOpt.value = dvData.segment;
-                newOpt.textContent = dvData.segment;
-                segmentSelect.appendChild(newOpt);
-              }
-              segmentSelect.value = dvData.segment;
-              segmentSelect.dispatchEvent(
-                new Event("change", { bubbles: true })
-              );
-            }
-
-            // Set segment type
-            if (dvData.segment_type) {
-              const segmentTypeSelect =
-                instance.querySelector(".dv-segment-type");
-              if (segmentTypeSelect) {
-                segmentTypeSelect.value = dvData.segment_type;
-                segmentTypeSelect.dispatchEvent(
-                  new Event("change", { bubbles: true })
-                );
-
-                // Wait for segment type fields to appear
-                setTimeout(() => {
-                  populateDesignVariableTypeDetails(instance, dvData);
-                }, 300);
-              }
-            }
-          } else {
-            // For non-STEERING categories, populate type details directly
-            populateDesignVariableTypeDetails(instance, dvData);
-          }
-        }, 300);
-      }
-    }, 300);
-  });
-}
-
-// Helper to populate the type-specific details of a design variable
-function populateDesignVariableTypeDetails(instance, dvData) {
-  console.log("[OpenMission] Populating design variable type details:", dvData);
-
-  if (!dvData.type || !Array.isArray(dvData.type) || dvData.type.length === 0) {
-    console.warn("[OpenMission] No type details found for design variable");
-    return;
-  }
-
-  const typeData = dvData.type[0]; // First entry contains the control variables and bounds
-
-  // Set control variables
-  if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
-    // For checkbox-based control variables
-    const controlVarCheckboxes = instance.querySelectorAll(
-      ".dv-control-variable-cb"
-    );
-    if (controlVarCheckboxes.length > 0) {
-      controlVarCheckboxes.forEach((checkbox) => {
-        checkbox.checked = typeData.control_variable.includes(checkbox.value);
-      });
-    }
-    // For dropdown-based control variable
-    else {
-      const controlVarSelect = instance.querySelector(".dv-control-variable");
-      if (controlVarSelect && typeData.control_variable.length > 0) {
-        controlVarSelect.value = typeData.control_variable[0];
-      }
-    }
-  }
-
-  // For STEERING category with axis selection
-  if (
-    dvData.category === "STEERING" &&
-    typeData.axis &&
-    Array.isArray(typeData.axis)
-  ) {
-    const axisCheckboxes = instance.querySelectorAll(".dv-axis-select-cb");
-    if (axisCheckboxes.length > 0) {
-      // Check the appropriate axis checkboxes
-      axisCheckboxes.forEach((checkbox) => {
-        checkbox.checked = typeData.axis.includes(checkbox.value);
-        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-
-      // Now populate per-axis bounds
-      if (typeData.upper_bound && typeData.lower_bound) {
-        typeData.axis.forEach((axis, axisIndex) => {
-          // Find the per-axis bounds container for this axis
-          const axisContainer = instance.querySelector(
-            `.dv-axis-bounds-${axis}`
-          );
-          if (axisContainer) {
-            const lowerBoundInput = axisContainer.querySelector(
-              ".dv-axis-lower-bound"
-            );
-            const upperBoundInput = axisContainer.querySelector(
-              ".dv-axis-upper-bound"
-            );
-
-            // For single value bounds
-            if (lowerBoundInput && upperBoundInput) {
-              if (typeData.lower_bound[axisIndex] !== undefined) {
-                if (Array.isArray(typeData.lower_bound[axisIndex])) {
-                  // For PROFILE type with array of bounds
-                  lowerBoundInput.value =
-                    typeData.lower_bound[axisIndex].join(",");
-                } else {
-                  lowerBoundInput.value = typeData.lower_bound[axisIndex];
-                }
-              }
-
-              if (typeData.upper_bound[axisIndex] !== undefined) {
-                if (Array.isArray(typeData.upper_bound[axisIndex])) {
-                  // For PROFILE type with array of bounds
-                  upperBoundInput.value =
-                    typeData.upper_bound[axisIndex].join(",");
-                } else {
-                  upperBoundInput.value = typeData.upper_bound[axisIndex];
-                }
-              }
-            }
-          }
-        });
-      }
-    }
-  }
-  // For non-axis bound cases
-  else if (typeData.lower_bound && typeData.upper_bound) {
-    const lowerBoundInput = instance.querySelector(".dv-lower-bound");
-    const upperBoundInput = instance.querySelector(".dv-upper-bound");
-
-    if (lowerBoundInput && typeData.lower_bound[0] !== undefined) {
-      if (Array.isArray(typeData.lower_bound[0])) {
-        lowerBoundInput.value = typeData.lower_bound[0].join(",");
-      } else {
-        lowerBoundInput.value = typeData.lower_bound[0];
-      }
-    }
-
-    if (upperBoundInput && typeData.upper_bound[0] !== undefined) {
-      if (Array.isArray(typeData.upper_bound[0])) {
-        upperBoundInput.value = typeData.upper_bound[0].join(",");
-      } else {
-        upperBoundInput.value = typeData.upper_bound[0];
-      }
-    }
-  }
-
-  // For PROFILE type with independent variable and vector
-  if (dvData.segment_type === "PROFILE" && typeData.ind_variable) {
-    const indVarSelect = instance.querySelector(".dv-ind-variable");
-    if (indVarSelect) {
-      indVarSelect.value = typeData.ind_variable.toLowerCase();
-    }
-
-    const indVectorInput = instance.querySelector(".dv-ind-vector");
-    if (indVectorInput && typeData.ind_vector) {
-      indVectorInput.value = typeData.ind_vector.join(",");
-    }
-  }
-}
-
 // Make sure this file is loaded after ui-navigation.js and missionDataHandler.js
 // ... (rest of the file)
 
@@ -4596,3 +4743,732 @@ async function forceAddMotorAndNozzle(stageNumber, motorNumber) {
 }
 
 // Add a new function to more directly handle clicking the Add Motor button
+
+// Function to populate design variables from loaded JSON data
+function populateDesignVariables(loadedData) {
+  console.log("[OpenMission] Starting design variables population");
+
+  // Extract design variables data from the JSON structure
+  const designVariablesKey = loadedData.design_variables;
+  if (!designVariablesKey) {
+    console.warn("[OpenMission] No design_variables key found in data");
+    return;
+  }
+
+  const designVariableNames = loadedData[designVariablesKey];
+  if (!designVariableNames || !Array.isArray(designVariableNames)) {
+    console.warn(
+      `[OpenMission] No design variable names found for key: ${designVariablesKey}`
+    );
+    return;
+  }
+
+  console.log(
+    `[OpenMission] Found ${designVariableNames.length} design variables to populate:`,
+    designVariableNames
+  );
+
+  // Get the design variables container
+  const designVariablesContainer = document.getElementById(
+    "design-variables-container"
+  );
+  if (!designVariablesContainer) {
+    console.error("[OpenMission] Design variables container not found");
+    return;
+  }
+
+  // Clear existing design variables
+  designVariablesContainer.innerHTML = "";
+
+  // Navigate to design variables form first to ensure it's active
+  const designVariablesBtn = document.getElementById("design-variables-btn");
+  if (designVariablesBtn) {
+    designVariablesBtn.click();
+  }
+
+  // Process each design variable sequentially with delays
+  let currentIndex = 0;
+
+  function processNextDesignVariable() {
+    if (currentIndex >= designVariableNames.length) {
+      console.log("[OpenMission] Design variables population completed");
+
+      // Renumber all design variables to start from 1
+      setTimeout(() => {
+        if (
+          typeof window.optimizationHandler?.renumberDesignVariables ===
+          "function"
+        ) {
+          window.optimizationHandler.renumberDesignVariables();
+          console.log(
+            "[OpenMission] Design variables renumbered to start from 1"
+          );
+        }
+      }, 200);
+      return;
+    }
+
+    const dvName = designVariableNames[currentIndex];
+    const dvData = loadedData[dvName];
+
+    if (!dvData || !Array.isArray(dvData) || dvData.length === 0) {
+      console.warn(
+        `[OpenMission] No data found for design variable: ${dvName}`
+      );
+      currentIndex++;
+      setTimeout(processNextDesignVariable, 100);
+      return;
+    }
+
+    // Log the data structure for debugging
+    console.log(`[OpenMission] Raw data for ${dvName}:`, dvData[0]);
+
+    console.log(
+      `[OpenMission] Processing design variable ${currentIndex + 1}/${
+        designVariableNames.length
+      }: ${dvName}`,
+      dvData[0]
+    );
+
+    // Add a new design variable instance
+    const addDesignVariableBtn = document.getElementById(
+      "add-design-variable-btn"
+    );
+    if (addDesignVariableBtn) {
+      addDesignVariableBtn.click();
+
+      // Wait for the new instance to be created, then populate it
+      setTimeout(() => {
+        populateDesignVariableInstance(currentIndex, dvName, dvData[0]);
+        currentIndex++;
+        setTimeout(processNextDesignVariable, 1000); // Increased delay to 1 second between each instance
+      }, 500); // Increased delay for instance creation
+    } else {
+      console.error("[OpenMission] Add design variable button not found");
+      return;
+    }
+  }
+
+  // Start processing design variables after a short delay
+  setTimeout(() => {
+    console.log(
+      "[OpenMission] Starting design variable processing after steering components are loaded"
+    );
+    processNextDesignVariable();
+  }, 1000); // Increased delay to allow steering components to be fully loaded
+}
+
+// Function to populate a single design variable instance with data
+function populateDesignVariableInstance(index, dvName, dvData) {
+  console.log(
+    `[OpenMission] Populating design variable instance ${index}:`,
+    dvName,
+    dvData
+  );
+
+  // Find the design variable instance that was just created
+  const designVariablesContainer = document.getElementById(
+    "design-variables-container"
+  );
+  const instances = designVariablesContainer.querySelectorAll(
+    ".optimization-instance:not(.hidden-template)"
+  );
+
+  if (index >= instances.length) {
+    console.error(`[OpenMission] Design variable instance ${index} not found`);
+    return;
+  }
+
+  const instance = instances[index];
+
+  // Set the name field
+  const nameInput = instance.querySelector(".dv-name");
+  if (nameInput) {
+    nameInput.value = dvName;
+    nameInput.disabled = false; // Enable it since we have data
+  }
+
+  // Set the category
+  const categorySelect = instance.querySelector(".dv-category");
+  if (categorySelect && dvData.category) {
+    console.log(
+      `[OpenMission] Setting category for ${dvName}: ${dvData.category}`
+    );
+    categorySelect.value = dvData.category;
+    categorySelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    // Wait for category change to create dynamic fields, then populate them
+    setTimeout(() => {
+      populateDesignVariableCategoryFields(instance, dvData);
+    }, 200);
+  } else {
+    console.warn(
+      `[OpenMission] Category select not found or no category data for ${dvName}. Category value:`,
+      dvData.category
+    );
+    console.warn(`[OpenMission] Full dvData:`, dvData);
+  }
+}
+
+// Function to populate category-specific fields
+function populateDesignVariableCategoryFields(instance, dvData) {
+  const category = dvData.category;
+  console.log(
+    `[OpenMission] Populating category fields for ${category}:`,
+    dvData
+  );
+
+  // Find the category-specific fields container
+  const categoryFields = instance.querySelector(
+    `.dv-category-fields[data-category="${category}"]`
+  );
+  if (!categoryFields) {
+    console.warn(
+      `[OpenMission] Category fields container not found for ${category}`
+    );
+    return;
+  }
+
+  // Handle different categories
+  switch (category) {
+    case "STEERING":
+      populateSteeringFields(categoryFields, dvData);
+      break;
+    case "PROPULSION":
+      populatePropulsionFields(categoryFields, dvData);
+      break;
+    case "PAYLOAD":
+      populatePayloadFields(categoryFields, dvData);
+      break;
+    case "AZIMUTH":
+      populateAzimuthFields(categoryFields, dvData);
+      break;
+    case "SEQUENCE":
+      populateSequenceFields(categoryFields, dvData);
+      break;
+    case "CUT_OFF":
+      populateCutOffFields(categoryFields, dvData);
+      break;
+    default:
+      console.warn(`[OpenMission] Unknown category: ${category}`);
+  }
+}
+
+// Function to populate steering-specific fields
+function populateSteeringFields(categoryFields, dvData) {
+  console.log("[OpenMission] Populating steering fields:", dvData);
+
+  // Set segment
+  const segmentSelect = categoryFields.querySelector(".dv-segment");
+  if (segmentSelect && dvData.segment) {
+    // Force update the segment dropdown first to ensure all options are available
+    if (
+      typeof window.optimizationHandler
+        ?.refreshAllDesignVariableSegmentDropdowns === "function"
+    ) {
+      window.optimizationHandler.refreshAllDesignVariableSegmentDropdowns();
+      console.log(
+        "[OpenMission] Refreshed segment dropdowns before population"
+      );
+    }
+
+    // Wait for the option to exist before setting the value
+    const targetSegment = dvData.segment;
+    let attempts = 0;
+    const maxAttempts = 50; // Increased to 50 * 100ms = 5 seconds
+
+    const checkAndSetSegment = () => {
+      // Refresh dropdowns on each attempt to catch newly added components
+      if (attempts % 5 === 0 && attempts > 0) {
+        if (
+          typeof window.optimizationHandler
+            ?.refreshAllDesignVariableSegmentDropdowns === "function"
+        ) {
+          window.optimizationHandler.refreshAllDesignVariableSegmentDropdowns();
+          console.log(
+            `[OpenMission] Refreshed segment dropdowns on attempt ${attempts}`
+          );
+        }
+      }
+
+      const optionExists = Array.from(segmentSelect.options).some(
+        (option) => option.value === targetSegment
+      );
+
+      if (optionExists) {
+        segmentSelect.value = targetSegment;
+        segmentSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log(
+          `[OpenMission] Successfully set segment to: ${targetSegment}`
+        );
+
+        // Wait for segment change, then set segment type
+        setTimeout(() => {
+          const segmentTypeSelect =
+            categoryFields.querySelector(".dv-segment-type");
+          if (segmentTypeSelect && dvData.segment_type) {
+            // Wait for segment type options to be populated
+            const waitForSegmentTypeOptions = () => {
+              if (segmentTypeSelect.options.length > 1) {
+                // More than just placeholder
+                segmentTypeSelect.value = dvData.segment_type;
+                segmentTypeSelect.dispatchEvent(
+                  new Event("change", { bubbles: true })
+                );
+
+                // Wait for segment type change to create type-specific fields
+                setTimeout(() => {
+                  // Check if we have segment_type data before calling populateSteeringTypeFields
+                  if (dvData.segment_type) {
+                    populateSteeringTypeFields(categoryFields, dvData);
+                  } else {
+                    console.warn(
+                      `[OpenMission] No segment_type found in dvData for ${dvData.segment}:`,
+                      dvData
+                    );
+                  }
+                }, 300);
+              } else {
+                setTimeout(waitForSegmentTypeOptions, 100);
+              }
+            };
+            waitForSegmentTypeOptions();
+          }
+        }, 300);
+      } else if (attempts < maxAttempts) {
+        attempts++;
+        setTimeout(checkAndSetSegment, 100); // Wait 100ms and try again
+      } else {
+        console.warn(
+          `[OpenMission] Timeout: Option "${targetSegment}" not found in segment dropdown after ${maxAttempts} attempts.`
+        );
+        console.warn(
+          `[OpenMission] Available segment options:`,
+          Array.from(segmentSelect.options).map((opt) => opt.value)
+        );
+
+        // Add the missing option manually if it doesn't exist
+        const newOption = document.createElement("option");
+        newOption.value = targetSegment;
+        newOption.textContent = targetSegment;
+        segmentSelect.appendChild(newOption);
+
+        segmentSelect.value = targetSegment;
+        segmentSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log(
+          `[OpenMission] Added and set missing segment option: ${targetSegment}`
+        );
+
+        // Proceed with setting segment type
+        setTimeout(() => {
+          const segmentTypeSelect =
+            categoryFields.querySelector(".dv-segment-type");
+          if (segmentTypeSelect && dvData.segment_type) {
+            segmentTypeSelect.value = dvData.segment_type;
+            segmentTypeSelect.dispatchEvent(
+              new Event("change", { bubbles: true })
+            );
+
+            // Wait for segment type change to create type-specific fields
+            setTimeout(() => {
+              // Check if we have segment_type data before calling populateSteeringTypeFields
+              if (dvData.segment_type) {
+                populateSteeringTypeFields(categoryFields, dvData);
+              } else {
+                console.warn(
+                  `[OpenMission] No segment_type found in dvData for ${dvData.segment}:`,
+                  dvData
+                );
+              }
+            }, 300);
+          }
+        }, 300);
+      }
+    };
+
+    checkAndSetSegment();
+  }
+
+  // The original setTimeout block for segment type is now inside the checkAndSetSegment function
+  // and is only triggered after the segment is successfully set or on timeout.
+  // Keeping the original structure commented out for reference if needed.
+  /*
+  // Wait for segment change, then set segment type
+  setTimeout(() => {
+    const segmentTypeSelect = categoryFields.querySelector(".dv-segment-type");
+    if (segmentTypeSelect && dvData.segment_type) {
+      segmentTypeSelect.value = dvData.segment_type;
+      segmentTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+      // Wait for segment type change to create type-specific fields
+      setTimeout(() => {
+        populateSteeringTypeFields(categoryFields, dvData);
+      }, 200);
+    }
+  }, 200);
+  */
+}
+
+// Function to populate steering type-specific fields
+function populateSteeringTypeFields(categoryFields, dvData) {
+  if (!dvData.type || !Array.isArray(dvData.type) || dvData.type.length === 0) {
+    console.warn("[OpenMission] No type data found for steering variable");
+    return;
+  }
+
+  const typeData = dvData.type[0];
+  console.log("[OpenMission] Populating steering type fields:", typeData);
+
+  // Find the type-specific fields container for the segment type
+  const segmentType = dvData.segment_type;
+  console.log(
+    `[OpenMission] Looking for type fields with segment type: ${segmentType}`
+  );
+
+  const typeFields = categoryFields.querySelector(
+    `.dv-steering-type-fields[data-segment-type="${segmentType}"]`
+  );
+
+  if (!typeFields) {
+    console.warn(
+      `[OpenMission] Type fields container not found for segment type: ${segmentType}`
+    );
+    // List all available type fields for debugging
+    const availableTypeFields = categoryFields.querySelectorAll(
+      ".dv-steering-type-fields"
+    );
+    console.warn(
+      `[OpenMission] Available type fields:`,
+      Array.from(availableTypeFields).map((field) => field.dataset.segmentType)
+    );
+    return;
+  }
+
+  console.log(
+    `[OpenMission] Found type fields container for segment type: ${segmentType}`
+  );
+
+  // Make sure the type fields are visible
+  typeFields.classList.remove("hidden");
+
+  // Set control variables
+  if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
+    // Check if this is CONST_BODYRATE with checkboxes
+    if (segmentType === "CONST_BODYRATE") {
+      console.log(
+        `[OpenMission] Setting control variable checkboxes for CONST_BODYRATE:`,
+        typeData.control_variable
+      );
+      // Handle checkboxes for CONST_BODYRATE
+      typeData.control_variable.forEach((variable) => {
+        const checkbox = typeFields.querySelector(
+          `.dv-control-variable-cb[value="${variable}"]`
+        );
+        if (checkbox) {
+          checkbox.checked = true;
+          checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+          console.log(
+            `[OpenMission] Checked control variable checkbox: ${variable}`
+          );
+        } else {
+          console.warn(
+            `[OpenMission] Control variable checkbox not found: ${variable}`
+          );
+        }
+      });
+    } else {
+      // Handle dropdown/select for other segment types
+      const controlVarSelect = typeFields.querySelector(".dv-control-variable");
+      if (controlVarSelect) {
+        if (controlVarSelect.tagName === "SELECT") {
+          // For dropdowns, set the value directly
+          controlVarSelect.value = typeData.control_variable[0];
+          controlVarSelect.dispatchEvent(
+            new Event("change", { bubbles: true })
+          );
+          console.log(
+            `[OpenMission] Set control variable dropdown: ${typeData.control_variable[0]}`
+          );
+        } else {
+          // For text inputs, join the array
+          controlVarSelect.value = typeData.control_variable.join(", ");
+          console.log(
+            `[OpenMission] Set control variable input: ${typeData.control_variable.join(
+              ", "
+            )}`
+          );
+        }
+      }
+    }
+  }
+
+  // Set axis selection for per-axis types
+  if (typeData.axis && Array.isArray(typeData.axis)) {
+    // For per-axis types like CONST_BODYRATE and PROFILE, handle axis selection
+    typeData.axis.forEach((axis) => {
+      const axisCheckbox = typeFields.querySelector(
+        `.dv-axis-select-cb[value="${axis}"]`
+      );
+      if (axisCheckbox) {
+        axisCheckbox.checked = true;
+        axisCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+  }
+
+  // Set bounds with proper per-axis handling
+  if (typeData.upper_bound && Array.isArray(typeData.upper_bound)) {
+    console.log(
+      `[OpenMission] Setting upper bounds for ${segmentType}:`,
+      typeData.upper_bound
+    );
+    if (
+      segmentType === "PROFILE" ||
+      segmentType === "CONST_BODYRATE" ||
+      segmentType === "CLG"
+    ) {
+      // Handle per-axis bounds
+      typeData.axis?.forEach((axis, index) => {
+        const upperBoundInput = typeFields.querySelector(
+          `.dv-upper-bound[data-axis="${axis}"]`
+        );
+        if (upperBoundInput && typeData.upper_bound[index] !== undefined) {
+          const boundValue = Array.isArray(typeData.upper_bound[index])
+            ? typeData.upper_bound[index].join(", ")
+            : typeData.upper_bound[index];
+          upperBoundInput.value = boundValue;
+          console.log(`[OpenMission] Set ${axis} upper bound: ${boundValue}`);
+        }
+      });
+    } else {
+      // Handle regular bounds
+      const upperBoundInput = typeFields.querySelector(".dv-upper-bound");
+      if (upperBoundInput) {
+        const boundsString = typeData.upper_bound
+          .map((arr) => (Array.isArray(arr) ? arr.join(", ") : arr))
+          .join("; ");
+        upperBoundInput.value = boundsString;
+        console.log(`[OpenMission] Set regular upper bound: ${boundsString}`);
+      }
+    }
+  }
+
+  if (typeData.lower_bound && Array.isArray(typeData.lower_bound)) {
+    console.log(
+      `[OpenMission] Setting lower bounds for ${segmentType}:`,
+      typeData.lower_bound
+    );
+    if (
+      segmentType === "PROFILE" ||
+      segmentType === "CONST_BODYRATE" ||
+      segmentType === "CLG"
+    ) {
+      // Handle per-axis bounds
+      typeData.axis?.forEach((axis, index) => {
+        const lowerBoundInput = typeFields.querySelector(
+          `.dv-lower-bound[data-axis="${axis}"]`
+        );
+        if (lowerBoundInput && typeData.lower_bound[index] !== undefined) {
+          const boundValue = Array.isArray(typeData.lower_bound[index])
+            ? typeData.lower_bound[index].join(", ")
+            : typeData.lower_bound[index];
+          lowerBoundInput.value = boundValue;
+          console.log(`[OpenMission] Set ${axis} lower bound: ${boundValue}`);
+        }
+      });
+    } else {
+      // Handle regular bounds
+      const lowerBoundInput = typeFields.querySelector(".dv-lower-bound");
+      if (lowerBoundInput) {
+        const boundsString = typeData.lower_bound
+          .map((arr) => (Array.isArray(arr) ? arr.join(", ") : arr))
+          .join("; ");
+        lowerBoundInput.value = boundsString;
+        console.log(`[OpenMission] Set regular lower bound: ${boundsString}`);
+      }
+    }
+  }
+
+  // For PROFILE type, set independent variable and vector
+  if (dvData.segment_type === "PROFILE") {
+    console.log(`[OpenMission] Setting PROFILE specific fields:`, typeData);
+
+    if (typeData.ind_variable) {
+      const indVarSelect = typeFields.querySelector(".dv-ind-variable");
+      if (indVarSelect) {
+        indVarSelect.value = typeData.ind_variable;
+        indVarSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log(
+          `[OpenMission] Set independent variable: ${typeData.ind_variable}`
+        );
+      } else {
+        console.warn(`[OpenMission] Independent variable select not found`);
+      }
+    }
+
+    if (typeData.ind_vector && Array.isArray(typeData.ind_vector)) {
+      const indVectorInput = typeFields.querySelector(".dv-ind-vector");
+      if (indVectorInput) {
+        indVectorInput.value = typeData.ind_vector.join(", ");
+        console.log(
+          `[OpenMission] Set independent vector: ${typeData.ind_vector.join(
+            ", "
+          )}`
+        );
+      } else {
+        console.warn(`[OpenMission] Independent vector input not found`);
+      }
+    }
+  }
+}
+
+// Function to populate propulsion-specific fields
+function populatePropulsionFields(categoryFields, dvData) {
+  console.log("[OpenMission] Populating propulsion fields:", dvData);
+
+  // Set segment
+  const segmentSelect = categoryFields.querySelector(".dv-segment");
+  if (segmentSelect && dvData.segment) {
+    segmentSelect.value = dvData.segment;
+  }
+
+  // Set type fields
+  if (dvData.type && Array.isArray(dvData.type) && dvData.type.length > 0) {
+    const typeData = dvData.type[0];
+
+    if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
+      const controlVarInput = categoryFields.querySelector(
+        ".dv-control-variable"
+      );
+      if (controlVarInput) {
+        controlVarInput.value = typeData.control_variable.join(", ");
+      }
+    }
+
+    // Set bounds
+    setBounds(categoryFields, typeData);
+  }
+}
+
+// Function to populate payload-specific fields
+function populatePayloadFields(categoryFields, dvData) {
+  console.log("[OpenMission] Populating payload fields:", dvData);
+
+  if (dvData.type && Array.isArray(dvData.type) && dvData.type.length > 0) {
+    const typeData = dvData.type[0];
+
+    if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
+      const controlVarInput = categoryFields.querySelector(
+        ".dv-control-variable"
+      );
+      if (controlVarInput) {
+        controlVarInput.value = typeData.control_variable.join(", ");
+      }
+    }
+
+    // Set bounds
+    setBounds(categoryFields, typeData);
+  }
+}
+
+// Function to populate azimuth-specific fields
+function populateAzimuthFields(categoryFields, dvData) {
+  console.log("[OpenMission] Populating azimuth fields:", dvData);
+
+  if (dvData.type && Array.isArray(dvData.type) && dvData.type.length > 0) {
+    const typeData = dvData.type[0];
+
+    if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
+      const controlVarInput = categoryFields.querySelector(
+        ".dv-control-variable"
+      );
+      if (controlVarInput) {
+        controlVarInput.value = typeData.control_variable.join(", ");
+      }
+    }
+
+    // Set bounds
+    setBounds(categoryFields, typeData);
+  }
+}
+
+// Function to populate sequence-specific fields
+function populateSequenceFields(categoryFields, dvData) {
+  console.log("[OpenMission] Populating sequence fields:", dvData);
+
+  // Set flag if present
+  if (dvData.flag) {
+    const flagSelect = categoryFields.querySelector(".dv-flag");
+    if (flagSelect) {
+      flagSelect.value = dvData.flag;
+    }
+  }
+
+  if (dvData.type && Array.isArray(dvData.type) && dvData.type.length > 0) {
+    const typeData = dvData.type[0];
+
+    if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
+      const controlVarInput = categoryFields.querySelector(
+        ".dv-control-variable"
+      );
+      if (controlVarInput) {
+        controlVarInput.value = typeData.control_variable.join(", ");
+      }
+    }
+
+    // Set bounds
+    setBounds(categoryFields, typeData);
+  }
+}
+
+// Function to populate cut-off specific fields
+function populateCutOffFields(categoryFields, dvData) {
+  console.log("[OpenMission] Populating cut-off fields:", dvData);
+
+  // Set flag if present
+  if (dvData.flag) {
+    const flagSelect = categoryFields.querySelector(".dv-flag");
+    if (flagSelect) {
+      flagSelect.value = dvData.flag;
+    }
+  }
+
+  if (dvData.type && Array.isArray(dvData.type) && dvData.type.length > 0) {
+    const typeData = dvData.type[0];
+
+    if (typeData.control_variable && Array.isArray(typeData.control_variable)) {
+      const controlVarInput = categoryFields.querySelector(
+        ".dv-control-variable"
+      );
+      if (controlVarInput) {
+        controlVarInput.value = typeData.control_variable.join(", ");
+      }
+    }
+
+    // Set bounds
+    setBounds(categoryFields, typeData);
+  }
+}
+
+// Helper function to set bounds
+function setBounds(categoryFields, typeData) {
+  if (typeData.upper_bound && Array.isArray(typeData.upper_bound)) {
+    const upperBoundInput = categoryFields.querySelector(".dv-upper-bound");
+    if (upperBoundInput) {
+      const boundsString = typeData.upper_bound
+        .map((arr) => (Array.isArray(arr) ? arr.join(", ") : arr))
+        .join("; ");
+      upperBoundInput.value = boundsString;
+    }
+  }
+
+  if (typeData.lower_bound && Array.isArray(typeData.lower_bound)) {
+    const lowerBoundInput = categoryFields.querySelector(".dv-lower-bound");
+    if (lowerBoundInput) {
+      const boundsString = typeData.lower_bound
+        .map((arr) => (Array.isArray(arr) ? arr.join(", ") : arr))
+        .join("; ");
+      lowerBoundInput.value = boundsString;
+    }
+  }
+}

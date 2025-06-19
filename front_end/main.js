@@ -40,6 +40,7 @@ app.whenReady().then(() => {
       window.nodePath = require('path');
       window.nodeFs = require('fs');
       window.nodeExec = require('child_process').exec;
+      window.nodeSpawn = require('child_process').spawn;
     `);
   });
 

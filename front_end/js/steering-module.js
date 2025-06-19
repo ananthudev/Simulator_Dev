@@ -449,6 +449,9 @@ function populateFields(container, params) {
     return;
   }
 
+  // Check if we have any actual parameters to set
+  const hasParameters = Object.keys(currentParams).length > 0;
+
   container
     .querySelectorAll("input[data-param], select[data-param]")
     .forEach((field) => {
@@ -473,23 +476,56 @@ function populateFields(container, params) {
         console.log(
           `Found value for ${paramName}: ${valueToSet} -> Setting field to: '${finalValue}' (Type: ${typeof finalValue})`
         );
-        field.value = finalValue;
+
+        // For SELECT elements, validate that the option exists before setting
         if (field.tagName === "SELECT") {
-          console.log(
-            `Triggering change event for select: ${field.name || field.id}`
+          // Check if the value exists as an option
+          const optionExists = Array.from(field.options).some(
+            (option) => option.value === finalValue
           );
-          field.dispatchEvent(new Event("change", { bubbles: true }));
+
+          if (optionExists) {
+            field.value = finalValue;
+            // Use setTimeout to ensure the value is set before dispatching the event
+            setTimeout(() => {
+              console.log(
+                `Triggering change event for select: ${field.name || field.id}`
+              );
+              field.dispatchEvent(new Event("change", { bubbles: true }));
+            }, 50);
+          } else {
+            console.warn(
+              `populateFields: Option "${finalValue}" not found in dropdown for param ${paramName}. Available options:`,
+              Array.from(field.options).map((opt) => opt.value)
+            );
+            // Set to empty string if value doesn't exist
+            field.value = "";
+          }
+        } else {
+          field.value = finalValue;
         }
+      } else if (!hasParameters) {
+        // If no parameters provided at all, preserve existing field values
+        console.log(
+          `No parameters provided - preserving existing value for ${paramName}`
+        );
+        // Don't clear the field, just leave its current value
       } else {
         console.log(`Param ${paramName} not found in params object.`);
-        field.value = "";
+
+        // For SELECT elements, validate that empty string is an option
         if (field.tagName === "SELECT") {
-          console.log(
-            `Triggering change event for cleared select: ${
-              field.name || field.id
-            }`
-          );
-          field.dispatchEvent(new Event("change", { bubbles: true }));
+          field.value = "";
+          setTimeout(() => {
+            console.log(
+              `Triggering change event for cleared select: ${
+                field.name || field.id
+              }`
+            );
+            field.dispatchEvent(new Event("change", { bubbles: true }));
+          }, 50);
+        } else {
+          field.value = "";
         }
       }
     });
@@ -1238,7 +1274,7 @@ class SteeringConfigHandler {
   populateAndValidatePanel(componentId) {
     const component = window.steeringState.activeComponents[componentId];
     if (!component) {
-      console.error(`Component with ID ${componentId} not found.`);
+      console.error(`Component ${componentId} not found for panel population`);
       return;
     }
     console.log(`Populating panel for component: ${componentId}`);
@@ -1247,43 +1283,94 @@ class SteeringConfigHandler {
     // Ensure isSaved is initialized if it doesn't exist (e.g., loading old data)
     component.isSaved = component.isSaved ?? false;
 
-    document.querySelector('[data-field="start_identity"]').value =
-      config.start_identity;
-    document.querySelector('[data-field="start_trigger_type"]').value =
-      config.start_trigger_type;
-    document.querySelector('[data-field="start_trigger_value"]').value =
-      config.start_trigger_value;
-    document.querySelector('[data-field="start_reference"]').value =
-      config.start_reference;
-    document.querySelector('[data-field="start_comment"]').value =
-      config.start_comment || "";
-    document.querySelector('[data-field="stop_identity"]').value =
-      config.stop_identity;
-    document.querySelector('[data-field="stop_trigger_type"]').value =
-      config.stop_trigger_type;
-    document.querySelector('[data-field="stop_trigger_value"]').value =
-      config.stop_trigger_value;
-    document.querySelector('[data-field="stop_reference"]').value =
-      config.stop_reference;
-    document.querySelector('[data-field="stop_comment"]').value =
-      config.stop_comment || "";
+    // Update reference dropdowns before setting values
+    if (typeof updateSteeringReferenceDropdowns === "function") {
+      updateSteeringReferenceDropdowns();
+    }
 
-    const steeringTypeSelect = document.querySelector(
-      '[data-field="steering_type"]'
+    // Helper function to safely set field values, especially for dropdowns
+    const setFieldValueSafe = (selector, value) => {
+      const field = document.querySelector(selector);
+      if (!field) {
+        console.warn(`Field not found: ${selector}`);
+        return;
+      }
+
+      const displayValue = value || "";
+
+      if (field.tagName === "SELECT") {
+        // Check if the value exists as an option
+        const optionExists = Array.from(field.options).some(
+          (option) => option.value === displayValue
+        );
+
+        if (optionExists) {
+          field.value = displayValue;
+          // Use setTimeout to ensure the value is set before dispatching the event
+          setTimeout(() => {
+            field.dispatchEvent(new Event("change", { bubbles: true }));
+          }, 50);
+        } else if (
+          displayValue &&
+          displayValue !== "none" &&
+          displayValue !== ""
+        ) {
+          // Add the missing option for reference dropdowns if it's a valid value
+          if (selector.includes("reference")) {
+            console.log(
+              `Adding missing reference option "${displayValue}" to ${selector}`
+            );
+            const newOption = document.createElement("option");
+            newOption.value = displayValue;
+            newOption.textContent = displayValue;
+            field.appendChild(newOption);
+            field.value = displayValue;
+            setTimeout(() => {
+              field.dispatchEvent(new Event("change", { bubbles: true }));
+            }, 50);
+          } else {
+            console.warn(
+              `Option "${displayValue}" not found in dropdown ${selector}. Available options:`,
+              Array.from(field.options).map((opt) => opt.value)
+            );
+            // Set to empty string if value doesn't exist
+            field.value = "";
+          }
+        } else {
+          field.value = displayValue;
+        }
+      } else {
+        field.value = displayValue;
+      }
+    };
+
+    setFieldValueSafe('[data-field="start_identity"]', config.start_identity);
+    setFieldValueSafe(
+      '[data-field="start_trigger_type"]',
+      config.start_trigger_type
     );
-    if (steeringTypeSelect) {
-      steeringTypeSelect.value = config.steering_type || "";
-    } else {
-      console.warn("Steering type select element not found during population.");
-    }
-    const steeringComment = document.querySelector(
-      '[data-field="steering_comment"]'
+    setFieldValueSafe(
+      '[data-field="start_trigger_value"]',
+      config.start_trigger_value
     );
-    if (steeringComment) {
-      steeringComment.value = config.steering_comment || "";
-    } else {
-      console.warn("Steering comment element not found during population.");
-    }
+    setFieldValueSafe('[data-field="start_reference"]', config.start_reference);
+    setFieldValueSafe('[data-field="start_comment"]', config.start_comment);
+    setFieldValueSafe('[data-field="stop_identity"]', config.stop_identity);
+    setFieldValueSafe(
+      '[data-field="stop_trigger_type"]',
+      config.stop_trigger_type
+    );
+    setFieldValueSafe(
+      '[data-field="stop_trigger_value"]',
+      config.stop_trigger_value
+    );
+    setFieldValueSafe('[data-field="stop_reference"]', config.stop_reference);
+    setFieldValueSafe('[data-field="stop_comment"]', config.stop_comment);
+    setFieldValueSafe('[data-field="steering_type"]', config.steering_type);
+    setFieldValueSafe(
+      '[data-field="steering_comment"]',
+      config.steering_comment
+    );
 
     // --- ADDED: Update CSV upload UI state based on component data ---
     const profileCsvFilename = document.getElementById("profile-csv-filename");
@@ -1319,25 +1406,35 @@ class SteeringConfigHandler {
     // --- END ADDED ---
 
     if (typeof generateSteeringFields === "function") {
+      // Only call generateSteeringFields if we have actual parameters to set
+      // or if the steering type has changed
+      const hasParameters =
+        config.steering_params &&
+        Object.keys(config.steering_params).length > 0;
+      const currentType = config.steering_type;
+
       console.log(
-        `Populating steering fields for type: ${config.steering_type} with params:`,
+        `Populating steering fields for type: ${currentType} with params:`,
         config.steering_params
       );
-      generateSteeringFields(config.steering_type, config.steering_params);
+
+      // Always call generateSteeringFields to show the correct section
+      generateSteeringFields(currentType, config.steering_params || {});
+
       const dynamicFieldsContainer = document.querySelector(
         ".dynamic-steering-fields"
       );
       const activeSection = dynamicFieldsContainer?.querySelector(
-        `.steering-params[data-steering-type="${config.steering_type}"]`
+        `.steering-params[data-steering-type="${currentType}"]`
       );
       if (activeSection) {
         console.log("Attaching listeners after populating panel...");
         this.attachListenersToDynamicFields(activeSection);
       } else {
         // --- MODIFIED: Check if steering type is non-empty before warning ---
-        if (config.steering_type) {
+        if (currentType) {
           console.warn(
-            `Could not find active section for steering type '${config.steering_type}' to attach listeners to during population.`
+            `Could not find active section for steering type '${currentType}' to attach listeners to during population.`
           );
         } else {
           console.log(

@@ -230,6 +230,13 @@ document.addEventListener("DOMContentLoaded", function () {
   vehicleButton.addEventListener("click", (event) => {
     event.preventDefault();
     showForm(vehicleForm);
+
+    // Trigger validation refresh when navigating to vehicle form
+    setTimeout(() => {
+      if (window.formStateManager) {
+        window.formStateManager.revalidateSection("vehicle");
+      }
+    }, 100);
   });
 
   sequenceButton.addEventListener("click", (event) => {

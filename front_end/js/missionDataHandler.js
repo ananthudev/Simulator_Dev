@@ -231,14 +231,12 @@ function saveMissionData() {
           return;
         }
 
-        terminal.document.write(
-          "<html><head><title>ASTRA Simulation Results</title>"
-        );
+        terminal.document.write("<html><head><title>ASTRA Results</title>");
         terminal.document.write(
           "<style>body { background-color: #000; color: #fff; font-family: monospace; padding: 10px; }</style>"
         );
         terminal.document.write("</head><body>");
-        terminal.document.write("<h2>Running ASTRA Simulation...</h2>");
+        terminal.document.write("<h2>Running ASTRA...</h2>");
 
         // Check if we're running in Electron environment
         if (window.isElectron) {
@@ -298,106 +296,59 @@ function saveMissionData() {
                     "/"
                   )}`;
 
-                  // Command to run ASTRA directly using wsl --exec.
-                  // Ensure wslAbsoluteFilePath is quoted as it contains spaces.
-                  const cmd = `wsl --exec ASTRA "${wslAbsoluteFilePath}"`;
+                  // Use spawn for real-time output
+                  const spawn = window.nodeSpawn;
+                  const astraProcess = spawn("wsl", [
+                    "--exec",
+                    "ASTRA",
+                    wslAbsoluteFilePath,
+                  ]);
 
                   terminal.document.getElementById(
                     "output"
-                  ).textContent += `Executing command: ${cmd}\n`;
+                  ).textContent += `Executing command: wsl --exec ASTRA "${wslAbsoluteFilePath}"\n\n`;
 
-                  // Execute ASTRA. No cwd option is needed for exec as ASTRA gets an absolute path.
-                  exec(cmd, (error, stdout, stderr) => {
-                    try {
-                      if (error) {
-                        let errorMessage = `Command execution error. Exit Code: ${
-                          error.code
-                        }. Message: ${String(error.message)}\n`;
-                        if (stderr) {
-                          // stderr from callback arguments
-                          errorMessage += `Process Stderr: ${String(stderr)}\n`;
-                        } else if (error.stderr) {
-                          // stderr from the error object itself
-                          errorMessage += `Process Stderr (from error object): ${String(
-                            error.stderr
-                          )}\n`;
-                        } else {
-                          errorMessage += `Process Stderr: (empty)\n`;
-                        }
+                  const outputElement =
+                    terminal.document.getElementById("output");
 
-                        // Check if terminal and its elements are accessible before writing
-                        if (
-                          terminal &&
-                          !terminal.closed &&
-                          terminal.document &&
-                          terminal.document.getElementById("output")
-                        ) {
-                          terminal.document.getElementById(
-                            "output"
-                          ).textContent += errorMessage;
-                        } else {
-                          console.error(
-                            "Terminal window closed or inaccessible. ASTRA Error:",
-                            errorMessage
-                          );
-                        }
-                        return;
-                      }
+                  astraProcess.stdout.on("data", (data) => {
+                    if (terminal && !terminal.closed && outputElement) {
+                      outputElement.textContent += data.toString();
+                      terminal.scrollTo(0, terminal.document.body.scrollHeight); // Auto-scroll
+                    } else {
+                      console.log("ASTRA Stdout:", data.toString());
+                    }
+                  });
 
-                      if (stderr) {
-                        const Sstderr = `ASTRA Stderr: ${String(stderr)}\n`;
-                        if (
-                          terminal &&
-                          !terminal.closed &&
-                          terminal.document &&
-                          terminal.document.getElementById("output")
-                        ) {
-                          terminal.document.getElementById(
-                            "output"
-                          ).textContent += Sstderr;
-                        } else {
-                          console.warn(
-                            "Terminal window closed or inaccessible. ASTRA Stderr:",
-                            Sstderr
-                          );
-                        }
-                      }
-                      if (stdout) {
-                        const Sstdout = `ASTRA Stdout: ${String(stdout)}\n`;
-                        if (
-                          terminal &&
-                          !terminal.closed &&
-                          terminal.document &&
-                          terminal.document.getElementById("output")
-                        ) {
-                          terminal.document.getElementById(
-                            "output"
-                          ).textContent += Sstdout;
-                        } else {
-                          console.log(
-                            "Terminal window closed or inaccessible. ASTRA Stdout:",
-                            Sstdout
-                          );
-                        }
-                      }
-                      const Scomplete = `Simulation completed!\n`;
-                      if (
-                        terminal &&
-                        !terminal.closed &&
-                        terminal.document &&
-                        terminal.document.getElementById("output")
-                      ) {
-                        terminal.document.getElementById(
-                          "output"
-                        ).textContent += Scomplete;
+                  astraProcess.stderr.on("data", (data) => {
+                    if (terminal && !terminal.closed && outputElement) {
+                      outputElement.textContent += `[STDERR] ${data.toString()}`;
+                      terminal.scrollTo(0, terminal.document.body.scrollHeight); // Auto-scroll
+                    } else {
+                      console.error("ASTRA Stderr:", data.toString());
+                    }
+                  });
+
+                  astraProcess.on("error", (error) => {
+                    const errorMessage = `Failed to start ASTRA process. Error: ${error.message}\n`;
+                    if (terminal && !terminal.closed && outputElement) {
+                      outputElement.textContent += errorMessage;
+                    } else {
+                      console.error(errorMessage);
+                    }
+                  });
+
+                  astraProcess.on("close", (code) => {
+                    const closeMessage = `\nASTRA process exited with code ${code}\n`;
+                    if (terminal && !terminal.closed && outputElement) {
+                      outputElement.textContent += closeMessage;
+                      if (code !== 0) {
+                        outputElement.textContent += `\nSimulation may have failed. Check logs for details.\n`;
                       } else {
-                        console.log(Scomplete);
+                        outputElement.textContent += `\nSimulation completed successfully!\n`;
                       }
-                    } catch (e) {
-                      console.error(
-                        "Error during ASTRA exec callback (e.g., writing to terminal):",
-                        String(e)
-                      );
+                    } else {
+                      console.log(closeMessage);
                     }
                   });
                 } else {

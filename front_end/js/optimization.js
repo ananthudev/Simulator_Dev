@@ -8,15 +8,95 @@ window.optimizationHandler.archipelagoCsvData = Array(49).fill(0); // Initialize
 window.optimizationHandler.archipelagoCsvFile = null;
 
 // Add a CSV parse function to parse initial population data
+// Function to calculate dynamic initial population size based on design variables
+function calculateInitialPopulationSize() {
+  try {
+    // First try to get design variables from current form state
+    let designVariablesData = [];
+
+    if (typeof getDesignVariablesData === "function") {
+      designVariablesData = getDesignVariablesData();
+    }
+
+    // If no form data, try to get from window.finalMissionData
+    if (designVariablesData.length === 0 && window.finalMissionData) {
+      // Get design variable names from the mission data
+      const dvCollectionName = window.finalMissionData.design_variables;
+      if (dvCollectionName && window.finalMissionData[dvCollectionName]) {
+        const dvNames = window.finalMissionData[dvCollectionName];
+
+        // For each design variable name, get its configuration
+        dvNames.forEach((dvName) => {
+          if (
+            window.finalMissionData[dvName] &&
+            window.finalMissionData[dvName][0]
+          ) {
+            designVariablesData.push({
+              name: dvName,
+              category: window.finalMissionData[dvName][0].category,
+              segment_type: window.finalMissionData[dvName][0].segment_type,
+              type: window.finalMissionData[dvName][0].type
+                ? window.finalMissionData[dvName][0].type[0]
+                : {},
+            });
+          }
+        });
+      }
+    }
+
+    // If still no data, return default size
+    if (designVariablesData.length === 0) {
+      console.log("No design variables found, using default size of 1");
+      return 1; // Return minimal default instead of 49
+    }
+
+    let totalSize = 0;
+
+    designVariablesData.forEach((dv) => {
+      const dvType = dv.type || {};
+
+      // Calculate size based on upper_bound arrays (since upper/lower are symmetric)
+      if (dvType.upper_bound && Array.isArray(dvType.upper_bound)) {
+        // Handle nested array structure
+        if (Array.isArray(dvType.upper_bound[0])) {
+          // For multi-axis variables like pitch and yaw
+          dvType.upper_bound.forEach((axisArray) => {
+            if (Array.isArray(axisArray)) {
+              totalSize += axisArray.length;
+            }
+          });
+        } else {
+          // For single axis variables
+          totalSize += dvType.upper_bound.length;
+        }
+      } else {
+        // For single value bounds (like CLG, CUT_OFF, etc.)
+        totalSize += 1;
+      }
+    });
+
+    console.log(
+      `Calculated initial population size: ${totalSize} based on ${designVariablesData.length} design variables`
+    );
+    return totalSize > 0 ? totalSize : 1; // Ensure at least size 1
+  } catch (error) {
+    console.error("Error calculating initial population size:", error);
+    return 1; // Return minimal default on error
+  }
+}
+
 function parseInitialPopulationCSV(csvString) {
-  if (!csvString) return Array(49).fill(0); // Return default array of 49 zeros if no input
+  // Calculate dynamic size based on design variables
+  const dynamicSize = calculateInitialPopulationSize();
+
+  if (!csvString) return Array(dynamicSize).fill(0); // Return dynamic array if no input
 
   try {
     // Clean and prepare the string
     const trimmedString = csvString.trim();
     const lines = trimmedString.split("\n");
 
-    if (lines.length === 0) return Array(49).fill(0); // Return default if no lines
+    if (lines.length === 0) return Array(dynamicSize).fill(0); // Return dynamic array if no lines
 
     // Initialize array to hold values
     const result = [];
@@ -40,11 +120,11 @@ function parseInitialPopulationCSV(csvString) {
       }
     });
 
-    // Return the parsed result or default array if empty
-    return result.length > 0 ? result : Array(49).fill(0);
+    // Return the parsed result or dynamic array if empty
+    return result.length > 0 ? result : Array(dynamicSize).fill(0);
   } catch (error) {
     console.error("Error parsing initial population CSV:", error);
-    return Array(49).fill(0); // Return default on error
+    return Array(dynamicSize).fill(0); // Return dynamic array on error
   }
 }
 
@@ -1274,8 +1354,11 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Normal mode CSV data parsed and stored");
       } else {
         window.optimizationHandler.normalCsvFile = null;
-        window.optimizationHandler.normalCsvData = Array(49).fill(0);
-        console.log("Normal mode CSV data cleared and set to default zeros");
+        const dynamicSize = calculateInitialPopulationSize();
+        window.optimizationHandler.normalCsvData = Array(dynamicSize).fill(0);
+        console.log(
+          "Normal mode CSV data cleared and set to default zeros with dynamic size"
+        );
       }
     };
 
@@ -1312,9 +1395,11 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Archipelago mode CSV data parsed and stored");
       } else {
         window.optimizationHandler.archipelagoCsvFile = null;
-        window.optimizationHandler.archipelagoCsvData = Array(49).fill(0);
+        const dynamicSize = calculateInitialPopulationSize();
+        window.optimizationHandler.archipelagoCsvData =
+          Array(dynamicSize).fill(0);
         console.log(
-          "Archipelago mode CSV data cleared and set to default zeros"
+          "Archipelago mode CSV data cleared and set to default zeros with dynamic size"
         );
       }
     };
@@ -3556,7 +3641,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         // Validate overall selection
                         const stopTimeCheckbox = Array.from(checkboxes).find(
-                          (cb) => cb.value === "Stop_Time"
+                          (cb) => cb.value === "STOP_TIME"
                         );
                         const checkedRateAngleCheckboxes = Array.from(
                           checkboxes
@@ -4351,11 +4436,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   */
 
-  // Auto-create an initial constraint form if the container exists and is empty
-  if (constraintsContainer && constraintsContainer.children.length === 0) {
-    console.log("Automatically creating initial constraint form on page load");
-    addConstraintInstance();
-  }
+  // REMOVED: Auto-create initial constraint form on page load
+  // This was creating a duplicate constraint form since the initOptimizationModule
+  // function also creates one when initialized
+  // if (constraintsContainer && constraintsContainer.children.length === 0) {
+  //   console.log("Automatically creating initial constraint form on page load");
+  //   addConstraintInstance();
+  // }
 
   // Initialize dropdowns for all existing constraints
   populateAllConstraintNameDropdowns();
@@ -4858,6 +4945,8 @@ document.addEventListener("DOMContentLoaded", function () {
     initModeForm,
     getModeData,
     initializeExistingModeData,
+    calculateInitialPopulationSize,
+    parseInitialPopulationCSV,
   };
 
   // Make helper functions available globally
@@ -4879,6 +4968,10 @@ document.addEventListener("DOMContentLoaded", function () {
     addConstraintInstance,
     addDesignVariableInstance,
     renumberDesignVariables,
+    resetDesignVariableCounter: () => {
+      designVariableCounter = 0;
+      console.log("[Optimization] Design variable counter reset to 0");
+    },
     handleDesignVariableCategoryChange,
     handleSteeringSegmentTypeChange,
     clearDesignVariablesForm,
@@ -4887,17 +4980,20 @@ document.addEventListener("DOMContentLoaded", function () {
     updateAlgorithmsCounter,
     toggleModeFields,
     setupAddAlgorithmButton,
-    // Add the new refresh function here
     refreshAllDesignVariableSegmentDropdowns,
     saveOptimizationData, // Expose save function
     initOptimizationModule, // Expose init function for re-initialization if needed
     algorithmParameters, // Expose algorithm parameters
+    calculateInitialPopulationSize, // Expose dynamic size calculation
+    parseInitialPopulationCSV, // Expose CSV parsing with dynamic sizing
   };
 
   // --- Design Variables Listeners ---
-  if (addDesignVariableBtn) {
-    addDesignVariableBtn.addEventListener("click", addDesignVariableInstance);
-  }
+  // REMOVED: Duplicate event listener that was causing 2 design variables to be created
+  // The correct event listener is added later with the patched function
+  // if (addDesignVariableBtn) {
+  //   addDesignVariableBtn.addEventListener("click", addDesignVariableInstance);
+  // }
 
   // --- NEW: Robust validation for Design Variables Form ---
   function validateDesignVariablesForm() {
@@ -5231,14 +5327,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Auto-create initial design variable instance
-  if (
-    designVariablesContainer &&
-    designVariablesContainer.children.length === 0
-  ) {
-    console.log("Automatically creating initial design variable form on load");
-    addDesignVariableInstance();
-  }
+  // REMOVED: Auto-create initial design variable instance on page load
+  // This was creating a duplicate design variable form since the design variables
+  // button click handler also creates one when the container is empty
+  // if (
+  //   designVariablesContainer &&
+  //   designVariablesContainer.children.length === 0
+  // ) {
+  //   console.log("Automatically creating initial design variable form on load");
+  //   addDesignVariableInstance();
+  // }
 
   // Function to initialize existing design variables
   function initializeExistingDesignVariables() {
@@ -5809,8 +5907,9 @@ document.addEventListener("DOMContentLoaded", function () {
         },
       ];
 
-      // Add default array of zeros
-      jsonData[initialPopulationKey] = Array(49).fill(0);
+      // Add default array of zeros with dynamic size
+      const dynamicSize = calculateInitialPopulationSize();
+      jsonData[initialPopulationKey] = Array(dynamicSize).fill(0);
     }
 
     if (modeData.type === "normal") {
@@ -7502,6 +7601,7 @@ document.addEventListener("DOMContentLoaded", function () {
     addConstraintInstance,
     addDesignVariableInstance,
     renumberDesignVariables,
+    renumberConstraints,
     handleDesignVariableCategoryChange,
     handleSteeringSegmentTypeChange,
     clearDesignVariablesForm,

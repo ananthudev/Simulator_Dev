@@ -382,9 +382,25 @@ document.addEventListener("DOMContentLoaded", function () {
         appendVehicleDetails();
         showSuccess("Vehicle details saved successfully!");
 
+        // Update FormStateManager to reflect the successful validation and save
+        if (window.formStateManager) {
+          window.formStateManager.setFormState("vehicle", {
+            isValid: true,
+            isDirty: false,
+            lastSaved: new Date(),
+          });
+          window.formStateManager.updateAllIndicators();
+          window.formStateManager.updateLaunchButton();
+        }
+
         // Log the current state of finalMissionData
         console.log("Current Mission Data Structure:");
         console.log(JSON.stringify(finalMissionData, null, 2));
+      } else {
+        // Also trigger revalidation when form submission fails
+        if (window.formStateManager) {
+          window.formStateManager.revalidateSection("vehicle");
+        }
       }
     });
   }

@@ -14,6 +14,7 @@
 
     <!-- New theme -->
     <link rel="stylesheet" href="css/desktop-theme.css" />
+
     <!-- Add after existing stylesheet links -->
     <link rel="stylesheet" href="js/leaflet/leaflet.css" />
   </head>
@@ -909,40 +910,7 @@
                 </div>
               </div>
 
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="label">PLF Separation Condition:</label>
-                  <div class="radio-group">
-                    <input
-                      type="radio"
-                      id="plf-time"
-                      name="plf-separation"
-                      value="time"
-                      checked
-                    />
-                    <label for="plf-time">Time</label>
-                    <input
-                      type="radio"
-                      id="plf-altitude"
-                      name="plf-separation"
-                      value="altitude"
-                    />
-                    <label for="plf-altitude">Altitude</label>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label for="plf-sep-value" class="label">Value:</label>
-                  <input
-                    type="number"
-                    step="any"
-                    id="plf-sep-value"
-                    class="input-field"
-                    placeholder="Enter Time (s) or Altitude (m)"
-                  />
-                </div>
-              </div>
-
+              np
               <div class="form-row">
                 <div class="form-group">
                   <label for="hss-flag" class="label">Separation Flag:</label>
@@ -1362,9 +1330,9 @@
                             required
                           >
                             <option value="">Select Type</option>
-                            <option value="time">Phase Time</option>
-                            <option value="missiontime">Mission Time</option>
-                            <option value="profiletime">Profile Time</option>
+                            <option value="PHASE_TIME">Phase Time</option>
+                            <option value="MISSION_TIME">Mission Time</option>
+                            <option value="PROFILE_TIME">Profile Time</option>
                             <option value="altitude">Altitude</option>
                           </select>
                         </div>
@@ -1436,9 +1404,9 @@
                             required
                           >
                             <option value="">Select Type</option>
-                            <option value="time">Phase Time</option>
-                            <option value="missiontime">Mission Time</option>
-                            <option value="profiletime">Profile Time</option>
+                            <option value="PHASE_TIME">Phase Time</option>
+                            <option value="MISSION_TIME">Mission Time</option>
+                            <option value="PROFILE_TIME">Profile Time</option>
                             <option value="altitude">Altitude</option>
                           </select>
                         </div>
@@ -1681,11 +1649,11 @@
                                 data-param="independentVar"
                               >
                                 <option value="">Select Variable</option>
-                                <option value="phaseTime">Phase Time</option>
-                                <option value="profileTime">
+                                <option value="PHASE_TIME">Phase Time</option>
+                                <option value="PROFILE_TIME">
                                   Profile Time
                                 </option>
-                                <option value="missionTime">
+                                <option value="MISSION_TIME">
                                   Mission Time
                                 </option>
                               </select>
@@ -3091,7 +3059,7 @@
                       <label
                         ><input
                           type="checkbox"
-                          value="Stop_Time"
+                          value="STOP_TIME"
                           class="dv-control-variable-cb"
                         />
                         Stop Time</label
@@ -3099,7 +3067,7 @@
                       <label
                         ><input
                           type="checkbox"
-                          value="Euler_Rate"
+                          value="EULER_RATE"
                           class="dv-control-variable-cb"
                         />
                         Euler Rate</label
@@ -3107,7 +3075,7 @@
                       <label
                         ><input
                           type="checkbox"
-                          value="Body_Rate"
+                          value="BODY_RATE"
                           class="dv-control-variable-cb"
                         />
                         Body Rate</label
@@ -3115,7 +3083,7 @@
                       <label
                         ><input
                           type="checkbox"
-                          value="Euler_Angle"
+                          value="EULER_ANGLE"
                           class="dv-control-variable-cb"
                         />
                         Euler Angle</label
@@ -3123,7 +3091,7 @@
                       <label
                         ><input
                           type="checkbox"
-                          value="Body_Angle"
+                          value="BODY_ANGLE"
                           class="dv-control-variable-cb"
                         />
                         Body Angle</label
@@ -3238,9 +3206,9 @@
                     >
                     <select class="input-field dv-ind-variable">
                       <option value="" disabled selected>Select Var</option>
-                      <option value="phaseTime">Phase Time</option>
-                      <option value="profileTime">Profile Time</option>
-                      <option value="missionTime">Mission Time</option>
+                      <option value="PHASE_TIME">Phase Time</option>
+                      <option value="PROFILE_TIME">Profile Time</option>
+                      <option value="MISSION_TIME">Mission Time</option>
                     </select>
                   </div>
                   <div class="form-group">

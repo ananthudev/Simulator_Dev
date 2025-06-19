@@ -1,0 +1,48 @@
+# Development and testing files
+tests/
+cypress/
+mock-server/
+test_data/
+Outputs/
+.vscode/
+.git/
+
+# Documentation and guides
+*.md
+*.MD
+README*
+CHANGELOG*
+LICENSE*
+DRAG_DROP_GUIDE.md
+
+# Test files
+
+
+# Development configuration
+package-lock.json
+yarn.lock
+cypress.config.js
+run-tests.bat
+.gitignore
+.editorconfig
+
+# Temporary and cache files
+*.tmp
+*.temp
+*.log
+*.cache
+.DS_Store
+Thumbs.db
+
+# Node modules optimization
+node_modules/**/test/
+node_modules/**/tests/
+node_modules/**/example/
+node_modules/**/examples/
+node_modules/**/docs/
+node_modules/**/doc/
+node_modules/**/website/
+node_modules/**/*.md
+node_modules/**/*.map
+node_modules/**/*.d.ts
+node_modules/**/.bin/ 

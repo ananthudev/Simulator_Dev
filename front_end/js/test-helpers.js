@@ -56,19 +56,7 @@ function fillTestVehicleData(vehicleType = "ascend") {
   if (payloadNameInput) payloadNameInput.value = data.payload.name;
   document.getElementById("payload-mass").value = data.payload.mass.toString();
   document.getElementById("plf-mass").value = data.plf.mass.toString();
-  document.getElementById("plf-sep-value").value =
-    data.plf.separation.value.toString();
-
-  // Set separation type
-  const plfTimeRadio = document.getElementById("plf-time");
-  const plfAltitudeRadio = document.getElementById("plf-altitude");
-  if (plfTimeRadio && plfAltitudeRadio) {
-    if (data.plf.separation.type === "time") {
-      plfTimeRadio.checked = true;
-    } else {
-      plfAltitudeRadio.checked = true;
-    }
-  }
+  // PLF separation fields removed - handled by sequence functionality
 
   // Trigger vehicle type change event to show relevant fields
   const event = new Event("change");

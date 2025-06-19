@@ -1,18 +1,22 @@
 {
-  "name": "my-electron-app",
-  "version": "1.0.0",
+  "name": "astra-gui linux alpha",
+  "version": "1.0.0L A",
   "description": "Astra GUI Simulator Application",
   "author": "Space Labs",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
+    "build:linux": "electron-builder --linux",
+    "build:linux-minimal": "npm run clean && electron-builder --linux --config.compression=maximum --config.nsis.oneClick=false",
+    "build:minimal": "node build-scripts/build-minimal.js",
+    "build:minimal-sh": "bash build-scripts/build-minimal.sh",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "build:linux": "electron-builder --linux",
-    "clean": "rimraf dist build-output",
+    "clean": "rimraf dist release build-output",
     "build:win": "electron-builder --win --x64 --dir",
-    "package": "node package-app.js"
+    "package": "node package-app.js",
+    "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
     "electron": "^28.0.0",
@@ -20,17 +24,61 @@
     "rimraf": "^5.0.10"
   },
   "build": {
-    "appId": "com.space.labs.simulator",
+    "appId": "com.space.labs.astra-gui",
     "productName": "Astra GUI",
+    "compression": "maximum",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "assets"
     },
     "files": [
-      "**/*",
+      "main.js",
+      "mission.html",
+      "splash.html",
+      "renderer.js",
+      "css/**/*",
+      "js/ui-navigation.js",
+      "js/formHandler.js",
+      "js/validation.js",
+      "js/optimization.js",
+      "js/steering-module.js",
+      "js/map-component.js",
+      "js/missionDataHandler.js",
+      "js/openMissionHandler.js",
+      "js/leaflet/**/*",
+      "assets/icons/**/*",
+      "assets/img/**/*",
+      "node_modules/leaflet/dist/**/*",
+      "!**/test*",
+      "!**/Test*",
+      "!**/tests/**/*",
+      "!**/cypress/**/*",
+      "!**/mock-server/**/*",
+      "!**/*.md",
+      "!**/*.MD",
+      "!**/README*",
+      "!**/CHANGELOG*",
+      "!**/LICENSE*",
+      "!**/DRAG_DROP_GUIDE.md",
+      "!**/test_*.html",
+      "!**/test_*.js",
+      "!**/test-*.js",
+      "!**/Outputs/**/*",
+      "!**/test_data/**/*",
+      "!**/.vscode/**/*",
+      "!**/.git/**/*",
+      "!**/.gitignore",
+      "!**/package-lock.json",
+      "!**/yarn.lock",
+      "!**/cypress.config.js",
+      "!**/run-tests.bat",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*/{docs,doc,website,images}",
       "!**/node_modules/*.d.ts",
       "!**/node_modules/.bin",
+      "!**/node_modules/**/*.map",
+      "!**/node_modules/**/*.flow",
       "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
       "!.editorconfig",
       "!**/._*",
@@ -40,21 +88,42 @@
       "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ],
     "win": {
-      "target": "dir",
+      "target": "nsis",
       "icon": "assets/icons/logo.ico"
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "assets/icons/logo.png",
       "category": "Utility",
-      "maintainer": "Space Labs"
+      "maintainer": "Space Labs",
+      "synopsis": "Satellite Launch Mission Planner",
+      "desktop": {
+        "Name": "Astra GUI Linux Alpha v1.0.0",
+        "Comment": "Satellite Launch Mission Planner",
+        "Categories": "Science;Engineering;"
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   },
   "dependencies": {
-    "leaflet": "^1.9.4",
-    "my-electron-app": "file:"
+    "leaflet": "^1.9.4"
   }
 }

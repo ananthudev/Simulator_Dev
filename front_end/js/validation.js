@@ -28,6 +28,40 @@ class FormValidator {
     if (errorDiv) {
       errorDiv.remove();
     }
+
+    // Trigger revalidation of the relevant section when errors are cleared
+    this.triggerSectionRevalidation(field);
+  }
+
+  /**
+   * Trigger revalidation of the section containing this field
+   */
+  static triggerSectionRevalidation(field) {
+    if (!window.formStateManager) return;
+
+    // Determine which section this field belongs to
+    let sectionId = null;
+
+    const form = field.closest("form");
+    if (form) {
+      if (form.id === "mission-form") sectionId = "details";
+      else if (form.id === "enviro-form") sectionId = "environment";
+      else if (form.id === "vehicle-form") sectionId = "vehicle";
+      else if (form.id === "sequence-form") sectionId = "sequence";
+      else if (form.id === "steering-form") sectionId = "steering";
+      else if (form.id === "stopping-form") sectionId = "stopping";
+    }
+
+    if (sectionId) {
+      // Debounce the revalidation to avoid excessive calls
+      if (this.revalidationTimeout) {
+        clearTimeout(this.revalidationTimeout);
+      }
+
+      this.revalidationTimeout = setTimeout(() => {
+        window.formStateManager.revalidateSection(sectionId);
+      }, 100); // Small delay to batch multiple field changes
+    }
   }
 
   static validateMissionForm() {
@@ -93,13 +127,19 @@ class FormValidator {
       field.setAttribute("step", "any");
     }
 
-    field.addEventListener("input", () => {
+    const handleValidation = () => {
       validationFn(field);
-    });
+      // Also trigger form state revalidation after individual field validation
+      this.triggerSectionRevalidation(field);
+    };
 
-    field.addEventListener("blur", () => {
-      validationFn(field);
-    });
+    field.addEventListener("input", handleValidation);
+    field.addEventListener("blur", handleValidation);
+
+    // For dropdowns and radio buttons, also listen to change events
+    if (field.type === "select-one" || field.type === "radio") {
+      field.addEventListener("change", handleValidation);
+    }
   }
 
   static initializeMissionFormValidation() {
@@ -524,14 +564,7 @@ class FormValidator {
       this.removeError(plfMass);
     }
 
-    const plfSepValue = document.getElementById("plf-sep-value");
-    if (!plfSepValue.value || plfSepValue.value <= 0) {
-      this.showError(plfSepValue, "Please enter a valid separation value");
-      isValid = false;
-      errors.push("Valid separation value is required");
-    } else {
-      this.removeError(plfSepValue);
-    }
+    // PLF separation value validation removed - field is duplicate of sequence functionality
 
     // Integration method validation
     const integrationMethod = document.getElementById("integration-method");
@@ -612,15 +645,7 @@ class FormValidator {
       }
     });
 
-    // PLF Separation Value validation
-    const plfSepValue = document.getElementById("plf-sep-value");
-    this.validateOnInput(plfSepValue, (field) => {
-      if (!field.value || field.value <= 0) {
-        this.showError(field, "Please enter a valid separation value");
-      } else {
-        this.removeError(field);
-      }
-    });
+    // PLF separation value validation removed - field is duplicate of sequence functionality
 
     // Integration Method validation
     const integrationMethod = document.getElementById("integration-method");
