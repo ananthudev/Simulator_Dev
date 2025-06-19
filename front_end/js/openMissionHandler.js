@@ -681,8 +681,12 @@ async function populateStoppingConditionsSequential(loadedData) {
     if (mode === "simulation" && loadedData.stopping_criteria) {
       populateSimulationStopping(loadedData.stopping_criteria);
     }
-    if (mode === "optimization" && loadedData.stopping_condition) {
-      populateStoppingCondition(loadedData);
+    if (mode === "optimization" && loadedData.stopping_criteria) {
+      // For optimization mode, create a compatible structure for populateStoppingCondition
+      const stoppingConditionData = {
+        stopping_condition: loadedData.stopping_criteria,
+      };
+      populateStoppingCondition(stoppingConditionData);
     }
     resolve();
   });
@@ -3523,16 +3527,15 @@ function populateSteeringParameters(steeringType, params) {
 }
 
 function mapTriggerTypeToUI(jsonTrigger) {
-  // Map JSON trigger types to UI dropdown values
+  // Map JSON trigger types to UI dropdown values - these should match the HTML option values
   const triggerMapping = {
-    MISSION_TIME: "missiontime",
-    PHASE_TIME: "time",
-    PROFILE_TIME: "profiletime",
+    MISSION_TIME: "MISSION_TIME",
+    PHASE_TIME: "PHASE_TIME",
+    PROFILE_TIME: "PROFILE_TIME",
     ALTITUDE: "altitude",
   };
 
-  const result =
-    triggerMapping[jsonTrigger] || jsonTrigger?.toLowerCase() || "";
+  const result = triggerMapping[jsonTrigger] || jsonTrigger || "";
   console.log(`[OpenMission] Mapped trigger ${jsonTrigger} -> ${result}`);
   return result;
 }
@@ -3696,13 +3699,14 @@ function parseSteeringParams(steeringData) {
 }
 
 function mapIndependentVariable(jsonIndVar) {
+  // Map JSON independent variable types to UI dropdown values - these should match the HTML option values
   const indVarMapping = {
-    PHASE_TIME: "phaseTime",
-    PROFILE_TIME: "profileTime",
-    MISSION_TIME: "missionTime",
+    PHASE_TIME: "PHASE_TIME",
+    PROFILE_TIME: "PROFILE_TIME",
+    MISSION_TIME: "MISSION_TIME",
   };
 
-  return indVarMapping[jsonIndVar] || jsonIndVar?.toLowerCase() || "";
+  return indVarMapping[jsonIndVar] || jsonIndVar || "";
 }
 
 function convertProfileArrayToCSV(profileArray) {
@@ -3732,71 +3736,86 @@ function cleanComment(comment) {
     .trim();
 }
 
-// Function to populate stopping condition data
+// Function to populate stopping condition data for optimization mode
 function populateStoppingCondition(loadedData) {
   if (!loadedData.stopping_condition) return;
 
   const stoppingData = loadedData.stopping_condition;
-  const stoppingForm = document.getElementById("stopping-condition-form");
-  if (!stoppingForm) {
-    console.warn("Stopping condition form not found.");
-    return;
-  }
+  console.log(
+    "[OpenMission] Populating optimization stopping condition:",
+    stoppingData
+  );
 
-  // Set stopping condition type
-  const typeSelect = document.getElementById("stopping-condition-type");
-  if (typeSelect && stoppingData.type) {
-    typeSelect.value = stoppingData.type;
-    typeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  // Store stopping condition data globally so navigation restore logic can use it
+  window.stoppingConditionData = {
+    flagValue: stoppingData.flag_name,
+    timeValue: stoppingData.value,
+    altitudeValue: stoppingData.value,
+    condition: stoppingData.condition,
+    type: stoppingData.type,
+  };
 
-    // Wait for type-specific fields
+  // Convert optimization format to simulation format and populate the simulation form
+  const typeValue = stoppingData.type.toLowerCase();
+  const radio = document.querySelector(
+    `input[name="stopping-criteria"][value="${typeValue}"]`
+  );
+
+  if (radio) {
+    radio.checked = true;
+    radio.dispatchEvent(new Event("change", { bubbles: true }));
+    console.log(`[OpenMission] Selected stopping criteria radio: ${typeValue}`);
+
     setTimeout(() => {
-      switch (stoppingData.type) {
-        case "time":
-          const timeInput = document.getElementById("max-time");
-          if (timeInput && stoppingData.max_time !== undefined) {
-            timeInput.value = stoppingData.max_time;
+      if (typeValue === "flag") {
+        const flagSelect = document.getElementById("flag-name");
+        if (flagSelect) {
+          // Ensure the flag exists in the dropdown
+          if (
+            ![...flagSelect.options].some(
+              (opt) => opt.value === stoppingData.flag_name
+            )
+          ) {
+            const newOpt = document.createElement("option");
+            newOpt.value = stoppingData.flag_name;
+            newOpt.textContent = stoppingData.flag_name;
+            flagSelect.appendChild(newOpt);
           }
-          break;
-
-        case "altitude":
-          const altTypeSelect = document.getElementById(
-            "altitude-condition-type"
+          flagSelect.value = stoppingData.flag_name;
+          console.log(
+            `[OpenMission] Set stopping flag: ${stoppingData.flag_name}`
           );
-          if (altTypeSelect && stoppingData.condition) {
-            altTypeSelect.value = stoppingData.condition;
-          }
+        }
 
-          const altValueInput = document.getElementById("altitude-value");
-          if (altValueInput && stoppingData.value !== undefined) {
-            altValueInput.value = stoppingData.value;
-          }
-          break;
+        const valueInput = document.getElementById("flag-value");
+        if (valueInput) {
+          valueInput.value = stoppingData.value;
+          console.log(`[OpenMission] Set flag value: ${stoppingData.value}`);
+        }
 
-        case "velocity":
-          const velTypeSelect = document.getElementById(
-            "velocity-condition-type"
+        const condSelect = document.getElementById("flag-condition");
+        if (condSelect) {
+          condSelect.value = stoppingData.condition.toLowerCase();
+          console.log(
+            `[OpenMission] Set flag condition: ${stoppingData.condition.toLowerCase()}`
           );
-          if (velTypeSelect && stoppingData.condition) {
-            velTypeSelect.value = stoppingData.condition;
-          }
-
-          const velValueInput = document.getElementById("velocity-value");
-          if (velValueInput && stoppingData.value !== undefined) {
-            velValueInput.value = stoppingData.value;
-          }
-          break;
-
-        case "custom":
-          const customEventSelect = document.getElementById(
-            "custom-event-select"
-          );
-          if (customEventSelect && stoppingData.event) {
-            customEventSelect.value = stoppingData.event;
-          }
-          break;
+        }
+      } else if (typeValue === "time") {
+        const timeVal = document.getElementById("time-value");
+        if (timeVal) timeVal.value = stoppingData.value;
+        const timeCond = document.getElementById("time-condition");
+        if (timeCond) timeCond.value = stoppingData.condition.toLowerCase();
+      } else if (typeValue === "altitude") {
+        const altVal = document.getElementById("altitude-value");
+        if (altVal) altVal.value = stoppingData.value;
+        const altCond = document.getElementById("altitude-condition");
+        if (altCond) altCond.value = stoppingData.condition.toLowerCase();
       }
-    }, 200);
+    }, 100);
+  } else {
+    console.warn(
+      `[OpenMission] Stopping criteria radio not found for type: ${typeValue}`
+    );
   }
 
   console.log(
@@ -4472,11 +4491,12 @@ function populateArchipelagoModeSettings(loadedData) {
     populationInput.value = loadedData.population;
   }
 
-  // Add algorithm tags if optimizer has multiple algorithms
+  // Add algorithm tags from archipelago algorithms
   if (
-    loadedData.optimizer &&
-    Array.isArray(loadedData.optimizer) &&
-    loadedData.optimizer.length > 0
+    loadedData.archipelago &&
+    loadedData.archipelago.algorithms &&
+    Array.isArray(loadedData.archipelago.algorithms) &&
+    loadedData.archipelago.algorithms.length > 0
   ) {
     const algoContainer = document.getElementById(
       "selected-algorithms-container"
@@ -4492,34 +4512,122 @@ function populateArchipelagoModeSettings(loadedData) {
       });
 
       // Add each algorithm
-      loadedData.optimizer.forEach((algoName) => {
-        if (typeof window.createAlgorithmTag === "function") {
-          const tag = window.createAlgorithmTag(algoName);
+      loadedData.archipelago.algorithms.forEach((algoName) => {
+        // Use a more robust approach to create the algorithm tag
+        let tag;
 
-          // Add tag to container
-          algoContainer.appendChild(tag);
+        if (
+          window.optimizationHandler &&
+          typeof window.optimizationHandler.createAlgorithmTag === "function"
+        ) {
+          tag = window.optimizationHandler.createAlgorithmTag(algoName);
+        } else {
+          // Fallback: create the tag manually using the same pattern as in optimization.js
+          const tagId = `algo-${algoName.toLowerCase()}-${Date.now()}`;
+          tag = document.createElement("div");
+          tag.className = "algorithm-tag";
+          tag.id = tagId;
+          tag.dataset.algorithm = algoName;
+          tag.innerHTML = `
+            <span class="algorithm-name">${algoName}</span>
+            <span class="remove-algorithm">&times;</span>
+          `;
+
+          // Add click handler to open the parameters modal
+          tag.addEventListener("click", (event) => {
+            // Don't trigger if the remove button was clicked
+            if (event.target.classList.contains("remove-algorithm")) {
+              return;
+            }
+            if (
+              window.optimizationHandler &&
+              window.optimizationHandler.openAlgorithmParamsModal
+            ) {
+              window.optimizationHandler.openAlgorithmParamsModal(
+                algoName,
+                tag.id
+              );
+            }
+          });
+
+          // Add remove functionality
+          const removeButton = tag.querySelector(".remove-algorithm");
+          if (removeButton) {
+            removeButton.addEventListener("click", (event) => {
+              event.stopPropagation();
+              tag.remove();
+
+              // Clear parameters from store
+              if (window.optimizationHandler.clearArchipelagoAlgorithmParams) {
+                window.optimizationHandler.clearArchipelagoAlgorithmParams(
+                  tag.id
+                );
+              }
+
+              // Update counter
+              if (window.optimizationHandler.updateAlgorithmsCounter) {
+                window.optimizationHandler.updateAlgorithmsCounter();
+              }
+            });
+          }
+        }
+
+        if (tag) {
+          // Add tag to container (position before the counter)
+          const counter = document.getElementById("algorithms-counter");
+          if (counter) {
+            algoContainer.insertBefore(tag, counter);
+          } else {
+            algoContainer.appendChild(tag);
+          }
 
           // Store algorithm parameters if they exist
-          if (
-            loadedData[algoName] &&
-            window.optimizationHandler &&
-            window.optimizationHandler.storeArchipelagoAlgorithmParams
-          ) {
+          if (loadedData[algoName]) {
+            // Initialize parameter store if it doesn't exist
+            if (!window.optimizationHandler) {
+              window.optimizationHandler = {};
+            }
+            if (!window.optimizationHandler.archipelagoParamsStore) {
+              window.optimizationHandler.archipelagoParamsStore = {};
+            }
+            if (!window.optimizationHandler.storeArchipelagoAlgorithmParams) {
+              window.optimizationHandler.storeArchipelagoAlgorithmParams =
+                function (tagId, params) {
+                  window.optimizationHandler.archipelagoParamsStore[tagId] =
+                    params;
+                  console.log(`Stored parameters for ${tagId}:`, params);
+                };
+            }
+            if (!window.optimizationHandler.getArchipelagoAlgorithmParams) {
+              window.optimizationHandler.getArchipelagoAlgorithmParams =
+                function (tagId) {
+                  return (
+                    window.optimizationHandler.archipelagoParamsStore[tagId] ||
+                    {}
+                  );
+                };
+            }
+            if (!window.optimizationHandler.clearArchipelagoAlgorithmParams) {
+              window.optimizationHandler.clearArchipelagoAlgorithmParams =
+                function (tagId) {
+                  if (window.optimizationHandler.archipelagoParamsStore) {
+                    delete window.optimizationHandler.archipelagoParamsStore[
+                      tagId
+                    ];
+                    console.log(`Cleared parameters for ${tagId}`);
+                  }
+                };
+            }
+
             window.optimizationHandler.storeArchipelagoAlgorithmParams(
               tag.id,
               loadedData[algoName]
             );
             console.log(
-              `[OpenMission] Stored parameters for ${algoName}:`,
+              `[OpenMission] Stored parameters for ${algoName} (${tag.id}):`,
               loadedData[algoName]
             );
           }
-        } else {
-          // Simple fallback if the function isn't available
-          const tag = document.createElement("div");
-          tag.className = "algorithm-tag";
-          tag.textContent = algoName;
-          algoContainer.appendChild(tag);
         }
       });
 

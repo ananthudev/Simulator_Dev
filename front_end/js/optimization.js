@@ -6924,6 +6924,10 @@ document.addEventListener("DOMContentLoaded", function () {
           ? existingParams[paramKey]
           : param.default;
 
+      console.log(
+        `[Modal] Parameter ${paramKey}: existing=${existingParams[paramKey]}, default=${param.default}, using=${paramValue}`
+      );
+
       if (param.type === "select") {
         // Create select dropdown
         input = document.createElement("select");
@@ -7029,10 +7033,23 @@ document.addEventListener("DOMContentLoaded", function () {
     modalTitle.textContent = `${algorithm} Parameters`;
 
     // Get existing parameters for this tag
-    const existingParams = window.optimizationHandler
-      .getArchipelagoAlgorithmParams
-      ? window.optimizationHandler.getArchipelagoAlgorithmParams(tagId)
-      : {};
+    let existingParams = {};
+    if (
+      window.optimizationHandler &&
+      window.optimizationHandler.getArchipelagoAlgorithmParams
+    ) {
+      existingParams =
+        window.optimizationHandler.getArchipelagoAlgorithmParams(tagId);
+    } else if (
+      window.optimizationHandler &&
+      window.optimizationHandler.archipelagoParamsStore
+    ) {
+      existingParams =
+        window.optimizationHandler.archipelagoParamsStore[tagId] || {};
+    }
+
+    console.log(`[Modal] Opening modal for ${algorithm} with tagId: ${tagId}`);
+    console.log(`[Modal] Retrieved existing params:`, existingParams);
 
     // Display parameters in the modal
     displayAlgorithmParameters(
