@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design Variables Population Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #1e1e1e;
+        color: white;
+      }
+      .test-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .test-button {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .test-button:hover {
+        background-color: #357abd;
+      }
+      .test-result {
+        background-color: #2a2a2a;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border-left: 4px solid #4a90e2;
+      }
+      .error {
+        border-left-color: #e74c3c;
+      }
+      .success {
+        border-left-color: #27ae60;
+      }
+      #results {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-container">
+      <h1>Design Variables Population Test</h1>
+
+      <button class="test-button" onclick="testDesignVariablesPopulation()">
+        Test Design Variables Population
+      </button>
+
+      <button class="test-button" onclick="clearResults()">
+        Clear Results
+      </button>
+
+      <div id="results"></div>
+    </div>
+
+    <script>
+      // Mock test data - simplified version of test1.json design variables
+      const testMissionData = {
+        mission: { MODE: "optimization" },
+        design_variables: "design_variable1",
+        design_variable1: ["opt_steering_1", "opt_payload_4"],
+        opt_steering_1: [
+          {
+            category: "STEERING",
+            segment: "Constant_Pitch_1",
+            segment_type: "CONST_BODYRATE",
+            type: [
+              {
+                control_variable: ["STOP_TIME", "BODY_RATE"],
+                axis: ["pitch"],
+                upper_bound: [[6.5, 0]],
+                lower_bound: [[1, -5.5]],
+              },
+            ],
+          },
+        ],
+        opt_payload_4: [
+          {
+            category: "PAYLOAD",
+            type: [
+              {
+                control_variable: ["MASS"],
+                upper_bound: [[900]],
+                lower_bound: [[0]],
+              },
+            ],
+          },
+        ],
+      };
+
+      function log(message, type = "info") {
+        const results = document.getElementById("results");
+        const div = document.createElement("div");
+        div.className = `test-result ${type}`;
+        div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+        results.appendChild(div);
+        results.scrollTop = results.scrollHeight;
+
+        // Also log to console
+        console.log(`[TEST] ${message}`);
+      }
+
+      function clearResults() {
+        document.getElementById("results").innerHTML = "";
+      }
+
+      async function testDesignVariablesPopulation() {
+        log("Starting Design Variables Population Test", "info");
+
+        try {
+          // Test 1: Check if populateDesignVariables function exists
+          if (typeof populateDesignVariables !== "function") {
+            log("❌ populateDesignVariables function not found", "error");
+            return;
+          }
+          log("✅ populateDesignVariables function found", "success");
+
+          // Test 2: Mock the DOM elements needed
+          log("Setting up mock DOM elements...", "info");
+          createMockDOM();
+
+          // Test 3: Set window.finalMissionData
+          window.finalMissionData = {};
+          log("✅ window.finalMissionData initialized", "success");
+
+          // Test 4: Call populateDesignVariables
+          log("Calling populateDesignVariables with test data...", "info");
+          populateDesignVariables(testMissionData);
+
+          // Test 5: Wait and check results
+          setTimeout(() => {
+            checkPopulationResults();
+          }, 2000);
+        } catch (error) {
+          log(`❌ Test failed with error: ${error.message}`, "error");
+          console.error(error);
+        }
+      }
+
+      function createMockDOM() {
+        // Create a minimal DOM structure for testing
+        let testHTML = `
+                <div id="design-variables-container"></div>
+                <button id="add-design-variable-btn" onclick="mockAddDesignVariable()">Add Design Variable</button>
+                <button id="design-variables-btn">Design Variables</button>
+            `;
+
+        // Add to body if not exists
+        if (!document.getElementById("design-variables-container")) {
+          const testDiv = document.createElement("div");
+          testDiv.innerHTML = testHTML;
+          testDiv.style.display = "none"; // Hide from view
+          document.body.appendChild(testDiv);
+        }
+
+        log("✅ Mock DOM elements created", "success");
+      }
+
+      function mockAddDesignVariable() {
+        // Mock implementation of adding a design variable
+        const container = document.getElementById("design-variables-container");
+        const instanceHTML = `
+                <div class="optimization-instance" data-instance="${container.children.length}">
+                    <input class="dv-name" placeholder="Design Variable Name">
+                    <select class="dv-category">
+                        <option value="">Select Category</option>
+                        <option value="STEERING">Steering</option>
+                        <option value="PAYLOAD">Payload</option>
+                        <option value="PROPULSION">Propulsion</option>
+                    </select>
+                    <div class="dv-dynamic-fields">
+                        <div class="dv-category-fields" data-category="STEERING" style="display:none;">
+                            <select class="dv-segment"></select>
+                            <select class="dv-segment-type"></select>
+                            <div class="dv-type-fields">
+                                <input class="dv-control-variable" placeholder="Control Variables">
+                                <input class="dv-axis" placeholder="Axis">
+                                <input class="dv-upper-bound" placeholder="Upper Bounds">
+                                <input class="dv-lower-bound" placeholder="Lower Bounds">
+                            </div>
+                        </div>
+                        <div class="dv-category-fields" data-category="PAYLOAD" style="display:none;">
+                            <input class="dv-control-variable" placeholder="Control Variables">
+                            <input class="dv-upper-bound" placeholder="Upper Bounds">
+                            <input class="dv-lower-bound" placeholder="Lower Bounds">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        const div = document.createElement("div");
+        div.innerHTML = instanceHTML;
+        container.appendChild(div.firstElementChild);
+
+        log(
+          `Mock design variable instance ${container.children.length} added`,
+          "info"
+        );
+      }
+
+      function checkPopulationResults() {
+        log("Checking population results...", "info");
+
+        const container = document.getElementById("design-variables-container");
+        const instances = container.querySelectorAll(".optimization-instance");
+
+        log(`Found ${instances.length} design variable instances`, "info");
+
+        instances.forEach((instance, index) => {
+          const nameInput = instance.querySelector(".dv-name");
+          const categorySelect = instance.querySelector(".dv-category");
+
+          if (nameInput && nameInput.value) {
+            log(
+              `✅ Instance ${index + 1}: Name = "${nameInput.value}"`,
+              "success"
+            );
+          } else {
+            log(`❌ Instance ${index + 1}: Name not populated`, "error");
+          }
+
+          if (categorySelect && categorySelect.value) {
+            log(
+              `✅ Instance ${index + 1}: Category = "${categorySelect.value}"`,
+              "success"
+            );
+          } else {
+            log(`❌ Instance ${index + 1}: Category not populated`, "error");
+          }
+        });
+      }
+
+      // Load the actual functions from the project
+      const script1 = document.createElement("script");
+      script1.src = "front_end/js/openMissionHandler.js";
+      document.head.appendChild(script1);
+
+      script1.onload = () => {
+        log("✅ OpenMissionHandler.js loaded", "success");
+      };
+
+      script1.onerror = () => {
+        log("❌ Failed to load OpenMissionHandler.js", "error");
+      };
+    </script>
+  </body>
+</html>

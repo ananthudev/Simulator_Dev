@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamic Initial Population Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      .result {
+        background-color: #f0f8ff;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 3px;
+      }
+      button {
+        padding: 8px 15px;
+        margin: 5px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Dynamic Initial Population Size Test</h1>
+
+    <div class="test-section">
+      <h3>Test 1: Simulate Test Data Design Variables</h3>
+      <p>
+        This simulates the design variables from the test data you provided:
+      </p>
+      <ul>
+        <li>opt_steering_1: CONST_BODYRATE with 2 bounds → contributes 2</li>
+        <li>opt_steering_2: PROFILE with 17 bounds → contributes 17</li>
+        <li>
+          opt_steering_3: PROFILE with 2 axes × 15 bounds each → contributes 30
+        </li>
+        <li>Total expected: 2 + 17 + 30 = 49</li>
+      </ul>
+      <button onclick="testWithSampleData()">Test with Sample Data</button>
+      <div id="result1" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 2: Empty Design Variables</h3>
+      <p>Test behavior when no design variables are defined:</p>
+      <button onclick="testWithNoData()">Test with No Data</button>
+      <div id="result2" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 3: CSV Upload with Dynamic Size</h3>
+      <p>Test CSV parsing with dynamic sizing:</p>
+      <textarea
+        id="csvInput"
+        rows="5"
+        cols="50"
+        placeholder="Enter CSV data here..."
+      >
+1,2,3,4,5</textarea
+      ><br />
+      <button onclick="testCsvParsing()">Test CSV Parsing</button>
+      <div id="result3" class="result"></div>
+    </div>
+
+    <script>
+      // Mock the functions from optimization.js for testing
+
+      // Mock design variables data that matches your test data
+      const mockDesignVariables = [
+        {
+          name: "opt_steering_1",
+          category: "STEERING",
+          segment_type: "CONST_BODYRATE",
+          type: {
+            upper_bound: [[6.5, 0]], // 2 values
+            lower_bound: [[1, -5.5]],
+          },
+        },
+        {
+          name: "opt_steering_2",
+          category: "STEERING",
+          segment_type: "PROFILE",
+          type: {
+            upper_bound: [
+              [
+                0.4, 0.4, 0.4, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+                0.5, 0.5, 0.7, 0.7,
+              ],
+            ], // 17 values
+            lower_bound: [
+              [
+                -0.4, -0.4, -0.4, -0.6, -0.6, -0.6, -0.6, -0.6, -0.6, -0.6,
+                -0.6, -0.6, -0.6, -0.6, -0.6, -0.7, -0.7,
+              ],
+            ],
+          },
+        },
+        {
+          name: "opt_steering_3",
+          category: "STEERING",
+          segment_type: "PROFILE",
+          type: {
+            upper_bound: [
+              [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3], // pitch: 15 values
+              [
+                0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.7, 0.7, 0.7,
+                0.7, 0.7,
+              ], // yaw: 15 values
+            ],
+            lower_bound: [
+              [-1, -1, -1, -1, -1, -1, -1, -1, -0.75, -0.9, -3, -3, -3, -3, -3],
+              [
+                -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5,
+                -0.7, -0.7, -0.7, -0.7, -0.7,
+              ],
+            ],
+          },
+        },
+      ];
+
+      let currentMockData = [];
+
+      function mockGetDesignVariablesData() {
+        return currentMockData;
+      }
+
+      // Copy the calculation function from optimization.js
+      function calculateInitialPopulationSize() {
+        try {
+          let designVariablesData = mockGetDesignVariablesData();
+
+          if (designVariablesData.length === 0) {
+            console.log("No design variables found, using default size of 1");
+            return 1;
+          }
+
+          let totalSize = 0;
+
+          designVariablesData.forEach((dv) => {
+            const dvType = dv.type || {};
+
+            if (dvType.upper_bound && Array.isArray(dvType.upper_bound)) {
+              if (Array.isArray(dvType.upper_bound[0])) {
+                // For multi-axis variables like pitch and yaw
+                dvType.upper_bound.forEach((axisArray) => {
+                  if (Array.isArray(axisArray)) {
+                    totalSize += axisArray.length;
+                  }
+                });
+              } else {
+                // For single axis variables
+                totalSize += dvType.upper_bound.length;
+              }
+            } else {
+              // For single value bounds
+              totalSize += 1;
+            }
+          });
+
+          console.log(
+            `Calculated initial population size: ${totalSize} based on ${designVariablesData.length} design variables`
+          );
+          return totalSize > 0 ? totalSize : 1;
+        } catch (error) {
+          console.error("Error calculating initial population size:", error);
+          return 1;
+        }
+      }
+
+      function parseInitialPopulationCSV(csvString) {
+        const dynamicSize = calculateInitialPopulationSize();
+
+        if (!csvString) return Array(dynamicSize).fill(0);
+
+        try {
+          const trimmedString = csvString.trim();
+          const lines = trimmedString.split("\n");
+
+          if (lines.length === 0) return Array(dynamicSize).fill(0);
+
+          const result = [];
+
+          lines.forEach((line) => {
+            const trimmedLine = line.trim();
+            if (trimmedLine) {
+              const values = trimmedLine.split(",").map((value) => {
+                const cleanedValue = value.trim();
+                const numValue = parseFloat(cleanedValue);
+                return isNaN(numValue) ? cleanedValue : numValue;
+              });
+
+              values
+                .filter((val) => typeof val === "number" && !isNaN(val))
+                .forEach((val) => {
+                  result.push(val);
+                });
+            }
+          });
+
+          return result.length > 0 ? result : Array(dynamicSize).fill(0);
+        } catch (error) {
+          console.error("Error parsing initial population CSV:", error);
+          return Array(dynamicSize).fill(0);
+        }
+      }
+
+      function testWithSampleData() {
+        currentMockData = mockDesignVariables;
+        const size = calculateInitialPopulationSize();
+        const defaultArray = Array(size).fill(0);
+
+        document.getElementById("result1").innerHTML = `
+                <strong>Result:</strong><br>
+                Calculated size: ${size}<br>
+                Default array length: ${defaultArray.length}<br>
+                Expected: 49 (2 + 17 + 30)<br>
+                <span style="color: ${size === 49 ? "green" : "red"}">
+                    ${size === 49 ? "✓ PASS" : "✗ FAIL"}
+                </span>
+            `;
+      }
+
+      function testWithNoData() {
+        currentMockData = [];
+        const size = calculateInitialPopulationSize();
+        const defaultArray = Array(size).fill(0);
+
+        document.getElementById("result2").innerHTML = `
+                <strong>Result:</strong><br>
+                Calculated size: ${size}<br>
+                Default array length: ${defaultArray.length}<br>
+                Expected: 1 (minimum default)<br>
+                <span style="color: ${size === 1 ? "green" : "red"}">
+                    ${size === 1 ? "✓ PASS" : "✗ FAIL"}
+                </span>
+            `;
+      }
+
+      function testCsvParsing() {
+        currentMockData = mockDesignVariables;
+        const csvInput = document.getElementById("csvInput").value;
+        const parsed = parseInitialPopulationCSV(csvInput);
+        const expectedSize = 49;
+
+        document.getElementById("result3").innerHTML = `
+                <strong>Result:</strong><br>
+                CSV Input: "${csvInput}"<br>
+                Parsed array: [${parsed.join(", ")}]<br>
+                Array length: ${parsed.length}<br>
+                Expected size when no CSV: ${expectedSize}<br>
+                <span style="color: ${
+                  csvInput.trim()
+                    ? parsed.length > 0
+                      ? "green"
+                      : "orange"
+                    : parsed.length === expectedSize
+                    ? "green"
+                    : "red"
+                }">
+                    ${
+                      csvInput.trim()
+                        ? parsed.length > 0
+                          ? "✓ CSV parsed successfully"
+                          : "⚠ CSV parsed but no valid numbers"
+                        : parsed.length === expectedSize
+                        ? "✓ Default size correct"
+                        : "✗ Default size incorrect"
+                    }
+                </span>
+            `;
+      }
+
+      // Initialize with sample data test
+      window.onload = function () {
+        testWithSampleData();
+      };
+    </script>
+  </body>
+</html>

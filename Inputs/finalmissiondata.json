@@ -1133,7 +1133,17 @@
     0.1,
     0.1
   ],
-  "mode": "normal",
+  "mode": "archipelago",
+  "archipelago": {
+    "algorithms": [
+      "SADE",
+      "DE",
+      "NLOPT"
+    ],
+    "topology": "fully_connected",
+    "migration_type": "broadcast",
+    "migrant_handling": "evict"
+  },
   "map": [
     0,
     1
@@ -1197,7 +1207,6 @@
     0
   ],
   "problem_strategy": "ignore_o",
-  "optimizer": "DE",
   "DE": {
     "generation": 150,
     "variant_adptv": 1,
@@ -1208,6 +1217,16 @@
     "ftol": 0.000001,
     "xtol": 0.000001,
     "seed": 9
+  },
+  "NLOPT": {
+    "solver": "slsqp",
+    "stop_val": null,
+    "ftol_rel": 0,
+    "ftol_abs": 0,
+    "xtol_rel": 0.000001,
+    "xtol_abs": 0,
+    "maxeval": 0,
+    "maxtime": 0
   },
   "design_variables": "design_variable1",
   "design_variable1": [

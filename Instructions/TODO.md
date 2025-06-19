@@ -188,7 +188,7 @@
 - [ ] **Theme Toggle (Day/Night Mode):**
   - Add a toggle button (e.g., sun/moon icon) to switch between light and dark themes.
   - Implement CSS variables or class toggling to apply theme changes across the entire application UI.
-- [ ] **Open Mission Loading Feedback:** Provide visual feedback (e.g., progress bar, status messages) while a mission JSON file is being parsed and forms are being populated.
+- [x] **Open Mission Loading Feedback:** Provide visual feedback (e.g., progress bar, status messages) while a mission JSON file is being parsed and forms are being populated.
 - [ ] **Loading Indicator:** Update or replace the existing loading GIF/indicator with a more modern or theme-consistent visual.
 - [ ] Refactor DOM-based data inheritance (e.g., structural mass, nozzle diameter) to use central data model in `formHandler.js` instead of brittle listeners in `ui-navigation.js`.
 - [ ] Implement motor deletion cleanup: call `formHandler` functions to remove motor and its nozzle entries from `savedStages`, `finalMissionData`, and `flagRegistry` when a motor is deleted via the UI.
