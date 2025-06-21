@@ -571,7 +571,7 @@
   "constraint_tolerence": [0.1, 0.1, 0.1, 0.1],
   "mode": "normal",
   "map": [0, 1],
-  "population": 20,
+  "population": 150,
   "initial_population": [
     {
       "population": "initial_control1",
@@ -585,7 +585,7 @@
   "problem_strategy": "ignore_o",
   "optimizer": "DE",
   "DE": {
-    "generation": 15,
+    "generation": 100,
     "variant_adptv": 1,
     "memory": false,
     "F": 0.8,

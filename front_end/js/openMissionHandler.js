@@ -64,6 +64,9 @@ function readFileAndProcess(file) {
       // Reset current mission state (UI and global data)
       resetCurrentMissionState();
 
+      // Display the loaded filename
+      displayLoadedFilename(file.name);
+
       // Increase delay to ensure DOM is fully ready before populating forms
       setTimeout(() => {
         console.log(
@@ -91,8 +94,69 @@ function readFileAndProcess(file) {
   reader.readAsText(file); // Read the file as text
 }
 
+function displayLoadedFilename(filename) {
+  const filenameContainer = document.getElementById("loaded-mission-filename");
+  const filenameText = document.getElementById("filename-text");
+  const clearButton = document.getElementById("clear-mission-btn");
+
+  if (filenameContainer && filenameText && clearButton) {
+    // Set the filename text
+    filenameText.textContent = filename;
+    filenameText.title = filename; // Show full filename on hover
+
+    // Show the filename container
+    filenameContainer.style.display = "flex";
+
+    // Set up clear button functionality if not already set
+    if (!clearButton.hasAttribute("data-listener-added")) {
+      clearButton.addEventListener("click", clearLoadedFilename);
+      clearButton.setAttribute("data-listener-added", "true");
+    }
+  }
+}
+
+function clearLoadedFilename() {
+  const filenameContainer = document.getElementById("loaded-mission-filename");
+  const filenameText = document.getElementById("filename-text");
+
+  if (filenameContainer && filenameText) {
+    // Clear the filename text
+    filenameText.textContent = "";
+    filenameText.title = "";
+
+    // Hide the filename container
+    filenameContainer.style.display = "none";
+
+    // Reset current mission state
+    resetCurrentMissionState();
+
+    // Show confirmation
+    Swal.fire({
+      title: "Mission Cleared",
+      text: "The loaded mission has been cleared. You can now create a new mission or load a different one.",
+      icon: "info",
+      timer: 2000,
+      showConfirmButton: false,
+    }).then(() => {
+      // Reload the page to fully reset all dynamic UI elements without breaking existing functionality
+      window.location.reload();
+    });
+  }
+}
+
 function resetCurrentMissionState() {
   console.log("[OpenMission] Resetting current mission state...");
+
+  // Hide filename display (unless called from clearLoadedFilename to avoid recursion)
+  const caller = resetCurrentMissionState.caller;
+  if (!caller || caller.name !== "clearLoadedFilename") {
+    const filenameContainer = document.getElementById(
+      "loaded-mission-filename"
+    );
+    if (filenameContainer) {
+      filenameContainer.style.display = "none";
+    }
+  }
 
   // Clear all form fields
   const forms = document.querySelectorAll(

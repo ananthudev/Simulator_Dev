@@ -25,7 +25,23 @@
       <nav class="main-nav">
         <ul>
           <li><a href="#" id="">CREATE MISSION</a></li>
-          <li><a href="#" id="open-mission-btn">OPEN MISSION</a></li>
+          <li>
+            <a href="#" id="open-mission-btn">OPEN MISSION</a>
+            <div
+              id="loaded-mission-filename"
+              class="loaded-filename"
+              style="display: none"
+            >
+              <span id="filename-text"></span>
+              <button
+                id="clear-mission-btn"
+                class="clear-filename-btn"
+                title="Clear loaded mission"
+              >
+                ×
+              </button>
+            </div>
+          </li>
         </ul>
       </nav>
       <!-- Centered Launch Mission Button -->

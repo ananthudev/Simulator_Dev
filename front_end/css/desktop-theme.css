@@ -109,6 +109,51 @@ textarea:focus-visible {
   background: rgba(74, 144, 226, 0.15); /* Subtle hover */
 }
 
+/* Loaded Mission Filename Display */
+.loaded-filename {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  padding: 4px 8px;
+  background: rgba(74, 144, 226, 0.1);
+  border: 1px solid rgba(74, 144, 226, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #4a90e2;
+  max-width: 200px;
+}
+
+#filename-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 5px;
+}
+
+.clear-filename-btn {
+  background: none;
+  border: none;
+  color: #4a90e2;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.clear-filename-btn:hover {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
 /* Launch Button */
 .launch-container {
   position: absolute;
