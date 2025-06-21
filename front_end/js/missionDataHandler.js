@@ -221,7 +221,7 @@ function saveMissionData() {
       // If user chose "Save & Execute", run the ASTRA executable
       if (result.isConfirmed) {
         // Create a terminal window to show the output
-        const terminal = window.open("", "_blank", "width=800,height=600");
+        const terminal = window.open("", "_blank", "width=900,height=700");
         if (!terminal) {
           Swal.fire({
             title: "Error",
@@ -231,12 +231,98 @@ function saveMissionData() {
           return;
         }
 
-        terminal.document.write("<html><head><title>ASTRA Results</title>");
-        terminal.document.write(
-          "<style>body { background-color: #000; color: #fff; font-family: monospace; padding: 10px; }</style>"
-        );
+        terminal.document.write("<html><head><title>ASTRA Terminal</title>");
+        terminal.document.write(`
+          <style>
+            body { 
+              background-color: #000; 
+              color: #fff; 
+              font-family: 'Courier New', monospace; 
+              padding: 0; 
+              margin: 0;
+              height: 100vh;
+              display: flex;
+              flex-direction: column;
+            }
+            #terminal-container {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              position: relative; /* For positioning the button */
+            }
+            #output {
+              flex: 1;
+              overflow-y: auto;
+              padding: 10px;
+              background-color: #000;
+              white-space: pre-wrap;
+              word-wrap: break-word;
+              font-size: 14px;
+              line-height: 1.2;
+            }
+            #input-container {
+              display: flex;
+              align-items: center;
+              padding: 5px 10px;
+              background-color: #111;
+              border-top: 1px solid #333;
+            }
+                         #prompt {
+               color: #fff;
+               margin-right: 5px;
+             }
+            #terminal-input {
+              flex: 1;
+              background-color: transparent;
+              border: none;
+              color: #fff;
+              outline: none;
+              font-family: 'Courier New', monospace;
+              font-size: 14px;
+            }
+                         .header {
+               background-color: #222;
+               padding: 10px;
+               border-bottom: 1px solid #333;
+               text-align: center;
+               color: #fff;
+             }
+             #go-to-live-btn {
+                position: absolute;
+                bottom: 45px; /* Position above the input container */
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 6px 12px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                display: none; /* Initially hidden */
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+                z-index: 10;
+             }
+             #go-to-live-btn:hover {
+                background-color: #0056b3;
+             }
+          </style>
+        `);
         terminal.document.write("</head><body>");
-        terminal.document.write("<h2>Running ASTRA...</h2>");
+        terminal.document.write(`
+          <div id="terminal-container">
+            <div class="header">
+              <h3>ASTRA Terminal</h3>
+            </div>
+            <div id="output"></div>
+            <button id="go-to-live-btn">↓ Go to Live View</button>
+            <div id="input-container">
+              <span id="prompt">$</span>
+              <input type="text" id="terminal-input" placeholder="Enter commands when prompted..." />
+            </div>
+          </div>
+        `);
 
         // Check if we're running in Electron environment
         if (window.isElectron) {
@@ -246,28 +332,53 @@ function saveMissionData() {
             const path = window.nodePath;
             const exec = window.nodeExec;
 
-            // Set up the output area
-            terminal.document.write('<pre id="output"></pre>');
+            // Get references to terminal elements
+            const outputElement = terminal.document.getElementById("output");
+            const inputElement =
+              terminal.document.getElementById("terminal-input");
+            const goToLiveBtn =
+              terminal.document.getElementById("go-to-live-btn");
+            let astraProcess = null;
+            let isUserScrolledUp = false;
+
+            // --- Optimized Scroll Detection ---
+            let scrollTimer = null;
+            outputElement.addEventListener("scroll", () => {
+              // Throttle scroll checks for performance
+              if (scrollTimer) return;
+              scrollTimer = setTimeout(() => {
+                const isAtBottom =
+                  outputElement.scrollHeight - outputElement.scrollTop <=
+                  outputElement.clientHeight + 5;
+
+                isUserScrolledUp = !isAtBottom;
+                goToLiveBtn.style.display = isAtBottom ? "none" : "block";
+
+                scrollTimer = null;
+              }, 100); // Check every 100ms max
+            });
+
+            goToLiveBtn.addEventListener("click", () => {
+              isUserScrolledUp = false; // Re-enable auto-scrolling
+              outputElement.scrollTop = outputElement.scrollHeight; // Jump to bottom
+            });
+            // --- End of Scroll Logic ---
+
+            // Direct processing mode - maximum speed achieved
 
             // Get absolute path to the back_end/Inputs directory
             const inputsDir = path.resolve(path.join(__dirname, "../Inputs"));
-            terminal.document.getElementById(
-              "output"
-            ).textContent = `Targeting directory: ${inputsDir}\n`;
+            outputElement.innerHTML = `Targeting directory: ${inputsDir}\n`;
 
             // Create directory if it doesn't exist
             if (!fs.existsSync(inputsDir)) {
-              terminal.document.getElementById(
-                "output"
-              ).textContent += `Directory doesn't exist. Creating it...\n`;
+              outputElement.innerHTML += `Directory doesn't exist. Creating it...\n`;
               fs.mkdirSync(inputsDir, { recursive: true });
             }
 
             // Use absolute path for the input file
             const inputFilePath = path.join(inputsDir, filename);
-            terminal.document.getElementById(
-              "output"
-            ).textContent += `Saving input file to: ${inputFilePath}\n`;
+            outputElement.innerHTML += `Saving input file to: ${inputFilePath}\n`;
 
             // Force write the file and ensure it succeeds
             fs.writeFileSync(inputFilePath, jsonString);
@@ -275,18 +386,193 @@ function saveMissionData() {
             // Verify the file was created
             if (fs.existsSync(inputFilePath)) {
               const stats = fs.statSync(inputFilePath);
-              terminal.document.getElementById(
-                "output"
-              ).textContent += `File saved successfully (${stats.size} bytes).\n`;
+              outputElement.innerHTML += `File saved successfully (${stats.size} bytes).\n`;
+
+              // Performance mode toggle - choose speed vs visual formatting
+              const PERFORMANCE_MODE = true; // Set to false for colored output, true for maximum speed
+
+              // Buffer processing function removed - using direct processing for maximum speed
+
+              // Optimized ANSI to HTML conversion with pre-computed mappings for maximum performance
+              const ansiColorMap = {
+                "": "</span>",
+                0: "</span>",
+                1: '<span style="font-weight: bold;">',
+                22: "</span>",
+                30: '<span style="color: #000000;">',
+                31: '<span style="color: #ff0000;">',
+                32: '<span style="color: #00ff00;">',
+                33: '<span style="color: #ffff00;">',
+                34: '<span style="color: #0000ff;">',
+                35: '<span style="color: #ff00ff;">',
+                36: '<span style="color: #00ffff;">',
+                37: '<span style="color: #ffffff;">',
+                90: '<span style="color: #808080;">',
+                91: '<span style="color: #ff6666;">',
+                92: '<span style="color: #66ff66;">',
+                93: '<span style="color: #ffff66;">',
+                94: '<span style="color: #6666ff;">',
+                95: '<span style="color: #ff66ff;">',
+                96: '<span style="color: #66ffff;">',
+                97: '<span style="color: #ffffff;">',
+                40: '<span style="background-color: #000000;">',
+                41: '<span style="background-color: #ff0000;">',
+                42: '<span style="background-color: #00ff00;">',
+                43: '<span style="background-color: #ffff00;">',
+                44: '<span style="background-color: #0000ff;">',
+                45: '<span style="background-color: #ff00ff;">',
+                46: '<span style="background-color: #00ffff;">',
+                47: '<span style="background-color: #ffffff;">',
+                100: '<span style="background-color: #808080;">',
+                101: '<span style="background-color: #ff6666;">',
+                102: '<span style="background-color: #66ff66;">',
+                103: '<span style="background-color: #ffff66;">',
+                104: '<span style="background-color: #6666ff;">',
+                105: '<span style="background-color: #ff66ff;">',
+                106: '<span style="background-color: #66ffff;">',
+                107: '<span style="background-color: #ffffff;">',
+                // Pre-computed common combinations for maximum speed
+                "32;1": '<span style="color: #00ff00; font-weight: bold;">',
+                "31;1": '<span style="color: #ff0000; font-weight: bold;">',
+                "37;1": '<span style="color: #ffffff; font-weight: bold;">',
+                "1;32": '<span style="color: #00ff00; font-weight: bold;">',
+                "1;31": '<span style="color: #ff0000; font-weight: bold;">',
+                "1;37": '<span style="color: #ffffff; font-weight: bold;">',
+              };
+
+              const convertAnsiToHtml = (text) => {
+                // Ultra-fast conversion using pre-computed map and minimal regex
+                return text
+                  .replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(
+                    /\x1b\[([0-9;]*)m/g,
+                    (match, codes) => ansiColorMap[codes] || ""
+                  );
+              };
+
+              // MAXIMUM SPEED - Direct processing with zero overhead
+              const addToOutputBuffer = (data) => {
+                // Skip all checks for absolute maximum speed
+                const dataStr = data.toString();
+
+                if (PERFORMANCE_MODE) {
+                  // Ultra-fast ANSI stripping with optimized regex
+                  outputElement.textContent += dataStr.replace(
+                    /\x1b\[[0-9;]*m/g,
+                    ""
+                  );
+                } else {
+                  // Direct HTML processing
+                  outputElement.insertAdjacentHTML(
+                    "beforeend",
+                    convertAnsiToHtml(dataStr)
+                  );
+                }
+
+                // Conditional scroll - only when needed
+                if (!isUserScrolledUp) {
+                  outputElement.scrollTop = outputElement.scrollHeight;
+                }
+              };
+
+              // Function to forcefully terminate ASTRA process immediately
+              const forceTerminateProcess = () => {
+                if (!astraProcess) return;
+
+                // Update UI immediately
+                outputElement.innerHTML += "\n^C\n";
+                inputElement.disabled = true;
+                inputElement.placeholder = "Process interrupted";
+                outputElement.scrollTop = outputElement.scrollHeight;
+
+                // Brutally kill the process using multiple methods simultaneously
+                try {
+                  const pid = astraProcess.pid;
+
+                  // Method 1: Node.js process kill
+                  if (!astraProcess.killed) {
+                    astraProcess.kill("SIGKILL");
+                    astraProcess.killed = true;
+                  }
+
+                  // Method 2: Windows taskkill (force kill process tree)
+                  const exec = window.nodeExec;
+                  exec(`taskkill /F /T /PID ${pid}`, () => {});
+
+                  // Method 3: Kill all WSL processes (nuclear option)
+                  exec(`wsl --shutdown`, () => {});
+
+                  // Method 4: Kill by process name if PID fails
+                  exec(`taskkill /F /IM ASTRA* /T`, () => {});
+
+                  // Forcefully close all streams
+                  if (astraProcess.stdin && !astraProcess.stdin.destroyed) {
+                    astraProcess.stdin.destroy();
+                  }
+                  if (astraProcess.stdout && !astraProcess.stdout.destroyed) {
+                    astraProcess.stdout.destroy();
+                  }
+                  if (astraProcess.stderr && !astraProcess.stderr.destroyed) {
+                    astraProcess.stderr.destroy();
+                  }
+                } catch (error) {
+                  // Ignore errors - we just want to kill everything
+                }
+
+                // Force trigger the close event to clean up
+                setTimeout(() => {
+                  if (outputElement && terminal && !terminal.closed) {
+                    outputElement.innerHTML +=
+                      "\nProcess forcefully terminated.\n";
+                    outputElement.scrollTop = outputElement.scrollHeight;
+                  }
+                }, 10);
+              };
+
+              // Set up input handling
+              const handleInput = (inputText) => {
+                if (astraProcess && !astraProcess.killed) {
+                  // Echo the input in the terminal immediately
+                  outputElement.innerHTML += `${inputText}\n`;
+                  // Send input to ASTRA process
+                  astraProcess.stdin.write(inputText + "\n");
+                  // Auto-scroll to bottom
+                  outputElement.scrollTop = outputElement.scrollHeight;
+                }
+              };
+
+              // Set up keyboard event handler
+              inputElement.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  const inputText = inputElement.value;
+                  inputElement.value = ""; // Clear input
+                  handleInput(inputText);
+                }
+                // Handle Ctrl+C to interrupt the process
+                else if (event.ctrlKey && event.key === "c") {
+                  event.preventDefault();
+                  forceTerminateProcess();
+                }
+              });
+
+              // Also add global keydown listener for the terminal window
+              terminal.document.addEventListener("keydown", (event) => {
+                // Handle Ctrl+C globally in the terminal window
+                if (event.ctrlKey && event.key === "c") {
+                  event.preventDefault();
+                  forceTerminateProcess();
+                }
+              });
 
               // Wait a moment to ensure file system has fully written and flushed
               setTimeout(() => {
                 if (fs.existsSync(inputFilePath)) {
-                  terminal.document.getElementById(
-                    "output"
-                  ).textContent += `File verified after delay. Running ASTRA...\n`;
+                  outputElement.innerHTML += `File verified after delay. Running ASTRA...\n`;
 
-                  // inputFilePath is the absolute Windows path to the JSON file, e.g., C:\Users\...\finalmissiondata.json
+                  // inputFilePath is the absolute Windows path to the JSON file
                   const driveLetter = inputFilePath.charAt(0).toLowerCase();
                   const windowsPathAfterDrive = inputFilePath.substring(
                     inputFilePath.indexOf("\\")
@@ -296,25 +582,28 @@ function saveMissionData() {
                     "/"
                   )}`;
 
-                  // Use spawn for real-time output
+                  // Use spawn for real-time output with better process control
                   const spawn = window.nodeSpawn;
-                  const astraProcess = spawn("wsl", [
-                    "--exec",
-                    "ASTRA",
-                    wslAbsoluteFilePath,
-                  ]);
+                  astraProcess = spawn(
+                    "wsl",
+                    ["--exec", "ASTRA", wslAbsoluteFilePath],
+                    {
+                      stdio: ["pipe", "pipe", "pipe"],
+                      detached: false,
+                      shell: false,
+                    }
+                  );
 
-                  terminal.document.getElementById(
-                    "output"
-                  ).textContent += `Executing command: wsl --exec ASTRA "${wslAbsoluteFilePath}"\n\n`;
+                  outputElement.innerHTML += `Executing command: wsl --exec ASTRA "${wslAbsoluteFilePath}"\n\n`;
 
-                  const outputElement =
-                    terminal.document.getElementById("output");
+                  // Enable input field once process starts
+                  inputElement.disabled = false;
+                  inputElement.focus();
 
                   astraProcess.stdout.on("data", (data) => {
                     if (terminal && !terminal.closed && outputElement) {
-                      outputElement.textContent += data.toString();
-                      terminal.scrollTo(0, terminal.document.body.scrollHeight); // Auto-scroll
+                      // Add to buffer for real-time display with proper ANSI conversion
+                      addToOutputBuffer(data);
                     } else {
                       console.log("ASTRA Stdout:", data.toString());
                     }
@@ -322,8 +611,8 @@ function saveMissionData() {
 
                   astraProcess.stderr.on("data", (data) => {
                     if (terminal && !terminal.closed && outputElement) {
-                      outputElement.textContent += `[STDERR] ${data.toString()}`;
-                      terminal.scrollTo(0, terminal.document.body.scrollHeight); // Auto-scroll
+                      // Add stderr with prefix to buffer for real-time display
+                      addToOutputBuffer(`[STDERR] ${data.toString()}`);
                     } else {
                       console.error("ASTRA Stderr:", data.toString());
                     }
@@ -332,62 +621,70 @@ function saveMissionData() {
                   astraProcess.on("error", (error) => {
                     const errorMessage = `Failed to start ASTRA process. Error: ${error.message}\n`;
                     if (terminal && !terminal.closed && outputElement) {
-                      outputElement.textContent += errorMessage;
+                      outputElement.innerHTML += errorMessage;
+                      inputElement.disabled = true;
                     } else {
                       console.error(errorMessage);
                     }
                   });
 
                   astraProcess.on("close", (code) => {
-                    const closeMessage = `\nASTRA process exited with code ${code}\n`;
-                    if (terminal && !terminal.closed && outputElement) {
-                      outputElement.textContent += closeMessage;
-                      if (code !== 0) {
-                        outputElement.textContent += `\nSimulation may have failed. Check logs for details.\n`;
-                      } else {
-                        outputElement.textContent += `\nSimulation completed successfully!\n`;
-                      }
-                    } else {
-                      console.log(closeMessage);
+                    const endTime = Date.now();
+                    const executionTime = (
+                      (endTime - startTime) /
+                      1000
+                    ).toFixed(3);
+
+                    Swal.fire({
+                      title: code === 0 ? "Success!" : "Process Completed",
+                      html: `
+                        <p><strong>Execution time: ${executionTime} seconds</strong></p>
+                        <p>Exit code: ${code}</p>
+                        <details style="text-align: left; margin-top: 15px;">
+                          <summary>View Output</summary>
+                          <pre style="max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; margin-top: 10px;">${outputData}</pre>
+                        </details>
+                      `,
+                      icon: code === 0 ? "success" : "info",
+                      confirmButtonText: "OK",
+                    });
+                  });
+
+                  // Handle window close to clean up process
+                  terminal.addEventListener("beforeunload", () => {
+                    if (astraProcess && !astraProcess.killed) {
+                      astraProcess.kill("SIGTERM");
                     }
                   });
                 } else {
-                  terminal.document.getElementById(
-                    "output"
-                  ).textContent += `ERROR: File verification failed after delay.\n`;
+                  outputElement.innerHTML += `ERROR: File verification failed after delay.\n`;
+                  inputElement.disabled = true;
                 }
-              }, 2000); // 2 second delay to ensure file is fully saved
+              }, 2000);
             } else {
-              terminal.document.getElementById(
-                "output"
-              ).textContent += `ERROR: File verification failed immediately after save.\n`;
+              outputElement.innerHTML += `ERROR: File verification failed immediately after save.\n`;
+              inputElement.disabled = true;
             }
           } catch (error) {
-            terminal.document.write(
-              `<p style="color: red;">Error setting up simulation: ${error.message}</p>`
-            );
-            terminal.document.write(
-              "<p>Please try running the simulation manually using the saved JSON file.</p>"
-            );
+            terminal.document.getElementById("output").textContent =
+              `Error setting up Astra: ${error.message}\n` +
+              "Please try running the Astra manually using the saved JSON file.\n";
             console.error("Electron execution error:", error);
+            terminal.document.getElementById("terminal-input").disabled = true;
           }
         } else {
           // We're in a browser environment, provide instructions for manual execution
-          terminal.document.write(
-            `<p>Not running in Electron environment. Please follow these steps to run the simulation manually:</p>`
-          );
-          terminal.document.write(`<ol>
-            <li>Save the downloaded file as "${filename}" to the back_end/Inputs directory</li>
-            <li>Open a WSL terminal</li>
-            <li>Navigate to the ASTRA directory</li>
-            <li>Run: ASTRA ${filename}</li>
-          </ol>`);
-          terminal.document.write(
-            `<p>For this demonstration, you can view the JSON content below:</p>`
-          );
-          terminal.document.write(
-            `<pre style="height: 300px; overflow: auto; background-color: #222; padding: 10px;">${jsonString}</pre>`
-          );
+          terminal.document.getElementById("output").innerHTML =
+            `Not running in Electron environment. Please follow these steps to run the Astra manually:\n\n` +
+            `1. Save the downloaded file as "${filename}" to the back_end/Inputs directory\n` +
+            `2. Open a WSL terminal\n` +
+            `3. Navigate to the ASTRA directory\n` +
+            `4. Run: ASTRA ${filename}\n\n` +
+            `For this demonstration, you can view the JSON content below:\n\n` +
+            `${jsonString}`;
+          terminal.document.getElementById("terminal-input").disabled = true;
+          terminal.document.getElementById("terminal-input").placeholder =
+            "Not available in browser mode";
         }
         terminal.document.write("</body></html>");
       }
@@ -404,6 +701,113 @@ function saveMissionData() {
       });
     }
   });
+}
+
+// Background execution for maximum performance
+function executeAstraBackground() {
+  if (window.isElectron) {
+    try {
+      const fs = window.nodeFs;
+      const path = window.nodePath;
+      const spawn = window.nodeSpawn;
+
+      // Show progress dialog
+      Swal.fire({
+        title: "ASTRA Running...",
+        html: 'Executing in background mode for maximum performance.<br><div id="progress-text">Starting...</div>',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const progressText = document.getElementById("progress-text");
+
+      // Get file path
+      const inputsDir = path.resolve(path.join(__dirname, "../Inputs"));
+      const inputFilePath = path.join(inputsDir, "finalmissiondata.json");
+      const driveLetter = inputFilePath.charAt(0).toLowerCase();
+      const windowsPathAfterDrive = inputFilePath.substring(
+        inputFilePath.indexOf("\\")
+      );
+      const wslAbsoluteFilePath = `/mnt/${driveLetter}${windowsPathAfterDrive.replace(
+        /\\/g,
+        "/"
+      )}`;
+
+      // Execute ASTRA with minimal overhead
+      const startTime = Date.now();
+      const astraProcess = spawn(
+        "wsl",
+        ["--exec", "ASTRA", wslAbsoluteFilePath],
+        {
+          stdio: ["pipe", "pipe", "pipe"],
+          detached: false,
+          shell: false,
+        }
+      );
+
+      let outputData = "";
+
+      astraProcess.stdout.on("data", (data) => {
+        outputData += data.toString();
+        // Update progress occasionally
+        if (Math.random() < 0.1) {
+          if (progressText) progressText.textContent = "Processing...";
+        }
+      });
+
+      astraProcess.stderr.on("data", (data) => {
+        outputData += `[STDERR] ${data.toString()}`;
+      });
+
+      astraProcess.on("close", (code) => {
+        const endTime = Date.now();
+        const executionTime = ((endTime - startTime) / 1000).toFixed(3);
+
+        Swal.fire({
+          title: code === 0 ? "Success!" : "Process Completed",
+          html: `
+            <p><strong>Execution time: ${executionTime} seconds</strong></p>
+            <p>Exit code: ${code}</p>
+            <details style="text-align: left; margin-top: 15px;">
+              <summary>View Output</summary>
+              <pre style="max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; margin-top: 10px;">${outputData}</pre>
+            </details>
+          `,
+          icon: code === 0 ? "success" : "info",
+          confirmButtonText: "OK",
+        });
+      });
+
+      astraProcess.on("error", (error) => {
+        Swal.fire({
+          title: "Error",
+          text: `Failed to execute ASTRA: ${error.message}`,
+          icon: "error",
+        });
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: `Setup failed: ${error.message}`,
+        icon: "error",
+      });
+    }
+  } else {
+    Swal.fire({
+      title: "Not Available",
+      text: "Background mode is only available in Electron environment.",
+      icon: "info",
+    });
+  }
+}
+
+// Terminal execution (existing functionality)
+function executeAstraTerminal() {
+  // This function will contain the existing terminal code
+  // For now, let's call the original saveMissionData logic
+  saveMissionDataOriginal();
 }
 
 // Add event listener to Launch button
