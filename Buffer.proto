@@ -1,0 +1,292 @@
+syntax = "proto3";
+
+
+message VectorBuff
+{
+   repeated double x =1;
+   repeated double y = 2;
+   repeated double z = 3;
+}
+
+
+message SequenceMsg {
+  double time = 1;
+  string comment = 2;
+}
+
+message Polar
+{
+  repeated double time = 1;
+  repeated double altitude = 2;
+  repeated double inerVel = 3;
+  repeated double fpa = 4;
+  repeated double velAzi = 5;
+  repeated double rMag = 6;
+  repeated double vMag = 7;
+  repeated double elevationLPI = 8;
+  repeated double azimuthLPI = 9;
+  repeated double azimuthNorth = 10;
+
+}
+
+message DynamicsBuff
+{
+  repeated double time = 1;
+  repeated double dragAcc = 2;
+  repeated double thrust =3;
+  repeated double sensedAcc = 4;
+  repeated double totalAcc = 5;
+  repeated double mass = 6;
+  repeated double relativeVel = 7;
+  VectorBuff thrustAcc = 8;
+  repeated double vaccumThrust = 9;
+  repeated double dragForce = 10;
+  repeated double gravityAcc = 11;
+  VectorBuff thrustECI = 12;
+  VectorBuff gravityECI = 13;
+  repeated double aeroDynMag = 14;
+  VectorBuff aeroDynAcc = 15;
+  repeated double phaseTime = 16;
+  repeated double thrustAccMag = 17;
+  VectorBuff totalAccECI = 18;
+
+}
+
+message AtmosphericBuff
+{
+  
+  repeated double time=5;
+  repeated double altitude=6;
+  repeated double pressure = 2;
+  repeated double density = 3;
+  repeated double temprature = 4;
+}
+
+message WindBuff
+{
+  
+  repeated double time = 2;
+  repeated double zonal = 3;
+  repeated double merid = 4;
+  
+}
+
+message AeroDynamicsBuff
+{
+  repeated double time =1;
+  repeated double mach = 2;
+  repeated double AOA =3;
+  repeated double qAlpha = 4;
+  repeated double alpha = 5;
+  repeated double beta = 6;
+  repeated double pitchAlpha = 7;
+  repeated double yawAlpha = 8;
+  repeated double heatflux = 9;
+  repeated double dynamicPressure = 10;
+  repeated double relativeWind = 11;
+  repeated double aeroDynFPA = 12;
+  repeated double coeffAxial = 13;
+  AtmosphericBuff vehAtmos = 14;
+  WindBuff vehWind = 15;
+ 
+
+}
+
+message LLA
+{
+  repeated double time = 1;
+  repeated double geoCentricLatitude = 2;
+  repeated double inertialLongitude = 3;
+  repeated double altitude = 4;
+  repeated double geoDeticLatitude = 5;
+  repeated double relativeLongitude = 6;
+  repeated double R_Earth_Surface = 7;
+
+}
+
+message IIPBUffer
+{
+  repeated double time = 1;
+  repeated double latitude = 2;
+  repeated double longitude = 3;
+
+
+}
+
+
+
+message QuaternionBuff
+{
+  repeated double q1 = 1;
+  repeated double q2 = 2;
+  repeated double q3 = 3;
+  repeated double q4 = 4;
+}
+
+message States
+{
+  repeated double x = 1;
+  repeated double y = 2;
+  repeated double z = 3;
+
+  repeated double u = 4;
+  repeated double v = 5;
+  repeated double w = 6;
+
+}
+
+message SteeringBuffer
+{
+  VectorBuff bodyRates = 1;
+  VectorBuff bodyAngle = 2;
+  QuaternionBuff vehQuat = 3;
+  VectorBuff eulerAngle = 4;
+  VectorBuff eulerRates = 5;
+}
+
+message NavigationBuffer
+{
+  repeated double time = 1;
+  States vehStates = 2;
+  SteeringBuffer vehSteering =3;
+  LLA vehLLA=4;
+  Polar vehPolar = 5;
+  COE orbitalElements = 6;
+}
+
+message RANGE
+{
+  repeated double time = 1;
+  repeated double downRange = 2;
+  repeated double crossRange = 3;
+
+}
+
+message COE
+{
+  repeated double time = 1;
+  repeated double apogee = 2;
+  repeated double perigee = 3;
+  repeated double inclination = 4;
+  repeated double eccentricity = 5;
+  repeated double semiLatusRectum = 6;
+  repeated double trueAnomaly = 7;
+
+ 
+
+}
+
+message NavSeqData
+{
+  double time = 1;
+  string event = 23;
+  double apogee = 2;
+  double perigee = 3;
+  double inclination = 4;
+  double eccentricity = 5;
+  double semiLatusRectum = 6;
+  double trueAnomaly = 7;
+  double SMA = 8;
+
+  double altitude = 9;
+  double inerVel = 10;
+  double fpa = 11;
+  double velAzi = 12;
+  double rMag = 13;
+  double vMag = 14;
+  double mass = 15;
+
+  double geoCentricLatitude = 16;
+  double inertialLongitude = 17;
+  double geoDeticLatitude = 18;
+  double relativeLongitude = 19;
+  double R_Earth_Surface = 20;
+
+  double iip_latitude = 21;
+  double iip_longitude = 22;
+}
+
+message SequenceBuffer
+{
+  map<string,NavSeqData> vehNavSeqData = 1;
+  map<string, SequenceMsg> vehSeqence = 2;
+  map<string, SequenceMsg> vehSteerSequence = 3;
+}
+
+message StageBuff
+{
+  string stageName = 1;
+  double idealVelLoss = 2;
+  double gravityLoss = 3;
+  double AtmoPressLoss = 4;
+  double aeroVloss = 5;
+  double deltaVel = 6;
+
+  //duplicate
+  
+  repeated double atmoPressure = 7;
+  repeated double dynpressure = 8;
+  repeated double coeffAxial = 9;
+  repeated double time = 10;
+  repeated double mass = 11;
+  repeated double thrustAccmag = 12;
+
+}
+
+message RadarBuff
+{
+  repeated double time = 1;
+  repeated double elevation = 2;
+  repeated double azimuth = 3;
+}
+
+// For storing launch point data that is later used for frame convertion
+message LaunchPointBuffer
+{
+  double latitude  = 1;
+  double longitude = 2;
+  double azimuth = 3;
+}
+
+message Buffer {
+  string vehicleName = 1;
+  double totalMass = 2;
+  string UID = 3;
+
+  DynamicsBuff vehDynamics = 4;
+  AeroDynamicsBuff vehAeroDynamics = 5;
+  
+
+  NavigationBuffer vehNavigation = 6;
+
+  map<string,double>coe = 7;
+  IIPBUffer vehIIP = 8;
+
+  string vehicleType = 9;
+
+  RANGE vehRange = 10;
+
+
+
+  string missionInpData = 11;
+  string optOutData = 12;
+
+  SequenceBuffer vehSequence = 13;
+  
+  //only for projectile
+  double elevation = 14;
+  double vmag = 15;
+
+  //-------stage details
+
+  repeated StageBuff stages = 16;
+
+  //radar out
+
+  map<string,RadarBuff>vehRadar = 17;
+
+  LaunchPointBuffer vehLaunchPoint = 18;
+  
+  string description = 19;
+
+}

@@ -1,0 +1,15 @@
+we have to implement auto save in the backgroud functionality
+both modes simulation and optimization of astra follows a linear flow from mission details to stopping condition . optimization is a subset of simulation . we have to work from way up. there are two ways to input data manual input data entry that is text, csvs and already earlier created using manual entry json loading functionality. and already loaded and autofilled filled maybe changed by the user both the text files and csv files
+in both of the modes, the auto save has to work. first we work on manual entry . so in the manual entry. the user can input the data in each section and click the save button. the data has to update. lets say in optimization the user filled all the details in linear way from Mission details to stopping form.
+but if a user change a data in stages in astra gui. the stages has reference to all the below section that are flags and other fields such as motor and nozzle mames, an.nd all the previous and nect sections. lets say the user change the vehicle name in the vehicle configuration, the sequence is in the upcoming section has also have the vehicle name in the json structure. so many have reference in the json structure. So this data upating will result in data disreptancy and it wont work with  Astra Binary because of the mismatched data and Astra binary will throw out an error. to overcome this we have to implement a auto save functionality or the any other better functionality. some aspects of dirty data is already  implemented in the code.7
+
+both in manual mode and loading json this functionality should work, to keep the data intact. this new functionality should work from mission details to stopping condition both in optimization and simulation. if the mode is optimization include inlude that too. both work in linear way. eventhough optimization comes before stoppin condition. 
+
+so if the user change a first section or mid section, there will be data disrespectancy. so if a user change any data or update any data the automatic sving flow has to be taken place. after the launch mission button is clicked . also run a validation and auto save. 
+
+I have already added status indicators button there in the side nav item. if it is not saved make it white, if the validation faails make it red. if it is saved successfully make it green, we have to add the status indicator to subsections too, in vertical steering we have to add the status indicators in the Active components and in other relevant components.
+
+we can first implement the in manual mode, the user can save the each section and if the user change a previous section the next section should also autosave and the status indicator should update. the notification of auto save should be minimal or intrusive.
+the whole work flow should optimized and we alos has to double check the validation in some section. not all section dont have validations.
+
+you dont have to make new files and test it out. first we start with changing the sweet alert.js toast notifications into minimal non graphic notifications.

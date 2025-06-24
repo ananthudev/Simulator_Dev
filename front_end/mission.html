@@ -42,6 +42,8 @@
               </button>
             </div>
           </li>
+          <!-- TEMP: Plot Viewer - TODO: Remove this temporary feature -->
+          <li><a href="#" id="plot-viewer-btn">PLOT VIEWER</a></li>
         </ul>
       </nav>
       <!-- Centered Launch Mission Button -->
@@ -1676,11 +1678,11 @@
                                 data-param="quantity"
                               >
                                 <option value="">Select Quantity</option>
-                                <option value="eulerRate">Euler Rate</option>
-                                <option value="bodyRate">Body Rate</option>
-                                <option value="quaternion">Quaternion</option>
-                                <option value="eulerAngle">Euler Angle</option>
-                                <option value="bodyAngle">Body Angle</option>
+                                <option value="EULER_RATE">Euler Rate</option>
+                                <option value="BODY_RATE">Body Rate</option>
+                                <option value="QUATERNION">Quaternion</option>
+                                <option value="EULER_ANGLE">Euler Angle</option>
+                                <option value="BODY_ANGLE">Body Angle</option>
                               </select>
                             </div>
                           </div>
@@ -3361,5 +3363,119 @@
         </div>
       </div>
     </div>
+
+    <!-- TEMP: Plot Viewer Window - TODO: Remove this temporary feature -->
+    <div id="plot-viewer-window" class="plot-window" style="display: none">
+      <div class="window-header">
+        <div class="window-title">
+          <span class="window-icon">📊</span>
+          <span>ASTRA Plot Viewer - Binary File Analysis</span>
+        </div>
+        <div class="window-controls">
+          <button class="window-btn minimize-btn" id="minimize-plot-window">
+            −
+          </button>
+          <button class="window-btn maximize-btn" id="maximize-plot-window">
+            □
+          </button>
+          <button class="window-btn close-btn" id="close-plot-viewer-window">
+            ×
+          </button>
+        </div>
+      </div>
+      <div class="window-content">
+        <div class="plot-viewer-container">
+          <!-- File Selection -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label">Select Binary File:</label>
+              <input
+                type="file"
+                id="bin-file-input"
+                accept=".bin"
+                class="input-field"
+              />
+              <div
+                id="selected-file-info"
+                class="file-info"
+                style="display: none"
+              >
+                <span id="file-name"></span>
+                <span id="file-size"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plot Categories Tree -->
+          <div
+            id="plot-categories-container"
+            class="plot-categories"
+            style="display: none"
+          >
+            <h4>Select Plots to Generate:</h4>
+            <div class="plot-tree">
+              <!-- This will be populated by JavaScript -->
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                id="generate-plots-btn"
+                class="btn btn-primary"
+              >
+                Generate Selected Plots
+              </button>
+              <button type="button" id="select-all-plots" class="btn">
+                Select All
+              </button>
+              <button type="button" id="clear-all-plots" class="btn">
+                Clear All
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress and Plot Display Area -->
+          <div
+            id="plot-progress-container"
+            class="plot-progress"
+            style="display: none"
+          >
+            <div class="progress-header">
+              <h4>Generating Plots...</h4>
+              <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+              </div>
+              <div id="progress-text" class="progress-text">0%</div>
+            </div>
+          </div>
+
+          <div
+            id="plot-display-container"
+            class="plot-display"
+            style="display: none"
+          >
+            <div class="plot-header">
+              <h4>Generated Plots</h4>
+              <div class="plot-controls">
+                <button type="button" id="export-plots-btn" class="btn">
+                  Export All
+                </button>
+                <button type="button" id="close-plots-btn" class="btn">
+                  Close Plots
+                </button>
+              </div>
+            </div>
+            <div class="plot-tabs">
+              <div id="plot-tab-headers" class="plot-tab-headers"></div>
+              <div id="plot-tab-contents" class="plot-tab-contents"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEMP: Plot Viewer Script - TODO: Remove this temporary feature -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="js/plot-viewer.js"></script>
   </body>
 </html>

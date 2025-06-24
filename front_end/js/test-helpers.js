@@ -1107,24 +1107,41 @@ function fillSteeringForm(section, data) {
 function fillSteeringParams(params) {
   if (!params) return;
 
+  // Map uppercase steering types from test data to lowercase types expected by UI
+  const steeringTypeMap = {
+    ZERO_RATE: "zeroRate",
+    CONST_BODYRATE: "constantBodyRate",
+    PROFILE: "profile",
+  };
+
   // Select the steering type
   const steeringTypeSelect = document.querySelector(
     'select[data-field="steering_type"]'
   );
-  if (steeringTypeSelect && params.steering_type) {
-    steeringTypeSelect.value = params.steering_type;
+
+  // Get the steering type - could be directly in params or in steering_type property
+  let steeringType = params.steering_type || params.type;
+
+  // Map the steering type to the correct format expected by the UI
+  if (steeringType && steeringTypeMap[steeringType]) {
+    steeringType = steeringTypeMap[steeringType];
+  }
+
+  if (steeringTypeSelect && steeringType) {
+    console.log(`Setting steering type to: ${steeringType}`);
+    steeringTypeSelect.value = steeringType;
     steeringTypeSelect.dispatchEvent(new Event("change"));
 
     // Wait for dynamic fields to appear
     setTimeout(() => {
       // Find the correct steering params section
       const paramsSection = document.querySelector(
-        `.steering-params[data-steering-type="${params.steering_type}"]`
+        `.steering-params[data-steering-type="${steeringType}"]`
       );
 
       if (paramsSection) {
         // Handle special cases based on steering type
-        switch (params.steering_type) {
+        switch (steeringType) {
           case "constantBodyRate":
             // Fill axis and value fields
             if (params.axis) {
@@ -1270,6 +1287,12 @@ function fillSteeringParams(params) {
                 filenameInput.value = filename;
                 filenameInput.dispatchEvent(new Event("input"));
 
+                // Show the clear button
+                const clearBtn = document.getElementById(
+                  "profile-csv-clear-btn"
+                );
+                if (clearBtn) clearBtn.style.display = "inline-block";
+
                 // Create a simulated file upload
                 const fileInput = document.getElementById("profile-csv-upload");
                 if (fileInput) {
@@ -1284,6 +1307,10 @@ function fillSteeringParams(params) {
             }
             break;
         }
+      } else {
+        console.warn(
+          `Steering params section for type "${steeringType}" not found`
+        );
       }
 
       // Fill the comment field (common for all types)
@@ -1297,6 +1324,10 @@ function fillSteeringParams(params) {
         }
       }
     }, 300);
+  } else {
+    console.warn(
+      `Steering type select not found or invalid steering type: ${steeringType}`
+    );
   }
 }
 

@@ -85,7 +85,7 @@ function initializeTestUI() {
     // Make the test UI draggable with improved implementation
     makeDraggable(mainTestContainer, testHeader);
 
-    // Get data from realdata.json through TestData
+    // Get data from test_sim.json through TestData
     const stagesData = [
       { name: "Stage 1", index: 1 },
       { name: "Stage 2", index: 2 },
@@ -105,7 +105,7 @@ function initializeTestUI() {
     const numConstraints = optimizationData?.constraints?.length || 4;
     const numDesignVars = optimizationData?.design_variables?.length || 4;
 
-    // Define test categories with specific buttons based on realdata.json
+    // Define test categories with specific buttons based on test_sim.json
     const testGroups = [
       {
         name: "Basic Forms",
@@ -408,7 +408,7 @@ function addTestUIStyles() {
   style.textContent = `
     #main-test-ui-container {
       position: fixed;
-      top: 20px;
+      bottom: 20px; /* Changed from top to bottom */
       right: 20px;
       z-index: 1000;
       background: rgba(0,0,0,0.9);
@@ -640,17 +640,17 @@ function addTestUIStyles() {
   document.head.appendChild(style);
 }
 
-// Function to initialize test forms using realdata.json
+// Function to initialize test forms using test_sim.json
 function initializeFromRealDataJson() {
   // Check if rawTestData is available
   if (window.rawTestData) {
-    console.log("Initializing test forms from realdata.json");
+    console.log("Initializing test forms from test_sim.json");
 
     // Set up the window.rawTestData variable as a global for test helpers to use
     if (!window.rawTestData) {
       loadRealDataJson().then((data) => {
         if (data) {
-          console.log("Loaded rawTestData from realdata.json");
+          console.log("Loaded rawTestData from test_sim.json");
           window.rawTestData = data;
           populateFromRealDataJson();
         }
@@ -661,7 +661,7 @@ function initializeFromRealDataJson() {
   }
 }
 
-// Function to populate the test forms from realdata.json
+// Function to populate the test forms from test_sim.json
 function populateFromRealDataJson() {
   try {
     // Add optimization mode
@@ -713,25 +713,25 @@ function populateFromRealDataJson() {
 // Check if we need to add a Direct from JSON button to the test UI
 document.addEventListener("DOMContentLoaded", function () {
   try {
-    // Create a special button to fill forms directly from realdata.json
+    // Create a special button to fill forms directly from test_sim.json
     const testToolbar = document.querySelector(".test-toolbar");
     if (testToolbar) {
       const directJsonBtn = document.createElement("button");
       directJsonBtn.id = "direct-json-btn";
-      directJsonBtn.textContent = "Fill from realdata.json";
+      directJsonBtn.textContent = "Fill from test_sim.json";
       directJsonBtn.className = "test-action-btn";
       directJsonBtn.style.backgroundColor = "#8e44ad"; // Purple color to differentiate
 
       directJsonBtn.addEventListener("click", function () {
-        // Load realdata.json if it's not already loaded
+        // Load test_sim.json if it's not already loaded
         if (!window.rawTestData) {
           loadRealDataJson().then((data) => {
             if (data) {
               // Check if SweetAlert is available
               if (typeof Swal !== "undefined") {
                 Swal.fire({
-                  title: "Using realdata.json",
-                  text: "Forms will be populated with data from realdata.json",
+                  title: "Using test_sim.json",
+                  text: "Forms will be populated with data from test_sim.json",
                   icon: "info",
                   toast: true,
                   position: "top-end",
@@ -739,7 +739,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   timer: 3000,
                 });
               } else {
-                console.log("Using realdata.json to fill forms");
+                console.log("Using test_sim.json to fill forms");
               }
 
               // First we'll populate the design variables - with longer timeouts for stability
@@ -776,7 +776,7 @@ document.addEventListener("DOMContentLoaded", function () {
               if (typeof Swal !== "undefined") {
                 Swal.fire({
                   title: "Error",
-                  text: "Failed to load realdata.json",
+                  text: "Failed to load test_sim.json",
                   icon: "error",
                   toast: true,
                   position: "top-end",
@@ -784,7 +784,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   timer: 3000,
                 });
               } else {
-                console.error("Failed to load realdata.json");
+                console.error("Failed to load test_sim.json");
               }
             }
           });
@@ -792,8 +792,8 @@ document.addEventListener("DOMContentLoaded", function () {
           // If data is already loaded, just use it to populate the forms
           if (typeof Swal !== "undefined") {
             Swal.fire({
-              title: "Using cached realdata.json",
-              text: "Forms will be populated with data from realdata.json",
+              title: "Using cached test_sim.json",
+              text: "Forms will be populated with data from test_sim.json",
               icon: "info",
               toast: true,
               position: "top-end",
@@ -801,7 +801,7 @@ document.addEventListener("DOMContentLoaded", function () {
               timer: 3000,
             });
           } else {
-            console.log("Using cached realdata.json to fill forms");
+            console.log("Using cached test_sim.json to fill forms");
           }
 
           // Follow the same sequence as above with longer delays

@@ -3664,11 +3664,11 @@ function parseSteeringParams(steeringData) {
       if (steeringData.quantity) {
         // Map quantity to UI dropdown values
         const quantityMapping = {
-          EULER_RATE: "eulerRate",
-          BODY_RATE: "bodyRate",
-          QUATERNION: "quaternion",
-          EULER_ANGLE: "eulerAngle",
-          BODY_ANGLE: "bodyAngle",
+          EULER_RATE: "EULER_RATE",
+          BODY_RATE: "BODY_RATE",
+          QUATERNION: "QUATERNION",
+          EULER_ANGLE: "EULER_ANGLE",
+          BODY_ANGLE: "BODY_ANGLE",
         };
         params.quantity =
           quantityMapping[steeringData.quantity] ||
@@ -5644,3 +5644,14 @@ function setBounds(categoryFields, typeData) {
     }
   }
 }
+
+// Format mappings for loading files
+// Update from camelCase to consistent UPPERCASE_WITH_UNDERSCORES
+const formatMappings = {
+  EULER_RATE: "EULER_RATE",
+  BODY_RATE: "BODY_RATE",
+  QUATERNION: "QUATERNION",
+  EULER_ANGLE: "EULER_ANGLE",
+  BODY_ANGLE: "BODY_ANGLE",
+  // Other mappings as needed...
+};
