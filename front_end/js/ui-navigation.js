@@ -76,10 +76,10 @@ document.addEventListener("DOMContentLoaded", function () {
       // Create optimization menu items
       optimizationItems.innerHTML = `
         <li><span class="opt-header">Optimization</span></li>
-        <li><a href="#" id="objective-function-btn"><span class="nav-status-dot" id="objective-function-status">●</span> └── Objective Function</a></li>
-        <li><a href="#" id="constraints-btn"><span class="nav-status-dot" id="constraints-status">●</span> └── Constraints</a></li>
-        <li><a href="#" id="mode-btn"><span class="nav-status-dot" id="mode-status">●</span> └── Mode</a></li>
-        <li><a href="#" id="design-variables-btn"><span class="nav-status-dot" id="design-variables-status">●</span> └── Design Variables</a></li>
+        <li><a href="#" id="objective-function-btn"><span class="nav-status-dot" id="objective-function-status">●</span>Objective Function</a></li>
+        <li><a href="#" id="constraints-btn"><span class="nav-status-dot" id="constraints-status">●</span>Constraints</a></li>
+        <li><a href="#" id="mode-btn"><span class="nav-status-dot" id="mode-status">●</span> Mode</a></li>
+        <li><a href="#" id="design-variables-btn"><span class="nav-status-dot" id="design-variables-status">●</span>Design Variables</a></li>
       `;
 
       // Insert optimization items after steering
