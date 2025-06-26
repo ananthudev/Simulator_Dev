@@ -168,9 +168,9 @@
   - [x] Auto-populate all corresponding form fields across all sections (Mission, Env, Vehicle, Stages, Motors, Nozzles, Sequence, Steering, Stopping, Optimization) with the loaded data.
   - [x] Handle potential parsing errors gracefully.
   - [x] Manage loaded file data (e.g., how to represent previously uploaded CSVs like Atmosphere, Wind, Aero, Thrust, Profile - maybe store filenames and prompt user if files are missing, or embed data if feasible).
-- [ ] **Edit Loaded Mission Data:** Allow users to modify data in forms after loading a mission JSON.
-- [ ] **Re-Save Prompt:** If a user modifies data loaded from a JSON, prompt them to save the changes before running the mission again.
-- [ ] **Re-run Mission:** Allow users to trigger the mission launch (sending updated data to the backend) after editing a loaded file.
+- [x] **Edit Loaded Mission Data:** Allow users to modify data in forms after loading a mission JSON.
+- [x] **Re-Save Prompt:** If a user modifies data loaded from a JSON, prompt them to save the changes before running the mission again.
+- [x] **Re-run Mission:** Allow users to trigger the mission launch (sending updated data to the backend) after editing a loaded file.
 
 ### UI/UX Improvements
 
@@ -260,7 +260,7 @@
 - [ ] Loading time improvements
 - [ ] Browser compatibility testing
 
-### Contributor - Ananthu Dev (Frontend Developer (Electron.js, HTML, CSS, JavaScript, JSON Handling), Backend Integration (JS/Python, Astra C Binary), DevOps (GitLab CI/CD, Gerrit, Jenkins), Cloud (AWS, Docker), Database, Licensing, Maintenance and Support)
+### Contributor - Ananthu Dev (Frontend Developer (Electron.js, HTML, CSS, JavaScript, JSON Handling), Backend Integration (JS/Python, Astra C Binary), Cloud (AWS, Docker), Database, Licensing, Maintenance and Support)
 
 ### Code Refactoring & Conflict Resolution
 
@@ -291,5 +291,3 @@ This Electron-based desktop application (the Astra GUI) provides a complete inte
 - **UX Enhancements**: Real-time validation feedback, save/done indicators, component previews, theme support, offline map tile caching, and dynamic help/tooltips for a seamless user experience.
 
 These points summarize the core capabilities, architecture, and workflow of the Astra GUI front-end.
-
-// End of generated documentation
