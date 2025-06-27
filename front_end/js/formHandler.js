@@ -627,18 +627,11 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Error previewing CSV:", error);
           });
 
-        // Disable atmos model dropdown when file is selected
-        if (atmosModel) {
-          atmosModel.value = "Environment";
-          atmosModel.disabled = true;
-        }
+        // Keep dropdown enabled - no mutual exclusion
       } else {
         csvFilename.value = "No file chosen";
         clearCsvBtn.style.display = "none";
-        // Enable atmos model dropdown when no file is selected
-        if (atmosModel) {
-          atmosModel.disabled = false;
-        }
+        // Keep dropdown enabled - no mutual exclusion
       }
     });
 
@@ -649,10 +642,7 @@ document.addEventListener("DOMContentLoaded", function () {
         csvUpload.value = "";
         csvFilename.value = "No file chosen";
         clearCsvBtn.style.display = "none";
-        // Enable atmos model dropdown when file is cleared
-        if (atmosModel) {
-          atmosModel.disabled = false;
-        }
+        // Keep dropdown enabled - no mutual exclusion
         if (window.finalMissionData) {
           window.finalMissionData.atmos = null;
         }
@@ -666,6 +656,48 @@ document.addEventListener("DOMContentLoaded", function () {
   const windDataInput = document.getElementById("wind-data-input");
   const windDataFilename = document.getElementById("wind-data-filename");
   const clearWindBtn = document.getElementById("clear-wind-btn");
+  const defaultWindCheckbox = document.getElementById("default-wind-data");
+
+  // Initialize wind upload state based on checkbox
+  if (defaultWindCheckbox && windDataUploadBtn && windDataInput) {
+    // Initially disable upload since checkbox is checked by default
+    if (defaultWindCheckbox.checked) {
+      windDataInput.disabled = true;
+      windDataUploadBtn.style.opacity = "0.5";
+      windDataUploadBtn.style.cursor = "not-allowed";
+    }
+  }
+
+  // Default wind data checkbox handler
+  if (defaultWindCheckbox) {
+    defaultWindCheckbox.addEventListener("change", function () {
+      if (this.checked) {
+        // Enable default wind data - disable upload
+        if (windDataInput && windDataUploadBtn) {
+          windDataInput.disabled = true;
+          windDataUploadBtn.style.opacity = "0.5";
+          windDataUploadBtn.style.cursor = "not-allowed";
+
+          // Clear any uploaded file
+          windDataInput.value = "";
+          windDataFilename.value = "No file chosen";
+          clearWindBtn.style.display = "none";
+
+          // Clear uploaded wind data and ensure default will be used
+          if (window.finalMissionData) {
+            window.finalMissionData.Wind = null;
+          }
+        }
+      } else {
+        // Disable default wind data - enable upload
+        if (windDataInput && windDataUploadBtn) {
+          windDataInput.disabled = false;
+          windDataUploadBtn.style.opacity = "1";
+          windDataUploadBtn.style.cursor = "pointer";
+        }
+      }
+    });
+  }
 
   if (windDataUploadBtn && windDataInput && windDataFilename) {
     windDataUploadBtn.addEventListener("click", function (e) {
@@ -745,11 +777,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // Initialize CSV upload state based on current dropdown selection
+  if (atmosModel && csvUpload && csvUploadBtn) {
+    // Initially disable CSV upload unless "Custom" is selected
+    if (atmosModel.value !== "Custom") {
+      csvUpload.disabled = true;
+      csvUploadBtn.style.opacity = "0.5";
+      csvUploadBtn.style.cursor = "not-allowed";
+    }
+  }
+
   // Atmospheric model dropdown handler
   if (atmosModel) {
     atmosModel.addEventListener("change", function () {
-      if (this.value !== "Environment") {
-        // Disable CSV upload when a model is selected
+      if (this.value === "Custom") {
+        // Enable CSV upload only when "Custom" is selected
+        if (csvUpload) {
+          csvUpload.disabled = false;
+          csvUploadBtn.style.opacity = "1";
+          csvUploadBtn.style.cursor = "pointer";
+        }
+      } else {
+        // Disable CSV upload for all other options
         if (csvUpload) {
           csvUpload.value = "";
           csvFilename.value = "No file chosen";
@@ -757,13 +806,6 @@ document.addEventListener("DOMContentLoaded", function () {
           csvUpload.disabled = true;
           csvUploadBtn.style.opacity = "0.5";
           csvUploadBtn.style.cursor = "not-allowed";
-        }
-      } else {
-        // Enable CSV upload when "Environment" is selected
-        if (csvUpload) {
-          csvUpload.disabled = false;
-          csvUploadBtn.style.opacity = "1";
-          csvUploadBtn.style.cursor = "pointer";
         }
       }
     });
@@ -915,32 +957,14 @@ function appendEnviroDetails() {
         });
     })
     .then(() => {
-      // Handle wind data
-      const windFile = document.getElementById("wind-data-input").files[0];
-      if (windFile) {
-        return readFileAsText(windFile)
-          .then((csvData) => {
-            const windArray = parseAtmosCSV(csvData); // Use standard CSV parser
-            updateFinalData({ Wind: windArray }); // Add wind array to root
-            console.log("Wind data added.");
-          })
-          .catch((error) => {
-            console.error("Failed to read wind data file:", error);
-            // Add default wind data on error
-            const defaultWind = [
-              ["Altitude", "Zonal", "Meridonal"],
-              ["m", "m/s", "m/s"],
-              [0, 0, 0],
-              [60000, 0, 0],
-              [90000, 0, 0],
-              [150000, 0, 0],
-              [400000, 0, 0],
-            ];
-            updateFinalData({ Wind: defaultWind });
-            console.log("Using default wind data due to error.");
-          });
-      } else {
-        // If no wind file, add default wind data
+      // Handle wind data - check checkbox state first
+      const defaultWindCheckbox = document.getElementById("default-wind-data");
+      const useDefaultWind = defaultWindCheckbox
+        ? defaultWindCheckbox.checked
+        : true;
+
+      if (useDefaultWind) {
+        // Use default wind data when checkbox is checked
         const defaultWind = [
           ["Altitude", "Zonal", "Meridonal"],
           ["m", "m/s", "m/s"],
@@ -951,7 +975,46 @@ function appendEnviroDetails() {
           [400000, 0, 0],
         ];
         updateFinalData({ Wind: defaultWind });
-        console.log("Using default wind data (no file provided).");
+        console.log("Using default wind data (checkbox enabled).");
+      } else {
+        // Handle uploaded wind file when checkbox is unchecked
+        const windFile = document.getElementById("wind-data-input").files[0];
+        if (windFile) {
+          return readFileAsText(windFile)
+            .then((csvData) => {
+              const windArray = parseAtmosCSV(csvData); // Use standard CSV parser
+              updateFinalData({ Wind: windArray }); // Add wind array to root
+              console.log("Wind data added from uploaded file.");
+            })
+            .catch((error) => {
+              console.error("Failed to read wind data file:", error);
+              // Add default wind data on error
+              const defaultWind = [
+                ["Altitude", "Zonal", "Meridonal"],
+                ["m", "m/s", "m/s"],
+                [0, 0, 0],
+                [60000, 0, 0],
+                [90000, 0, 0],
+                [150000, 0, 0],
+                [400000, 0, 0],
+              ];
+              updateFinalData({ Wind: defaultWind });
+              console.log("Using default wind data due to upload error.");
+            });
+        } else {
+          // If checkbox unchecked but no file uploaded, still use default
+          const defaultWind = [
+            ["Altitude", "Zonal", "Meridonal"],
+            ["m", "m/s", "m/s"],
+            [0, 0, 0],
+            [60000, 0, 0],
+            [90000, 0, 0],
+            [150000, 0, 0],
+            [400000, 0, 0],
+          ];
+          updateFinalData({ Wind: defaultWind });
+          console.log("Using default wind data (no file uploaded).");
+        }
       }
     })
     .finally(() => {
@@ -2100,13 +2163,13 @@ function addEventToSequence(eventData) {
     </div>
     <div class="event-actions">
       <button type="button" class="edit-event" title="Edit Event">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
       </button>
       <button type="button" class="delete-event" title="Delete Event">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"></path>
         </svg>
       </button>
@@ -2367,11 +2430,15 @@ function populateEventFlagDropdown(eventType) {
   switch (eventType) {
     case "stage-start":
       // Only show flags for saved stages
-      flags = savedStages.map((stage) => `ST_${stage.stage_number}_INI`);
+      flags = savedStages
+        .filter((stage) => stage && stage.stage_number)
+        .map((stage) => `ST_${stage.stage_number}_INI`);
       break;
     case "stage-separation":
       // Only show flags for saved stages
-      flags = savedStages.map((stage) => `ST_${stage.stage_number}_SEP`);
+      flags = savedStages
+        .filter((stage) => stage && stage.stage_number)
+        .map((stage) => `ST_${stage.stage_number}_SEP`);
       break;
     case "motor-ignition":
       // Get ignition flags from the motor flag registry
@@ -2386,19 +2453,23 @@ function populateEventFlagDropdown(eventType) {
       ) {
         console.log("Using flags from flagRegistry.motors");
         flagRegistry.motors.forEach((motor) => {
-          flags.push(motor.flags.ignition);
+          if (motor && motor.flags && motor.flags.ignition) {
+            flags.push(motor.flags.ignition);
+          }
         });
       } else {
         console.log("Falling back to savedStages for motor flags");
         // Fallback to generate from savedStages if flagRegistry is not populated
         savedStages.forEach((stage) => {
-          if (stage.motors && stage.motors.length > 0) {
+          if (stage && stage.motors && stage.motors.length > 0) {
             console.log(
               `Stage ${stage.stage_number} has ${stage.motors.length} motors`
             );
             stage.motors.forEach((motor, index) => {
-              const motorNum = index + 1;
-              flags.push(`S${stage.stage_number}_M${motorNum}_IGN`);
+              if (motor) {
+                const motorNum = index + 1;
+                flags.push(`S${stage.stage_number}_M${motorNum}_IGN`);
+              }
             });
           } else {
             console.log(`Stage ${stage.stage_number} has no motors defined`);
@@ -2414,15 +2485,19 @@ function populateEventFlagDropdown(eventType) {
         flagRegistry.motors.length > 0
       ) {
         flagRegistry.motors.forEach((motor) => {
-          flags.push(motor.flags.burnout);
+          if (motor && motor.flags && motor.flags.burnout) {
+            flags.push(motor.flags.burnout);
+          }
         });
       } else {
         // Fallback to generate from savedStages if flagRegistry is not populated
         savedStages.forEach((stage) => {
-          if (stage.motors && stage.motors.length > 0) {
+          if (stage && stage.motors && stage.motors.length > 0) {
             stage.motors.forEach((motor, index) => {
-              const motorNum = index + 1;
-              flags.push(`S${stage.stage_number}_M${motorNum}_Burnout`);
+              if (motor) {
+                const motorNum = index + 1;
+                flags.push(`S${stage.stage_number}_M${motorNum}_Burnout`);
+              }
             });
           }
         });

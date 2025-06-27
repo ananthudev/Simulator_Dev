@@ -168,9 +168,9 @@
   - [x] Auto-populate all corresponding form fields across all sections (Mission, Env, Vehicle, Stages, Motors, Nozzles, Sequence, Steering, Stopping, Optimization) with the loaded data.
   - [x] Handle potential parsing errors gracefully.
   - [x] Manage loaded file data (e.g., how to represent previously uploaded CSVs like Atmosphere, Wind, Aero, Thrust, Profile - maybe store filenames and prompt user if files are missing, or embed data if feasible).
-- [x] **Edit Loaded Mission Data:** Allow users to modify data in forms after loading a mission JSON.
-- [x] **Re-Save Prompt:** If a user modifies data loaded from a JSON, prompt them to save the changes before running the mission again.
-- [x] **Re-run Mission:** Allow users to trigger the mission launch (sending updated data to the backend) after editing a loaded file.
+- [ ] **Edit Loaded Mission Data:** Allow users to modify data in forms after loading a mission JSON.
+- [ ] **Re-Save Prompt:** If a user modifies data loaded from a JSON, prompt them to save the changes before running the mission again.
+- [ ] **Re-run Mission:** Allow users to trigger the mission launch (sending updated data to the backend) after editing a loaded file.
 
 ### UI/UX Improvements
 

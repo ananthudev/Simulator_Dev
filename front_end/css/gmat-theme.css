@@ -252,6 +252,41 @@ body {
   background: var(--hover-bg);
 }
 
+.event-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.edit-event,
+.delete-event {
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  color: #666;
+  border-radius: 3px;
+  display: flex;
+  transition: all 0.15s ease;
+}
+
+.edit-event:hover {
+  background: rgba(0, 120, 212, 0.15);
+  color: #0078d4;
+}
+
+.delete-event:hover {
+  background: rgba(196, 43, 28, 0.15);
+  color: #c42b1c;
+}
+
+.edit-event svg,
+.delete-event svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
 /* Toggle Switch */
 .toggle-container {
   display: inline-block;

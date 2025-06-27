@@ -14,6 +14,8 @@
 
     <!-- New theme -->
     <link rel="stylesheet" href="css/desktop-theme.css" />
+    <!-- <link rel="stylesheet" href="css/modern-itheme.css" /> -->
+    <!-- <link rel="stylesheet" href="css/spacex-theme.css" /> -->
 
     <!-- Add after existing stylesheet links -->
     <link rel="stylesheet" href="js/leaflet/leaflet.css" />
@@ -201,7 +203,7 @@
           <div class="form-container">
             <div class="form-row">
               <div class="form-group">
-                <label for="planets" class="label">Planet:</label>
+                <label for="planets" class="label">Planet</label>
                 <select id="planets" class="input-field">
                   <option value="Environment">Choose a Planet</option>
                   <option value="earth">Earth</option>
@@ -214,31 +216,37 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="atmos-model" class="label"
-                  >Atmospheric Models:</label
+                  >Atmospheric Models</label
                 >
                 <select id="atmos-model" class="input-field">
                   <option value="Environment">Choose a Model</option>
-                  <option value="atmos_76">atmos_76</option>
-                  <option value="NRLMSISE-00">NRLMSISE-00</option>
-                  <option value="JB2008">JB2008</option>
-                  <option value="ISA">ISA</option>
+                  <option value="atmos_76">US Standard Atmosphere, 1976</option>
+                  <option value="NRLMSISE-00">
+                    NRLMSISE-00 Empirical Atmospheric Model
+                  </option>
+                  <option value="JB2008">Jacchia-Bowman 2008 Model</option>
+                  <option value="ISA">Indian Standard Atmosphere</option>
+                  <option value="Custom">Custom</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <span class="or-text">OR</span>
-              </div>
-
-              <div class="form-group">
+                <label for="csv-upload" class="label"
+                  >Upload Atmospheric Model CSV</label
+                >
                 <div class="upload-data">
-                  <label for="csv-upload" class="upload-label"
-                    >Upload Model CSV:</label
-                  >
                   <input
                     type="file"
                     id="csv-upload"
                     accept=".csv"
                     style="display: none"
+                  />
+                  <input
+                    type="text"
+                    id="csv-filename"
+                    class="filename"
+                    readonly
+                    placeholder="No file chosen"
                   />
                   <div class="upload-controls">
                     <button class="upload" id="csv-upload-btn">
@@ -265,7 +273,7 @@
                           d="M17 15V18M17 21V18M17 18H14M17 18H20"
                         ></path>
                       </svg>
-                      <span>ADD FILE</span>
+                      <span>Add File</span>
                     </button>
                     <button
                       type="button"
@@ -289,13 +297,6 @@
                       </svg>
                     </button>
                   </div>
-                  <input
-                    type="text"
-                    id="csv-filename"
-                    class="filename"
-                    readonly
-                    placeholder="No file chosen"
-                  />
                 </div>
               </div>
             </div>
@@ -303,13 +304,41 @@
             <!-- Wind Data Upload Section -->
             <div class="form-row">
               <div class="form-group">
-                <label for="wind-data-input" class="label">Wind Data:</label>
+                <label for="wind-data-input" class="label">Wind Data</label>
+
+                <!-- Default Wind Data Checkbox -->
+                <div class="form-row" style="margin-bottom: 10px">
+                  <div class="form-group">
+                    <span class="toggle-label">Use Default Wind Data</span>
+                    <div class="toggle-container">
+                      <input
+                        type="checkbox"
+                        id="default-wind-data"
+                        class="toggle-input"
+                        checked
+                      />
+                      <label
+                        for="default-wind-data"
+                        class="toggle-slider"
+                      ></label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Upload Section -->
                 <div class="upload-data">
                   <input
                     type="file"
                     id="wind-data-input"
                     accept=".csv"
                     style="display: none"
+                  />
+                  <input
+                    type="text"
+                    id="wind-data-filename"
+                    class="filename"
+                    readonly
+                    placeholder="No file chosen"
                   />
                   <div class="upload-controls">
                     <button type="button" class="upload" id="wind-data-upload">
@@ -336,7 +365,7 @@
                           d="M17 15V18M17 21V18M17 18H14M17 18H20"
                         ></path>
                       </svg>
-                      <span>ADD FILE</span>
+                      <span>Add File</span>
                     </button>
                     <button
                       type="button"
@@ -360,22 +389,17 @@
                       </svg>
                     </button>
                   </div>
-                  <input
-                    type="text"
-                    id="wind-data-filename"
-                    class="filename"
-                    readonly
-                    placeholder="No file chosen"
-                  />
                 </div>
               </div>
             </div>
 
             <div class="form-row">
+              <div class="form-group" style="width: 100%; margin-bottom: 10px">
+                <label class="label">Gravity Model (Order/Degree)</label>
+              </div>
+            </div>
+            <div class="form-row">
               <div class="form-group">
-                <label for="order" class="label"
-                  >Gravity Parameter (Order):</label
-                >
                 <input
                   type="number"
                   id="order"
@@ -384,9 +408,6 @@
                 />
               </div>
               <div class="form-group">
-                <label for="degree" class="label"
-                  >Gravity Parameter (Degree):</label
-                >
                 <input
                   type="number"
                   id="degree"
@@ -397,12 +418,12 @@
             </div>
 
             <div class="form-group">
-              <label for="core" class="label">COE Info:</label>
+              <label for="core" class="label">COE Info</label>
               <select id="core" class="input-field">
                 <option value="choose_core">Please select a model</option>
-                <option value="PERIGEE_GC_LATITUDE">PERIGEE_GC_LATITUDE</option>
-                <option value="RE">RE</option>
-                <option value="MSL">MSL</option>
+                <option value="PERIGEE_GC_LATITUDE">Perigee GC Latitude</option>
+                <option value="RE">Equatorial Radius</option>
+                <option value="MSL">Mean Sea Level</option>
               </select>
             </div>
 
@@ -431,9 +452,9 @@
                 <label for="vehicle-type" class="label">Vehicle Type:</label>
                 <select id="vehicle-type" class="input-field">
                   <option value="">Please select a Vehicle Type</option>
-                  <option value="ascend">ASCEND</option>
-                  <option value="orbital">ORBITAL</option>
-                  <option value="projectile">PROJECTILE</option>
+                  <option value="ascend">Ascend</option>
+                  <option value="orbital">Orbital</option>
+                  <option value="projectile">Projectile</option>
                 </select>
               </div>
             </div>
