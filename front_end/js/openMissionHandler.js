@@ -1051,6 +1051,25 @@ function populateVehicle(
   const timeStepInput = document.getElementById("time-step");
   const effectiveAltitudeInput = document.getElementById("effective-alt");
 
+  // Populate Number of Stages field
+  const numberOfStagesInput = document.getElementById("number-of-stages");
+  if (
+    numberOfStagesInput &&
+    vehicleData &&
+    vehicleData.stage &&
+    Array.isArray(vehicleData.stage)
+  ) {
+    const stageCount = vehicleData.stage.length;
+    numberOfStagesInput.value = stageCount;
+    console.log(
+      `[OpenMission] Populated Number of Stages field with value: ${stageCount}`
+    );
+  } else {
+    console.warn(
+      "[OpenMission] Could not populate Number of Stages field - vehicleData.stage not found or not an array"
+    );
+  }
+
   // General vehicle data
   if (vehicleNameInput && vehicleNameString)
     vehicleNameInput.value = vehicleNameString;
@@ -1667,10 +1686,10 @@ async function populateStagesAndMotors(
     return;
   }
 
-  const addStageBtn = document.getElementById("add-stage-btn");
-  if (!addStageBtn) {
+  // Check if createSingleStage function is available
+  if (!window.uiNav || typeof window.uiNav.createSingleStage !== "function") {
     console.error(
-      '[OpenMission] "Add Stage" button not found. Cannot create stages.'
+      "[OpenMission] createSingleStage function not found. Cannot create stages."
     );
     return;
   }
@@ -1764,11 +1783,17 @@ async function populateStagesAndMotors(
         });
     }
 
-    // Click to create the stage UI elements
+    // Create the stage UI elements using the new function
     console.log(
-      `[OpenMission] Clicking "Add Stage" button to create stage ${stageUINumber}`
+      `[OpenMission] Creating stage ${stageUINumber} using createSingleStage function`
     );
-    addStageBtn.click();
+    const stageCreationResult = window.uiNav.createSingleStage();
+    if (!stageCreationResult.success) {
+      console.error(
+        `[OpenMission] Failed to create stage ${stageUINumber}: ${stageCreationResult.message}`
+      );
+      continue;
+    }
 
     // Wait for the stage form to be available
     try {
@@ -1798,41 +1823,161 @@ async function populateStagesAndMotors(
         } motors defined`
       );
 
-      // Process motors for this stage
+      // Process motors for this stage using the new input-based system
       if (stageDataObject.motor && Array.isArray(stageDataObject.motor)) {
-        // Make sure motorCounters is initialized for this stage
-        if (!window.motorCounters) window.motorCounters = {};
-        window.motorCounters[`stage${stageUINumber}`] = 0;
+        const motorCount = stageDataObject.motor.length;
+        console.log(
+          `[OpenMission] Stage ${stageUINumber} has ${motorCount} motors. Using new input-based system.`
+        );
 
-        // Process motors sequentially for better reliability
-        for (let j = 0; j < stageDataObject.motor.length; j++) {
-          const motorNameKey = stageDataObject.motor[j]; // e.g., "S1_MOTOR1"
-          const motorData = loadedData[motorNameKey];
-          const motorUINumber = j + 1;
-
-          if (!motorData) {
-            console.warn(
-              `[OpenMission] Data for motor '${motorNameKey}' not found. Skipping.`
-            );
-            continue;
-          }
-
-          // Process this motor - create form and populate it
-          await processMotor(
-            motorData,
-            motorNameKey,
-            stageUINumber,
-            motorUINumber
+        // Set the number of motors input field
+        const numberOfMotorsInput = document.getElementById(
+          `number-of-motors-stage${stageUINumber}`
+        );
+        if (numberOfMotorsInput) {
+          numberOfMotorsInput.value = motorCount;
+          console.log(
+            `[OpenMission] Set number-of-motors input for stage ${stageUINumber} to ${motorCount}`
           );
-          completedElements.motors++;
+        } else {
+          console.warn(
+            `[OpenMission] Number of motors input not found for stage ${stageUINumber}`
+          );
+        }
 
-          // Slight delay between motors to prevent UI conflicts
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        // Use the updated addMultipleMotors function to create motor forms dynamically
+        if (typeof window.addMultipleMotors === "function") {
+          console.log(
+            `[OpenMission] Creating ${motorCount} motors for stage ${stageUINumber} using updated addMultipleMotors`
+          );
+
+          try {
+            // Call addMultipleMotors to create all the forms (now handles dynamic add/remove)
+            window.addMultipleMotors(`stage${stageUINumber}`);
+
+            // Wait for motor forms to be created
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            // Now populate each motor form with data
+            for (let j = 0; j < stageDataObject.motor.length; j++) {
+              const motorNameKey = stageDataObject.motor[j]; // e.g., "S1_MOTOR1"
+              const motorData = loadedData[motorNameKey];
+              const motorUINumber = j + 1;
+
+              if (!motorData) {
+                console.warn(
+                  `[OpenMission] Data for motor '${motorNameKey}' not found. Skipping.`
+                );
+                continue;
+              }
+
+              console.log(
+                `[OpenMission] Populating motor ${motorUINumber} data for stage ${stageUINumber}`
+              );
+
+              // Populate motor form data
+              populateDynamicMotorForm(motorData, stageUINumber, motorUINumber);
+
+              // Handle nozzle data
+              await handleNozzles(motorData, stageUINumber, motorUINumber);
+
+              completedElements.motors++;
+
+              // Small delay between motor data population
+              await new Promise((resolve) => setTimeout(resolve, 200));
+            }
+
+            console.log(
+              `[OpenMission] Successfully populated ${motorCount} motors for stage ${stageUINumber}`
+            );
+          } catch (error) {
+            console.error(
+              `[OpenMission] Error using new motor system for stage ${stageUINumber}:`,
+              error
+            );
+            console.log(
+              `[OpenMission] Falling back to old motor creation method`
+            );
+
+            // Fall back to old method if new system fails
+            // Make sure motorCounters is initialized for this stage
+            if (!window.motorCounters) window.motorCounters = {};
+            window.motorCounters[`stage${stageUINumber}`] = 0;
+
+            // Process motors sequentially for better reliability
+            for (let j = 0; j < stageDataObject.motor.length; j++) {
+              const motorNameKey = stageDataObject.motor[j]; // e.g., "S1_MOTOR1"
+              const motorData = loadedData[motorNameKey];
+              const motorUINumber = j + 1;
+
+              if (!motorData) {
+                console.warn(
+                  `[OpenMission] Data for motor '${motorNameKey}' not found. Skipping.`
+                );
+                continue;
+              }
+
+              // Process this motor - create form and populate it
+              await processMotor(
+                motorData,
+                motorNameKey,
+                stageUINumber,
+                motorUINumber
+              );
+              completedElements.motors++;
+
+              // Slight delay between motors to prevent UI conflicts
+              await new Promise((resolve) => setTimeout(resolve, 200));
+            }
+          }
+        } else {
+          console.error(
+            `[OpenMission] addMultipleMotors function not available. Using fallback method.`
+          );
+
+          // Fall back to old method
+          // Make sure motorCounters is initialized for this stage
+          if (!window.motorCounters) window.motorCounters = {};
+          window.motorCounters[`stage${stageUINumber}`] = 0;
+
+          // Process motors sequentially for better reliability
+          for (let j = 0; j < stageDataObject.motor.length; j++) {
+            const motorNameKey = stageDataObject.motor[j]; // e.g., "S1_MOTOR1"
+            const motorData = loadedData[motorNameKey];
+            const motorUINumber = j + 1;
+
+            if (!motorData) {
+              console.warn(
+                `[OpenMission] Data for motor '${motorNameKey}' not found. Skipping.`
+              );
+              continue;
+            }
+
+            // Process this motor - create form and populate it
+            await processMotor(
+              motorData,
+              motorNameKey,
+              stageUINumber,
+              motorUINumber
+            );
+            completedElements.motors++;
+
+            // Slight delay between motors to prevent UI conflicts
+            await new Promise((resolve) => setTimeout(resolve, 200));
+          }
         }
       } else {
         console.log(
           `[OpenMission] No motors defined for stage ${stageUINumber}`
         );
+
+        // Clear the motor input field if no motors are defined
+        const numberOfMotorsInput = document.getElementById(
+          `number-of-motors-stage${stageUINumber}`
+        );
+        if (numberOfMotorsInput) {
+          numberOfMotorsInput.value = "";
+        }
       }
     } catch (error) {
       console.error(

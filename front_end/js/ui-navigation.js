@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const missionForm = document.getElementById("mission-form");
   const enviroForm = document.getElementById("enviro-form");
   const vehicleForm = document.getElementById("vehicle-form");
+  const vehicleStageConfigForm = document.getElementById(
+    "vehicle-stage-config-form"
+  );
   const sequenceForm = document.getElementById("sequence-form");
   const steeringForm = document.getElementById("steering-form");
   const stoppingForm = document.getElementById("stopping-form");
@@ -28,9 +31,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const detailsButton = document.getElementById("details-btn");
   const enviroButton = document.getElementById("enviro-btn");
   const vehicleButton = document.getElementById("vehicle-btn");
+  const vehicleStageConfigButton = document.getElementById(
+    "vehicle-stage-config-btn"
+  );
   const sequenceButton = document.getElementById("sequence-btn");
   const steeringButton = document.getElementById("steering-btn");
-  const addStageBtn = document.getElementById("add-stage-btn");
+
   const vehicleStagesList = document.getElementById("vehicle-stages");
   const stoppingButton = document.getElementById("stopping-btn");
 
@@ -153,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   let stageCounter = 1; // Track stage numbers
-  const maxStages = 4; // Maximum allowed stages
+  const maxStages = 10; // Maximum allowed stages
   let deletedStages = []; // Track deleted stage numbers
 
   // Expose reset for stage counter and deleted stages
@@ -171,6 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
       missionForm,
       enviroForm,
       vehicleForm,
+      vehicleStageConfigForm,
       sequenceForm,
       steeringForm,
       stoppingForm,
@@ -239,49 +246,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 100);
   });
 
-  sequenceButton.addEventListener("click", (event) => {
+  vehicleStageConfigButton.addEventListener("click", (event) => {
     event.preventDefault();
-    showForm(sequenceForm);
+    showForm(vehicleStageConfigForm);
   });
 
-  steeringButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    showForm(steeringForm);
-
-    // // First make sure flagRegistry is properly initialized
-    // if (!window.flagRegistry) {
-    //   window.flagRegistry = {
-    //     burnTimeIdentifiers: [],
-    //     separationFlags: [],
-    //     motorIgnitionFlags: [],
-    //     motorBurnoutFlags: [],
-    //     cutOffFlags: [],
-    //     heatShieldFlag: null,
-    //   };
-    // }
-
-    // // Make sure the steering tabs are properly initialized - OBSOLETE with new layout
-    // setTimeout(() => {
-    //   initializeSteeringTabs();
-    // }, 100);
-  });
-
-  // Hide "vehicle-stages" initially
-  vehicleStagesList.style.display = "none";
-
-  // Add stages dynamically when "Add Stage" button is clicked
-  addStageBtn.addEventListener("click", function () {
+  // Function to create a single stage (extracted from addStageBtn logic)
+  function createSingleStage() {
     // Check if we've reached the maximum number of active stages
     const activeStages = document.querySelectorAll(".stage-nav-item").length;
     if (activeStages >= maxStages) {
-      Swal.fire({
-        icon: "error",
-        title: "Maximum Stages Reached",
-        text: "No further stages allowed. Maximum stages creation reached.",
-        toast: false,
-        confirmButtonText: "OK",
-      });
-      return;
+      return { success: false, message: "Maximum stages limit reached" };
     }
 
     // Show the "vehicle-stages" menu if it's the first stage
@@ -328,7 +303,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Add styles for the stage nav item and delete icon
+    // Add styles for the stage nav item and delete icon if not already added
     if (!document.getElementById("stage-delete-icon-styles")) {
       const styleElement = document.createElement("style");
       styleElement.id = "stage-delete-icon-styles";
@@ -380,38 +355,38 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="form-fields">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="structural-mass-${nextStageNumber}" class="label">Structural Mass:</label>
+                        <label for="structural-mass-${nextStageNumber}" class="label">Structural Mass (kg)</label>
                         <input type="number" id="structural-mass-${nextStageNumber}" class="input-field" placeholder="Enter Structural Mass" step="any">
                     </div>
                     
                     <div class="form-group">
-                        <label for="reference-area-${nextStageNumber}" class="label">Reference Area:</label>
+                        <label for="reference-area-${nextStageNumber}" class="label">Reference Area (m²)</label>
                         <input type="number" id="reference-area-${nextStageNumber}" class="input-field" placeholder="Enter Reference Area" step="any">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="burn-time-${nextStageNumber}" class="label">Burn Time:</label>
+                        <label for="burn-time-${nextStageNumber}" class="label">Burn Time (s)</label>
                         <input type="number" id="burn-time-${nextStageNumber}" class="input-field" placeholder="Enter Burn Time" step="any">
                     </div>
                     
                     <div class="form-group">
-                        <label for="burn-time-id-${nextStageNumber}" class="label">Initialization Flag:</label>
+                        <label for="burn-time-id-${nextStageNumber}" class="label">Initialization Flag</label>
                         <input type="text" id="burn-time-id-${nextStageNumber}" class="input-field" value="ST_${nextStageNumber}_INI" readonly>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="separation-flag-${stageId}" class="label">Separation Flag:</label>
+                        <label for="separation-flag-${stageId}" class="label">Separation Flag</label>
                         <input type="text" id="separation-flag-${stageId}" class="input-field" value="ST_${nextStageNumber}_SEP" readonly>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="dciss-toggle-${stageId}" class="label">DCISS:</label>
+                        <label for="dciss-toggle-${stageId}" class="label">DCISS</label>
                         <div class="toggle-container">
                             <input type="checkbox" id="dciss-toggle-${stageId}" class="toggle-input">
                             <label for="dciss-toggle-${stageId}" class="toggle-slider"></label>
@@ -419,7 +394,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     
                     <div class="form-group">
-                        <label for="coasting-toggle-${stageId}" class="label">Coasting:</label>
+                        <label for="coasting-toggle-${stageId}" class="label">Coasting</label>
                         <div class="toggle-container">
                             <input type="checkbox" id="coasting-toggle-${stageId}" class="toggle-input">
                             <label for="coasting-toggle-${stageId}" class="toggle-slider"></label>
@@ -430,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="form-row">
                     <div class="form-group full-width">
                         <div class="upload-data">
-                            <label for="aero-upload-${stageId}" class="upload-label">Aero Data:</label>
+                            <label for="aero-upload-${stageId}" class="upload-label">Aero Data</label>
                             <input type="file" id="aero-upload-${stageId}" accept=".csv" style="display: none" />
                             <button type="button" class="upload" id="aero-upload-btn-${stageId}">
                                 <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -449,14 +424,47 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
 
-            <div style="text-align: center; margin: 30px 0; padding: 20px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                <button type="button" class="add-motor-btn add-stg" data-stage="${stageId}" style="margin: 0 auto; min-width: 200px;">Add Motor</button>
+            <!-- Motor Configuration Section -->
+            <div class="motor-config-section" style="margin: 30px 0; padding: 20px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <h3 class="section-title">Motor Configuration</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="number-of-motors-${stageId}" class="label">Number of Motors</label>
+                        <input
+                            type="number"
+                            id="number-of-motors-${stageId}"
+                            class="input-field"
+                            placeholder="Enter number of motors (1-15)"
+                            min="1"
+                            max="15"
+                            step="1"
+                        />
+                    </div>
+                </div>
+
+                <!-- Info Message -->
+                <div class="motor-config-info-message">
+                    <div class="info-icon">ℹ️</div>
+                    <div class="info-content">
+                        <p><strong>Motor Configuration Guidelines:</strong></p>
+                        <ul>
+                            <li><strong>Motors:</strong> Specify the number of motors for this stage (maximum 15). Each motor can have different propulsion characteristics.</li>
+                            <li>After setting the number of motors, click "Add Motors" to create the motor forms.</li>
+                            <li>Each motor will automatically include a default nozzle configuration.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="button-group" style="margin-top: 15px;">
+                <button type="reset" class="clear-btn">Clear</button>
+                    <button type="button" id="add-motors-btn-${stageId}" class="add-motors-btn next-btn" data-stage="${stageId}">
+                        Save
+                    </button>
+                </div>
             </div>
             
-            <div class="button-group">
-                <button type="reset" class="clear-btn">Clear</button>
-                <button type="submit" class="next-btn">Save</button>
-            </div>
+
         </div>
     `;
 
@@ -541,24 +549,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // Show success message for stage creation
-    const Toast = Swal.mixin({
-      toast: true,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.addEventListener("mouseenter", Swal.stopTimer);
-        toast.addEventListener("mouseleave", Swal.resumeTimer);
-      },
-    });
-
-    Toast.fire({
-      icon: "success",
-      title: `Stage ${nextStageNumber} has been created successfully!`,
-    });
-
     // Add CSS for error field highlighting if it doesn't exist
     if (!document.getElementById("error-field-styles")) {
       const styleElement = document.createElement("style");
@@ -573,15 +563,318 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     stageCounter++; // Increment stage count
+
+    return { success: true, stageNumber: nextStageNumber };
+  }
+
+  // Expose createSingleStage function globally for other modules to use
+  window.uiNav.createSingleStage = createSingleStage;
+
+  // Function to delete a specific stage
+  function deleteSingleStage(stageNumber) {
+    const stageId = `stage${stageNumber}`;
+    const stageNavItem = document
+      .querySelector(`.stage-nav-item`)
+      .closest("li");
+    const stageForm = document.getElementById(`${stageId}-form`);
+
+    // Find the correct stage nav item by checking the stage button text
+    const allStageNavItems = document.querySelectorAll(".stage-nav-item");
+    let targetStageNavItem = null;
+
+    allStageNavItems.forEach((item) => {
+      const stageBtn = item.querySelector(".stage-btn");
+      if (stageBtn && stageBtn.textContent.includes(`Stage ${stageNumber}`)) {
+        targetStageNavItem = item.closest("li");
+      }
+    });
+
+    if (targetStageNavItem) {
+      // Remove from sidebar
+      targetStageNavItem.remove();
+    }
+
+    if (stageForm) {
+      // Remove the form
+      stageForm.remove();
+    }
+
+    // Hide vehicle-stages menu if no stages left
+    const remainingStages = document.querySelectorAll(".stage-nav-item").length;
+    if (remainingStages === 0) {
+      vehicleStagesList.style.display = "none";
+    }
+
+    return { success: true, deletedStage: stageNumber };
+  }
+
+  // Add event listener for Add Stages button
+  const addStagesBtn = document.getElementById("add-stages-btn");
+  if (addStagesBtn) {
+    addStagesBtn.addEventListener("click", function (event) {
+      event.preventDefault();
+
+      // Get the desired total number of stages from the input field
+      const numberOfStagesInput = document.getElementById("number-of-stages");
+      const desiredTotalStages = parseInt(numberOfStagesInput.value);
+
+      // Validation
+      if (!desiredTotalStages || isNaN(desiredTotalStages)) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Input",
+          text: "Please enter a valid number of stages.",
+          toast: false,
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      if (desiredTotalStages < 1 || desiredTotalStages > 10) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Range",
+          text: "Total number of stages must be between 1 and 10.",
+          toast: false,
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      // Get current number of stages
+      const currentActiveStages =
+        document.querySelectorAll(".stage-nav-item").length;
+
+      // Check if we already have the desired number
+      if (currentActiveStages === desiredTotalStages) {
+        Swal.fire({
+          icon: "info",
+          title: "Already at Target",
+          text: `You already have ${desiredTotalStages} stage${
+            desiredTotalStages > 1 ? "s" : ""
+          }.`,
+          toast: false,
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      // Handle case where we need to remove stages
+      if (currentActiveStages > desiredTotalStages) {
+        const stagesToRemove = currentActiveStages - desiredTotalStages;
+
+        Swal.fire({
+          title: "Remove Stages?",
+          text: `You currently have ${currentActiveStages} stages but want ${desiredTotalStages}. This will remove ${stagesToRemove} stage${
+            stagesToRemove > 1 ? "s" : ""
+          } (the highest numbered ones).`,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, remove them!",
+          cancelButtonText: "Cancel",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Get all current stage numbers and sort them in descending order
+            const existingStages = Array.from(
+              document.querySelectorAll(".stage-nav-item")
+            )
+              .map((item) =>
+                parseInt(
+                  item.querySelector(".stage-btn").textContent.match(/\d+/)[0]
+                )
+              )
+              .sort((a, b) => b - a); // Sort descending to remove highest numbers first
+
+            let removedStages = [];
+
+            // Remove the highest numbered stages
+            for (let i = 0; i < stagesToRemove; i++) {
+              if (existingStages[i]) {
+                const result = deleteSingleStage(existingStages[i]);
+                if (result.success) {
+                  removedStages.push(result.deletedStage);
+                }
+              }
+            }
+
+            if (removedStages.length > 0) {
+              Swal.fire({
+                icon: "success",
+                title: "Stages Removed",
+                text: `Successfully removed ${removedStages.length} stage${
+                  removedStages.length > 1 ? "s" : ""
+                } (${removedStages
+                  .sort((a, b) => a - b)
+                  .join(", ")}). You now have ${desiredTotalStages} stage${
+                  desiredTotalStages > 1 ? "s" : ""
+                }.`,
+                toast: false,
+                confirmButtonText: "OK",
+              });
+
+              // Clear the input field after successful operation
+              numberOfStagesInput.value = "";
+            }
+          }
+        });
+        return;
+      }
+
+      // Calculate how many stages we need to create
+      const stagesToCreate = desiredTotalStages - currentActiveStages;
+
+      // Double-check we won't exceed maximum
+      if (desiredTotalStages > maxStages) {
+        Swal.fire({
+          icon: "error",
+          title: "Maximum Stages Exceeded",
+          text: `Cannot create ${desiredTotalStages} stages. Maximum total stages allowed is ${maxStages}.`,
+          toast: false,
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      // Create the needed stages
+      let successCount = 0;
+      let createdStages = [];
+
+      for (let i = 0; i < stagesToCreate; i++) {
+        const result = createSingleStage();
+        if (result.success) {
+          successCount++;
+          createdStages.push(result.stageNumber);
+        } else {
+          break; // Stop if we can't create more stages
+        }
+      }
+
+      // Show appropriate success message
+      if (successCount > 0) {
+        const totalStages = currentActiveStages + successCount;
+        let message;
+
+        if (successCount === 1) {
+          message =
+            currentActiveStages === 0
+              ? `Stage ${
+                  createdStages[0]
+                } has been created successfully! You now have ${totalStages} stage${
+                  totalStages > 1 ? "s" : ""
+                }.`
+              : `Stage ${createdStages[0]} has been added successfully! You now have ${totalStages} stages total.`;
+        } else {
+          message =
+            currentActiveStages === 0
+              ? `${successCount} stages (${createdStages.join(
+                  ", "
+                )}) have been created successfully!`
+              : `${successCount} stages (${createdStages.join(
+                  ", "
+                )}) have been added successfully! You now have ${totalStages} stages total.`;
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Stages Created",
+          text: message,
+          toast: false,
+          confirmButtonText: "OK",
+        });
+
+        // Clear the input field after successful creation
+        numberOfStagesInput.value = "";
+      }
+
+      if (successCount < stagesToCreate) {
+        Swal.fire({
+          icon: "warning",
+          title: "Partial Success",
+          text: `Only ${successCount} out of ${stagesToCreate} needed stages could be created due to system limits.`,
+          toast: false,
+          confirmButtonText: "OK",
+        });
+      }
+    });
+  }
+
+  sequenceButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    showForm(sequenceForm);
   });
 
-  // Event delegation for dynamically added "Add Motor" buttons
+  steeringButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    showForm(steeringForm);
+
+    // // First make sure flagRegistry is properly initialized
+    // if (!window.flagRegistry) {
+    //   window.flagRegistry = {
+    //     burnTimeIdentifiers: [],
+    //     separationFlags: [],
+    //     motorIgnitionFlags: [],
+    //     motorBurnoutFlags: [],
+    //     cutOffFlags: [],
+    //     heatShieldFlag: null,
+    //   };
+    // }
+
+    // // Make sure the steering tabs are properly initialized - OBSOLETE with new layout
+    // setTimeout(() => {
+    //   initializeSteeringTabs();
+    // }, 100);
+  });
+
+  // Hide "vehicle-stages" initially
+  vehicleStagesList.style.display = "none";
+
+  // Event delegation for dynamically added "Add Motors" buttons
   document.addEventListener("click", function (event) {
-    if (event.target.classList.contains("add-motor-btn")) {
+    if (
+      event.target.classList.contains("add-motors-btn") ||
+      event.target.id.includes("add-motors-btn")
+    ) {
       const stageId = event.target.getAttribute("data-stage");
-      addMotorAndNozzle(stageId);
+      addMultipleMotors(stageId);
     }
   });
+
+  // Event listener for motor number input field changes (Enter key or blur)
+  document.addEventListener("keypress", function (event) {
+    if (
+      event.target.id &&
+      event.target.id.startsWith("number-of-motors-stage") &&
+      event.key === "Enter"
+    ) {
+      const stageId = event.target.id.replace("number-of-motors-", "");
+      console.log(
+        `[UI-Navigation] Enter pressed on motor input for ${stageId}`
+      );
+      addMultipleMotors(stageId);
+    }
+  });
+
+  document.addEventListener(
+    "blur",
+    function (event) {
+      if (
+        event.target.id &&
+        event.target.id.startsWith("number-of-motors-stage")
+      ) {
+        const stageId = event.target.id.replace("number-of-motors-", "");
+        const currentValue = event.target.value;
+        if (currentValue && currentValue.trim() !== "") {
+          console.log(
+            `[UI-Navigation] Blur event on motor input for ${stageId} with value: ${currentValue}`
+          );
+          addMultipleMotors(stageId);
+        }
+      }
+    },
+    true
+  );
 
   // Add Motor & Nozzle Function
   function addMotorAndNozzle(stageId) {
@@ -709,13 +1002,13 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="form-fields">
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Structural Mass:</label>
+                    <label class="label">Structural Mass (kg)</label>
                     <input type="number" class="input-field" placeholder="Enter Structural Mass" step="any">
-                    <small class="input-help">Inherited from stage</small>
+                    <!-- Removed the "Inherited from stage" text -->
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Types of Propulsion:</label>
+                    <label class="label">Types of Propulsion</label>
                     <select class="input-field">
                         <option value="" disabled selected>Select Propulsion Type</option>
                         <option value="solid">Solid</option>
@@ -726,52 +1019,54 @@ document.addEventListener("DOMContentLoaded", function () {
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Propulsion Mass:</label>
+                    <label class="label">Propulsion Mass (kg)</label>
                     <input type="number" class="input-field" placeholder="Enter Propulsion Mass" step="any">
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Ignition Flag:</label>
+                    <label class="label">Ignition Flag</label>
                     <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_IGN" readonly>
                 </div>
             </div>
             
             <div class="form-row">
+                <!-- Cut Off Flag field hidden as requested 
                 <div class="form-group">
-                    <label class="label">Cut Off Flag:</label>
+                    <label class="label">Cut Off Flag</label>
                     <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_CUTOFF" readonly>
+                </div>
+                -->
+                
+                <div class="form-group">
+                    <label class="label">Separation Flag</label>
+                    <input type="text" class="input-field" value="ST_${stageNumber}_SEP" readonly>
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Separation Flag:</label>
-                    <input type="text" class="input-field" value="ST_${stageNumber}_SEP" readonly>
+                    <label class="label">Burn Out Flag</label>
+                    <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_Burnout" readonly>
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Burn Out Flag:</label>
-                    <input type="text" class="input-field" value="S${stageNumber}_M${motorCount}_Burnout" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="label">Nozzle Diameter:</label>
+                    <label class="label">Nozzle Diameter (m)</label>
                     <input type="number" class="input-field" placeholder="Enter Nozzle Diameter" step="any">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Burn Time:</label>
-                    <input type="number" class="input-field stage-burn-time" value="${stageBurnTime}" readonly>
-                    <small class="input-help">Inherited from stage</small>
+                    <label class="label">Burn Time (s)</label>
+                    <input type="number" class="input-field stage-burn-time" value="${stageBurnTime}" step="any" placeholder="Enter Burn Time">
+                    <!-- Removed "readonly" attribute and "Inherited from stage" text -->
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group full-width">
                     <div class="upload-data">
-                        <label for="thrust-upload-${stageId}-${motorCount}" class="upload-label">Thrust Time:</label>
+                        <label for="thrust-upload-${stageId}-${motorCount}" class="upload-label">Thrust Data</label>
                         <input type="file" id="thrust-upload-${stageId}-${motorCount}" accept=".csv" style="display: none" />
                         <button type="button" class="upload" id="thrust-upload-btn-${stageId}-${motorCount}">
                             <svg aria-hidden="true" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -798,26 +1093,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelector(".mission-content").appendChild(motorForm);
 
-    // Inherit structural mass from stage form
-    // TODO: Refactor data inheritance? This DOM-based approach is brittle.
-    // Consider managing these relationships in the data model (formHandler.js)
-    // and updating the UI based on data changes.
-    const stageStructuralMassInput = stageForm.querySelector(
-      'input[placeholder="Enter Structural Mass"]'
-    );
-    const motorStructuralMassInput = motorForm.querySelector(
-      'input[placeholder="Enter Structural Mass"]'
-    );
-
-    if (stageStructuralMassInput && motorStructuralMassInput) {
-      motorStructuralMassInput.value = stageStructuralMassInput.value;
-
-      // Add listener to keep motor structural mass in sync with stage
-      stageStructuralMassInput.addEventListener("input", function () {
-        motorStructuralMassInput.value = this.value;
-      });
-    }
-
     // Create Nozzle form
     const nozzleForm = document.createElement("form");
     nozzleForm.id = `${stageId}-motor${motorCount}-nozzle1-form`;
@@ -839,20 +1114,20 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="form-fields">
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Nozzle Diameter:</label>
-                    <input type="number" class="input-field" placeholder="Enter nozzle diameter" step="any" value="${motorNozzleDiameter}">
-                    <small class="input-help">Inherited from motor</small>
+                    <label class="label">Nozzle Diameter (m)</label>
+                    <input type="number" class="input-field" placeholder="Enter nozzle diameter" step="any">
+                    <!-- Removed "Inherited from motor" text and initial value copying -->
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">ETA Thrust:</label>
+                    <label class="label">ETA Thrust </label>
                     <input type="number" class="input-field" placeholder="Enter ETA thrust" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Zeta Thrust:</label>
+                    <label class="label">Zeta Thrust</label>
                     <input type="number" class="input-field" placeholder="Enter Zeta thrust" step="any" value="0">
                 </div>
             </div>
@@ -861,33 +1136,33 @@ document.addEventListener("DOMContentLoaded", function () {
             <h3 class="section-title">Location</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Radial Distance:</label>
+                    <label class="label">Radial Distance (m)</label>
                     <input type="number" class="input-field" placeholder="Enter radial distance" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Phi:</label>
+                    <label class="label">Phi</label>
                     <input type="number" class="input-field" placeholder="Enter Phi value" step="any" value="0">
                 </div>
             </div>
 
-            <!-- Miss Alignment Section -->
-            <h3 class="section-title">Miss Alignment</h3>
+            <!-- Mis Alignment Section -->
+            <h3 class="section-title">Misalignment</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Sigma Thrust:</label>
+                    <label class="label">Sigma Thrust</label>
                     <input type="number" class="input-field" placeholder="Enter sigma thrust" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Thau Thrust:</label>
+                    <label class="label">Thau Thrust</label>
                     <input type="number" class="input-field" placeholder="Enter thau thrust" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Epsilon Thrust:</label>
+                    <label class="label">Epsilon Thrust</label>
                     <input type="number" class="input-field" placeholder="Enter epsilon thrust" step="any" value="0">
                 </div>
             </div>
@@ -896,19 +1171,19 @@ document.addEventListener("DOMContentLoaded", function () {
             <h3 class="section-title">Orientation</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">MU:</label>
+                    <label class="label">MU</label>
                     <input type="number" class="input-field" placeholder="Enter MU value" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">LAMDA:</label>
+                    <label class="label">LAMDA</label>
                     <input type="number" class="input-field" placeholder="Enter LAMDA value" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">KAPPA:</label>
+                    <label class="label">KAPPA</label>
                     <input type="number" class="input-field" placeholder="Enter KAPPA value" step="any" value="0">
                 </div>
             </div>
@@ -917,19 +1192,19 @@ document.addEventListener("DOMContentLoaded", function () {
             <h3 class="section-title">Throat Location</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">X:</label>
+                    <label class="label">X (m)</label>
                     <input type="number" class="input-field" placeholder="Enter X value" step="any" value="0">
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Y:</label>
+                    <label class="label">Y (m)</label>
                     <input type="number" class="input-field" placeholder="Enter Y value" step="any" value="0">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="label">Z:</label>
+                    <label class="label">Z (m)</label>
                     <input type="number" class="input-field" placeholder="Enter Z value" step="any" value="0">
                 </div>
             </div>
@@ -1114,7 +1389,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Add event listener to sync nozzle diameter when motor form changes
+    // Removed event listener that synced nozzle diameter with motor's value
+    /*
     if (motorNozzleDiameterInput) {
       motorNozzleDiameterInput.addEventListener("input", function () {
         const nozzleDiameterInput = nozzleForm.querySelector(
@@ -1125,6 +1401,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     }
+    */
 
     return {
       motorCount: motorCount,
@@ -1135,6 +1412,209 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Expose addMotorAndNozzle globally for use in openMissionHandler.js
   window.addMotorAndNozzle = addMotorAndNozzle;
+
+  // Add Multiple Motors Function - Updated implementation for dynamic motor management
+  function addMultipleMotors(stageId) {
+    const stageNumber = stageId.replace("stage", "");
+    const numberOfMotorsInput = document.getElementById(
+      `number-of-motors-${stageId}`
+    );
+
+    if (!numberOfMotorsInput) {
+      console.error(
+        `[UI-Navigation] Number of motors input not found for stage ${stageId}`
+      );
+      return;
+    }
+
+    const requestedMotorCount = parseInt(numberOfMotorsInput.value);
+
+    // Validation
+    if (
+      !requestedMotorCount ||
+      requestedMotorCount < 1 ||
+      requestedMotorCount > 15
+    ) {
+      // Show error toast message
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+
+      Toast.fire({
+        icon: "error",
+        title: "Please enter a valid number of motors (1-15)",
+        toast: false,
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
+    // Get current motor count
+    const stageMotorsList = document.getElementById(`${stageId}-motors`);
+    const currentMotorCount = stageMotorsList.childElementCount;
+
+    console.log(
+      `[UI-Navigation] Stage ${stageNumber}: Current motors: ${currentMotorCount}, Requested: ${requestedMotorCount}`
+    );
+
+    if (requestedMotorCount === currentMotorCount) {
+      // No change needed
+      console.log(
+        `[UI-Navigation] Motor count unchanged for stage ${stageNumber}`
+      );
+      return;
+    }
+
+    let successMessage = "";
+
+    if (requestedMotorCount > currentMotorCount) {
+      // Add new motors
+      const motorsToAdd = requestedMotorCount - currentMotorCount;
+      console.log(
+        `[UI-Navigation] Adding ${motorsToAdd} motors to stage ${stageNumber}`
+      );
+
+      let addedCount = 0;
+      for (let i = 0; i < motorsToAdd; i++) {
+        try {
+          const result = addMotorAndNozzle(stageId);
+          if (result !== false) {
+            // addMotorAndNozzle returns early if it fails
+            addedCount++;
+          }
+        } catch (error) {
+          console.error(
+            `[UI-Navigation] Error adding motor to stage ${stageNumber}:`,
+            error
+          );
+          break;
+        }
+      }
+
+      if (addedCount > 0) {
+        successMessage = `Added ${addedCount} motor(s) to Stage ${stageNumber}`;
+      }
+    } else {
+      // Remove excess motors (from highest number to lowest to preserve data)
+      const motorsToRemove = currentMotorCount - requestedMotorCount;
+      console.log(
+        `[UI-Navigation] Removing ${motorsToRemove} motors from stage ${stageNumber}`
+      );
+
+      let removedCount = 0;
+      for (
+        let motorNum = currentMotorCount;
+        motorNum > requestedMotorCount;
+        motorNum--
+      ) {
+        try {
+          // Remove motor from sidebar
+          const motorElement = stageMotorsList.querySelector(
+            `li:nth-child(${motorNum})`
+          );
+          if (motorElement) {
+            motorElement.remove();
+            removedCount++;
+          }
+
+          // Remove motor form
+          const motorForm = document.getElementById(
+            `${stageId}-motor${motorNum}-form`
+          );
+          if (motorForm) {
+            motorForm.remove();
+          }
+
+          // Remove nozzle form
+          const nozzleForm = document.getElementById(
+            `${stageId}-motor${motorNum}-nozzle1-form`
+          );
+          if (nozzleForm) {
+            nozzleForm.remove();
+          }
+
+          // Remove motor data from savedStages
+          const stageIndex = savedStages.findIndex(
+            (s) => s.stage_number === parseInt(stageNumber)
+          );
+          if (stageIndex !== -1 && savedStages[stageIndex].motors) {
+            // Remove motor data (set to null to maintain array structure)
+            if (savedStages[stageIndex].motors[motorNum - 1]) {
+              savedStages[stageIndex].motors[motorNum - 1] = null;
+            }
+          }
+
+          console.log(
+            `[UI-Navigation] Removed motor ${motorNum} from stage ${stageNumber}`
+          );
+        } catch (error) {
+          console.error(
+            `[UI-Navigation] Error removing motor ${motorNum} from stage ${stageNumber}:`,
+            error
+          );
+        }
+      }
+
+      // Clean up the motors array in savedStages (remove trailing nulls)
+      const stageIndex = savedStages.findIndex(
+        (s) => s.stage_number === parseInt(stageNumber)
+      );
+      if (stageIndex !== -1 && savedStages[stageIndex].motors) {
+        // Trim trailing nulls
+        while (
+          savedStages[stageIndex].motors.length > 0 &&
+          savedStages[stageIndex].motors[
+            savedStages[stageIndex].motors.length - 1
+          ] === null
+        ) {
+          savedStages[stageIndex].motors.pop();
+        }
+      }
+
+      if (removedCount > 0) {
+        successMessage = `Removed ${removedCount} motor(s) from Stage ${stageNumber}`;
+      }
+    }
+
+    // Show success message if any operations were performed
+    if (successMessage) {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+
+      Toast.fire({
+        icon: "success",
+        title: successMessage,
+      });
+    }
+
+    // Log final state
+    const finalMotorCount = document.getElementById(
+      `${stageId}-motors`
+    ).childElementCount;
+    console.log(
+      `[UI-Navigation] Stage ${stageNumber} now has ${finalMotorCount} motors`
+    );
+  }
+
+  // Expose addMultipleMotors globally for potential external use
+  window.addMultipleMotors = addMultipleMotors;
 
   // Function to initialize steering tabs
   function initializeSteeringTabs() {
@@ -1945,6 +2425,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Function to update motor burn times - no longer used as motors now have independent burn time
+  /*
   function updateMotorBurnTimes(stageId, newBurnTime) {
     const stageNumber = stageId.replace("stage", "");
     const stageMotorsList = document.getElementById(`${stageId}-motors`);
@@ -1973,8 +2455,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   }
+  */
 
-  // Add event listener for stage burn time changes
+  // Removed event listener for stage burn time changes that previously updated motors
+  /*
   document.addEventListener("input", function (event) {
     if (event.target.matches('input[placeholder="Enter Burn Time"]')) {
       const stageForm = event.target.closest("form");
@@ -1985,8 +2469,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
+  */
 
-  // Add event listener for stage structural mass changes
+  // Removed event listener for stage structural mass changes that previously updated motors
+  /* 
   document.addEventListener("input", function (event) {
     if (event.target.matches('input[placeholder="Enter Structural Mass"]')) {
       const stageForm = event.target.closest("form");
@@ -1997,8 +2483,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
+  */
 
-  // Function to update structural mass in all motors of a stage
+  // Function to update structural mass in all motors of a stage - no longer used as motors now have independent structural mass
+  /*
   function updateMotorStructuralMass(stageId, newStructuralMass) {
     const motorForms = document.querySelectorAll(
       `form[id^="${stageId}-motor"]`
@@ -2025,6 +2513,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   }
+  */
 });
 
 // Vehicle Dynamic Field Display

@@ -19,6 +19,9 @@
 
     <!-- Add after existing stylesheet links -->
     <link rel="stylesheet" href="js/leaflet/leaflet.css" />
+
+    <!-- Luna AI Chatbot Styles -->
+    <link rel="stylesheet" href="css/luna-theme.css" />
   </head>
 
   <body>
@@ -78,30 +81,20 @@
           </li>
           <li>
             <a href="#" id="vehicle-btn"
+              ><span class="nav-status-dot" id="vehicle-status">●</span>Mission
+              Specification</a
+            >
+            <!-- <ul id="vehicle-stages" class="submenu"></ul> -->
+          </li>
+          <li>
+            <a href="#" id="vehicle-stage-config-btn"
               ><span class="nav-status-dot" id="vehicle-status">●</span>Vehicle
               Configuration</a
             >
+
             <ul id="vehicle-stages" class="submenu"></ul>
           </li>
-          <li>
-            <a href="#" id="add-stage-btn" class="nav-add-stage">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Add Stage
-            </a>
-          </li>
+
           <li>
             <a href="#" id="sequence-btn"
               ><span class="nav-status-dot" id="sequence-status">●</span
@@ -395,11 +388,12 @@
 
             <div class="form-row">
               <div class="form-group" style="width: 100%; margin-bottom: 10px">
-                <label class="label">Gravity Model (Order/Degree)</label>
+                <label class="label">Gravity Model</label>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
+                <label class="label">Order</label>
                 <input
                   type="number"
                   id="order"
@@ -408,6 +402,7 @@
                 />
               </div>
               <div class="form-group">
+                <label class="label">Degree</label>
                 <input
                   type="number"
                   id="degree"
@@ -418,7 +413,7 @@
             </div>
 
             <div class="form-group">
-              <label for="core" class="label">COE Info</label>
+              <label for="core" class="label">Orbital Elements Info</label>
               <select id="core" class="input-field">
                 <option value="choose_core">Please select a model</option>
                 <option value="PERIGEE_GC_LATITUDE">Perigee GC Latitude</option>
@@ -439,7 +434,7 @@
           <div class="form-container">
             <div class="form-row">
               <div class="form-group">
-                <label for="vehicle-name" class="label">Vehicle Name:</label>
+                <label for="vehicle-name" class="label">Vehicle Name</label>
                 <input
                   type="text"
                   id="vehicle-name"
@@ -449,7 +444,7 @@
               </div>
 
               <div class="form-group">
-                <label for="vehicle-type" class="label">Vehicle Type:</label>
+                <label for="vehicle-type" class="label">Vehicle Type</label>
                 <select id="vehicle-type" class="input-field">
                   <option value="">Please select a Vehicle Type</option>
                   <option value="ascend">Ascend</option>
@@ -463,7 +458,7 @@
             <div id="data-options" class="hidden">
               <div class="form-row">
                 <div class="form-group">
-                  <label class="label">Choose Data Input Method:</label>
+                  <label class="label">Initial State</label>
                   <div class="radio-group">
                     <input
                       type="radio"
@@ -471,14 +466,14 @@
                       name="data-method"
                       value="states"
                     />
-                    <label for="state-data">States</label>
+                    <label for="state-data">Cartesian</label>
                     <input
                       type="radio"
                       id="launch-point"
                       name="data-method"
                       value="launch"
                     />
-                    <label for="launch-point">Launch Point Data</label>
+                    <label for="launch-point">Geodetic</label>
                   </div>
                 </div>
               </div>
@@ -487,86 +482,118 @@
               <div id="state-fields" class="hidden">
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label class="label">State Data:</label>
+                    <label class="label">Cartesian</label>
                     <div class="grid-container">
-                      <input
-                        type="number"
-                        step="any"
-                        id="X"
-                        class="input-field"
-                        placeholder="X"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="Y"
-                        class="input-field"
-                        placeholder="Y"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="Z"
-                        class="input-field"
-                        placeholder="Z"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="U"
-                        class="input-field"
-                        placeholder="U"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="V"
-                        class="input-field"
-                        placeholder="V"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="W"
-                        class="input-field"
-                        placeholder="W"
-                      />
+                      <div class="input-label-group">
+                        <label for="X" class="input-label">X(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="X"
+                          class="input-field"
+                          placeholder="X"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="Y" class="input-label">Y(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="Y"
+                          class="input-field"
+                          placeholder="Y"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="Z" class="input-label">Z(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="Z"
+                          class="input-field"
+                          placeholder="Z"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="U" class="input-label">U(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="U"
+                          class="input-field"
+                          placeholder="U"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="V" class="input-label">V(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="V"
+                          class="input-field"
+                          placeholder="V"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="W" class="input-label">W(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="W"
+                          class="input-field"
+                          placeholder="W"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                    <!-- <label class="label"
+                      >Quaternion (q0 (Scalar), q1, q2, q3)</label
+                    > -->
                     <div class="grid-container">
-                      <input
-                        type="number"
-                        step="any"
-                        id="q0"
-                        class="input-field"
-                        placeholder="q0"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="q1"
-                        class="input-field"
-                        placeholder="q1"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="q2"
-                        class="input-field"
-                        placeholder="q2"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="q3"
-                        class="input-field"
-                        placeholder="q3"
-                      />
+                      <div class="input-label-group">
+                        <label for="q0" class="input-label">q0(Scalar)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="q0"
+                          class="input-field"
+                          placeholder="q0"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="q1" class="input-label">q1</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="q1"
+                          class="input-field"
+                          placeholder="q1"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="q2" class="input-label">q2</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="q2"
+                          class="input-field"
+                          placeholder="q2"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="q3" class="input-label">q3</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="q3"
+                          class="input-field"
+                          placeholder="q3"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -576,71 +603,114 @@
               <div id="launch-fields-ascend" class="hidden">
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label class="label">Launch Point Data:</label>
+                    <label class="label">Geodetic</label>
                     <div class="grid-container">
-                      <input
-                        type="number"
-                        step="any"
-                        id="lat"
-                        class="input-field"
-                        placeholder="Latitude"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="long"
-                        class="input-field"
-                        placeholder="Longitude"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="azimuth"
-                        class="input-field"
-                        placeholder="Azimuth"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="msl"
-                        class="input-field"
-                        placeholder="MSL"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="lp-height"
-                        class="input-field"
-                        placeholder="LP Height"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="launch-angle"
-                        class="input-field"
-                        placeholder="Launch Set Angle"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="roll"
-                        class="input-field"
-                        placeholder="Initial Roll"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="pitch"
-                        class="input-field"
-                        placeholder="Initial Pitch"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="yaw"
-                        class="input-field"
-                        placeholder="Initial Yaw"
-                      />
+                      <div class="input-label-group">
+                        <label for="lat" class="input-label"
+                          >Latitude (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="lat"
+                          class="input-field"
+                          placeholder="Latitude"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="long" class="input-label"
+                          >Longitude (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="long"
+                          class="input-field"
+                          placeholder="Longitude"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="azimuth" class="input-label"
+                          >Azimuth (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="azimuth"
+                          class="input-field"
+                          placeholder="Azimuth"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="msl" class="input-label">MSL (m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="msl"
+                          class="input-field"
+                          placeholder="MSL"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="lp-height" class="input-label"
+                          >Initial Altitude(m)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="lp-height"
+                          class="input-field"
+                          placeholder="Initial Altitude"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="launch-angle" class="input-label"
+                          >Launch Set Angle (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="launch-angle"
+                          class="input-field"
+                          placeholder="Launch Set Angle"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="roll" class="input-label"
+                          >Initial Roll (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="roll"
+                          class="input-field"
+                          placeholder="Initial Roll"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="pitch" class="input-label"
+                          >Initial Pitch (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="pitch"
+                          class="input-field"
+                          placeholder="Initial Pitch"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="yaw" class="input-label"
+                          >Initial Yaw (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="yaw"
+                          class="input-field"
+                          placeholder="Initial Yaw"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -649,57 +719,92 @@
               <div id="launch-fields-projectile" class="hidden">
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label class="label">Launch Point Data (PROJECTILE):</label>
+                    <label class="label">Geodetic</label>
                     <div class="grid-container">
-                      <input
-                        type="number"
-                        step="any"
-                        id="lat-proj"
-                        class="input-field"
-                        placeholder="Latitude"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="long-proj"
-                        class="input-field"
-                        placeholder="Longitude"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="msl-proj"
-                        class="input-field"
-                        placeholder="MSL"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="azimuth-proj"
-                        class="input-field"
-                        placeholder="Azimuth"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="elevation"
-                        class="input-field"
-                        placeholder="Elevation"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="launch-angle-proj"
-                        class="input-field"
-                        placeholder="Launch Set Angle"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="initial-velocity"
-                        class="input-field"
-                        placeholder="Initial Velocity"
-                      />
+                      <div class="input-label-group">
+                        <label for="lat-proj" class="input-label"
+                          >Latitude (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="lat-proj"
+                          class="input-field"
+                          placeholder="Latitude"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="long-proj" class="input-label"
+                          >Longitude (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="long-proj"
+                          class="input-field"
+                          placeholder="Longitude"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="msl-proj" class="input-label"
+                          >MSL (m)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="msl-proj"
+                          class="input-field"
+                          placeholder="MSL"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="azimuth-proj" class="input-label"
+                          >Azimuth (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="azimuth-proj"
+                          class="input-field"
+                          placeholder="Azimuth"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="elevation" class="input-label"
+                          >Elevation (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="elevation"
+                          class="input-field"
+                          placeholder="Elevation"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="launch-angle-proj" class="input-label"
+                          >Launch Set Angle (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="launch-angle-proj"
+                          class="input-field"
+                          placeholder="Launch Set Angle"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="initial-velocity" class="input-label"
+                          >Initial Velocity (m/s)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="initial-velocity"
+                          class="input-field"
+                          placeholder="Initial Velocity"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -718,14 +823,14 @@
                       name="orbital-method"
                       value="state"
                     />
-                    <label for="state-orbital">State</label>
+                    <label for="state-orbital">Cartesian</label>
                     <input
                       type="radio"
                       id="tle-orbital"
                       name="orbital-method"
                       value="tle"
                     />
-                    <label for="tle-orbital">TLE</label>
+                    <label for="tle-orbital">Two Line Elements</label>
                     <input
                       type="radio"
                       id="elements-orbital"
@@ -741,86 +846,118 @@
               <div id="state-fields-orbital" class="hidden">
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label class="label">State Data:</label>
+                    <label class="label">Cartesian</label>
                     <div class="grid-container">
-                      <input
-                        type="number"
-                        step="any"
-                        id="X-orbital"
-                        class="input-field"
-                        placeholder="X"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="Y-orbital"
-                        class="input-field"
-                        placeholder="Y"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="Z-orbital"
-                        class="input-field"
-                        placeholder="Z"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="U-orbital"
-                        class="input-field"
-                        placeholder="U"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="V-orbital"
-                        class="input-field"
-                        placeholder="V"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="W-orbital"
-                        class="input-field"
-                        placeholder="W"
-                      />
+                      <div class="input-label-group">
+                        <label for="X-orbital" class="input-label">X(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="X-orbital"
+                          class="input-field"
+                          placeholder="X"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="Y-orbital" class="input-label">Y(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="Y-orbital"
+                          class="input-field"
+                          placeholder="Y"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="Z-orbital" class="input-label">Z(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="Z-orbital"
+                          class="input-field"
+                          placeholder="Z"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="U-orbital" class="input-label">U(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="U-orbital"
+                          class="input-field"
+                          placeholder="U"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="V-orbital" class="input-label">V(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="V-orbital"
+                          class="input-field"
+                          placeholder="V"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="W-orbital" class="input-label">W(m)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="W-orbital"
+                          class="input-field"
+                          placeholder="W"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label class="label">Quaternion (q0, q1, q2, q3):</label>
+                    <label class="label">Quaternion (q0, q1, q2, q3)</label>
                     <div class="grid-container">
-                      <input
-                        type="number"
-                        step="any"
-                        id="q0-orbital"
-                        class="input-field"
-                        placeholder="q0"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="q1-orbital"
-                        class="input-field"
-                        placeholder="q1"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="q2-orbital"
-                        class="input-field"
-                        placeholder="q2"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="q3-orbital"
-                        class="input-field"
-                        placeholder="q3"
-                      />
+                      <div class="input-label-group">
+                        <label for="q0-orbital" class="input-label"
+                          >q0(Scalar)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="q0-orbital"
+                          class="input-field"
+                          placeholder="q0"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="q1-orbital" class="input-label">q1</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="q1-orbital"
+                          class="input-field"
+                          placeholder="q1"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="q2-orbital" class="input-label">q2</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="q2-orbital"
+                          class="input-field"
+                          placeholder="q2"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="q3-orbital" class="input-label">q3</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="q3-orbital"
+                          class="input-field"
+                          placeholder="q3"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -830,42 +967,86 @@
               <div id="tle-fields" class="hidden">
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label class="label">TLE Data:</label>
-                    <div class="grid-container">
-                      <input
-                        type="text"
-                        id="line1"
-                        class="input-field"
-                        placeholder="Line 1"
-                      />
-                      <input
-                        type="text"
-                        id="line2"
-                        class="input-field"
-                        placeholder="Line 2"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="start-time"
-                        class="input-field"
-                        placeholder="Start Time"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="stop-time"
-                        class="input-field"
-                        placeholder="Stop Time"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="step-time"
-                        class="input-field"
-                        placeholder="Step Time"
-                      />
-                    </div>
+                    <label class="label">Two Line Elements</label>
+                    <table
+                      class="tle-table"
+                      style="width: 100%; margin-top: 8px"
+                    >
+                      <tr>
+                        <td>
+                          <label for="line1" class="input-label">Line 1</label>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            id="line1"
+                            class="input-field"
+                            placeholder="Line 1"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label for="line2" class="input-label">Line 2</label>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            id="line2"
+                            class="input-field"
+                            placeholder="Line 2"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label for="start-time" class="input-label"
+                            >Start Time(s)</label
+                          >
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            step="any"
+                            id="start-time"
+                            class="input-field"
+                            placeholder="Start Time"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label for="stop-time" class="input-label"
+                            >Stop Time(s)</label
+                          >
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            step="any"
+                            id="stop-time"
+                            class="input-field"
+                            placeholder="Stop Time"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label for="step-time" class="input-label"
+                            >Step Time(s)</label
+                          >
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            step="any"
+                            id="step-time"
+                            class="input-field"
+                            placeholder="Step Time"
+                          />
+                        </td>
+                      </tr>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -876,48 +1057,76 @@
                   <div class="form-group full-width">
                     <label class="label">Orbital Elements:</label>
                     <div class="grid-container">
-                      <input
-                        type="number"
-                        step="any"
-                        id="semi-major-axis"
-                        class="input-field"
-                        placeholder="Semi Major Axis"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="eccentricity"
-                        class="input-field"
-                        placeholder="Eccentricity"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="inclination"
-                        class="input-field"
-                        placeholder="Inclination"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="argument-perigee"
-                        class="input-field"
-                        placeholder="Argument of Perigee"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="raan"
-                        class="input-field"
-                        placeholder="RAAN"
-                      />
-                      <input
-                        type="number"
-                        step="any"
-                        id="true-anomaly"
-                        class="input-field"
-                        placeholder="True Anomaly"
-                      />
+                      <div class="input-label-group">
+                        <label for="semi-major-axis" class="input-label"
+                          >Semi Major Axis (m)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="semi-major-axis"
+                          class="input-field"
+                          placeholder="Semi Major Axis"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="eccentricity" class="input-label"
+                          >Eccentricity</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="eccentricity"
+                          class="input-field"
+                          placeholder="Eccentricity"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="inclination" class="input-label"
+                          >Inclination (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="inclination"
+                          class="input-field"
+                          placeholder="Inclination"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="argument-perigee" class="input-label"
+                          >Argument of Perigee (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="argument-perigee"
+                          class="input-field"
+                          placeholder="Argument of Perigee"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="raan" class="input-label">RAAN (deg)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          id="raan"
+                          class="input-field"
+                          placeholder="RAAN"
+                        />
+                      </div>
+                      <div class="input-label-group">
+                        <label for="true-anomaly" class="input-label"
+                          >True Anomaly (deg)</label
+                        >
+                        <input
+                          type="number"
+                          step="any"
+                          id="true-anomaly"
+                          class="input-field"
+                          placeholder="True Anomaly"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -930,7 +1139,7 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="payload-name" class="label">Payload Name:</label>
+                  <label for="payload-name" class="label">Payload Name</label>
                   <input
                     type="text"
                     id="payload-name"
@@ -941,7 +1150,7 @@
 
                 <div class="form-group">
                   <label for="payload-mass" class="label"
-                    >Payload Mass (kg):</label
+                    >Payload Mass (kg)</label
                   >
                   <input
                     type="number"
@@ -953,9 +1162,14 @@
                 </div>
               </div>
 
+              <div id="payload-fairing-section">
+                <h3 class="section-title">Payload Fairing Details</h3>
+              </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label for="plf-name" class="label">PLF Name:</label>
+                  <label for="plf-name" class="label"
+                    >Payload Fairing Name</label
+                  >
                   <input
                     type="text"
                     id="plf-name"
@@ -966,7 +1180,9 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="plf-mass" class="label">PLF Mass (kg):</label>
+                  <label for="plf-mass" class="label"
+                    >Payload Fairing Mass (kg)</label
+                  >
                   <input
                     type="number"
                     step="any"
@@ -979,7 +1195,7 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="hss-flag" class="label">Separation Flag:</label>
+                  <label for="hss-flag" class="label">Separation Flag</label>
                   <input
                     type="text"
                     id="hss-flag"
@@ -988,56 +1204,82 @@
                     readonly
                   />
                 </div>
+                <div class="form-group">
+                  <label for="vehicle-dciss" class="label"
+                    >Drag Corrected Impact Spend Stage</label
+                  >
+                  <div class="toggle-container">
+                    <input
+                      type="checkbox"
+                      id="vehicle-dciss"
+                      class="toggle-input"
+                    />
+                    <label for="vehicle-dciss" class="toggle-slider"></label>
+                  </div>
+                </div>
+                <div class="form-group" style="visibility: hidden"></div>
               </div>
             </div>
 
+            <div id="propagation-section">
+              <h3 class="section-title">Propagation Details</h3>
+            </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="integration-method" class="label"
-                  >Integration Method:</label
+                  >Integration Method</label
                 >
                 <select id="integration-method" class="input-field">
                   <option value="">Please select an Integration Method</option>
-                  <option value="EULER">EULER</option>
-                  <option value="RK4">RK4</option>
-                  <option value="RKDP">RKDP</option>
-                  <option value="SGP4">SGP4</option>
-                  <option value="RK-GILL">rkGill</option>
-                  <option value="RK-F78">rkf78</option>
+                  <option value="EULER">First-Order (Euler's)</option>
+                  <option value="RK4">Fourth-order Runge-Kutta</option>
+                  <option value="RKDP">Runge-Kutta-Dormand-Prince</option>
+                  <option value="SGP4">
+                    Simplified General Perturbations 4
+                  </option>
+                  <option value="RK-GILL">
+                    Gill's (fourth-order) variant of the Runge-Kutta
+                  </option>
+                  <option value="RK-F78">Runge-Kutta-Fehlberg</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label for="time-step" class="label">Time Step:</label>
+                <label for="time-step" class="label">Step Size</label>
                 <input
                   type="number"
                   step="any"
                   id="time-step"
                   class="input-field"
-                  placeholder="Enter Time Step in Seconds"
+                  placeholder="Enter Step size in Seconds"
                 />
               </div>
             </div>
 
+            <div id="propagation-section">
+              <h3 class="section-title"></h3>
+            </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="effective-alt" class="label"
-                  >Effective Altitude:</label
+                  >Maximum Atmospheric Altitude</label
                 >
                 <input
                   type="number"
                   step="any"
                   id="effective-alt"
                   class="input-field"
-                  placeholder="Enter Effective Altitude"
+                  placeholder="Enter Maximum Atmospheric Altitude"
                 />
               </div>
             </div>
 
             <!-- Added DCISS Toggle Button -->
-            <div class="form-row">
+            <!-- <div class="form-row">
               <div class="form-group">
-                <label for="vehicle-dciss" class="label">DCISS:</label>
+                <label for="vehicle-dciss" class="label"
+                  >Drag Corrected Impact Spend Stage</label
+                >
                 <div class="toggle-container">
                   <input
                     type="checkbox"
@@ -1048,14 +1290,67 @@
                 </div>
               </div>
               <div class="form-group" style="visibility: hidden">
-                <!-- Placeholder for alignment -->
+                
               </div>
-            </div>
+            </div> -->
             <!-- End DCISS Toggle Button -->
 
             <div class="button-group">
               <button type="reset" class="clear-btn">Clear</button>
               <button type="submit" class="next-btn">Save</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Vehicle Configuration Form -->
+        <form id="vehicle-stage-config-form" class="hidden-form">
+          <div class="form-container">
+            <h2 class="section-title">Vehicle Configuration</h2>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="number-of-stages" class="label"
+                  >Number of Stages</label
+                >
+                <input
+                  type="number"
+                  id="number-of-stages"
+                  class="input-field"
+                  placeholder="Enter number of stages (1-10)"
+                  min="1"
+                  max="10"
+                  step="1"
+                />
+              </div>
+            </div>
+
+            <!-- Info Message -->
+            <div class="config-info-message">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <p><strong>Configuration Guidelines:</strong></p>
+                <ul>
+                  <li>
+                    <strong>Stages:</strong> Specify the total number of rocket
+                    stages (maximum 10). Each stage represents a separate
+                    propulsion unit that can be jettisoned during flight.
+                  </li>
+                  <li>
+                    After setting the number of stages, click "Add Stages" to
+                    proceed with stage configuration.
+                  </li>
+                  <li>
+                    Motors will be configured individually for each stage in the
+                    subsequent forms.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="button" id="add-stages-btn" class="next-btn">
+                Add Stages
+              </button>
             </div>
           </div>
         </form>
@@ -1189,7 +1484,7 @@
                     <div
                       class="sequence-help-icon"
                       style="margin-left: 8px"
-                      title="Events are executed in chronological order. Click and drag events to reorder them. Use the edit (✏️) button to modify event details or delete (🗑️) button to remove events."
+                      title="Events are executed in chronological order. Click and drag events to reorder them. Use the edit button to modify event details or delete button to remove events."
                     >
                       ?
                     </div>
@@ -3497,5 +3792,103 @@
     <!-- TEMP: Plot Viewer Script - TODO: Remove this temporary feature -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="js/plot-viewer.js"></script>
+
+    <!-- Luna AI Chatbot Scripts -->
+    <script src="js/luna-context-manager.js"></script>
+    <script src="js/luna-knowledge-base.js"></script>
+    <script src="js/luna-ai-service.js"></script>
+    <script src="js/luna-chatbot.js"></script>
+
+    <!-- Luna AI Initialization -->
+    <script>
+      // Luna configuration - easily modifiable for enable/disable
+      const LUNA_CONFIG = {
+        enabled: true, // Set to false to completely disable Luna
+        debug: false, // Set to true for debug mode
+        position: "bottom-right",
+        autoShow: false,
+        proactiveHelp: true,
+        maxContextLength: 10,
+      };
+
+      // Initialize Luna when DOM is ready and other scripts have loaded
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(() => {
+          if (LUNA_CONFIG.enabled && typeof LunaChatbot !== "undefined") {
+            try {
+              window.lunaBot = new LunaChatbot(LUNA_CONFIG);
+              console.log("Luna AI Assistant initialized successfully");
+
+              // Optional: Configure AI service if you have API keys
+              // Uncomment and configure one of these:
+
+              // For OpenAI:
+              // window.lunaBot.aiService.configure('your-openai-api-key', 'gpt-4');
+
+              // For Azure OpenAI:
+              // window.lunaBot.aiService.configureForAzure('your-key', 'deployment-name', 'resource-name');
+
+              // For local Ollama:
+              // window.lunaBot.aiService.configureForOllama('llama2');
+            } catch (error) {
+              console.error("Failed to initialize Luna AI Assistant:", error);
+            }
+          } else if (!LUNA_CONFIG.enabled) {
+            console.log("Luna AI Assistant is disabled");
+          }
+        }, 1000); // Delay to ensure all dependencies are loaded
+      });
+
+      // Modular control functions for easy enable/disable
+      window.LunaControls = {
+        enable: function () {
+          if (window.lunaBot) {
+            window.lunaBot.enable();
+            LUNA_CONFIG.enabled = true;
+          } else if (typeof LunaChatbot !== "undefined") {
+            window.lunaBot = new LunaChatbot(LUNA_CONFIG);
+          }
+        },
+
+        disable: function () {
+          if (window.lunaBot) {
+            window.lunaBot.disable();
+            LUNA_CONFIG.enabled = false;
+          }
+        },
+
+        destroy: function () {
+          if (window.lunaBot) {
+            window.lunaBot.destroy();
+            window.lunaBot = null;
+            LUNA_CONFIG.enabled = false;
+          }
+        },
+
+        toggle: function () {
+          if (LUNA_CONFIG.enabled) {
+            this.disable();
+          } else {
+            this.enable();
+          }
+        },
+
+        configure: function (config) {
+          Object.assign(LUNA_CONFIG, config);
+          if (window.lunaBot) {
+            window.lunaBot.destroy();
+            window.lunaBot = new LunaChatbot(LUNA_CONFIG);
+          }
+        },
+      };
+
+      // Console helper for developers
+      console.log("Luna AI Controls available:");
+      console.log("- LunaControls.enable() - Enable Luna");
+      console.log("- LunaControls.disable() - Disable Luna");
+      console.log("- LunaControls.destroy() - Completely remove Luna");
+      console.log("- LunaControls.toggle() - Toggle Luna on/off");
+      console.log("- LunaControls.configure(config) - Update configuration");
+    </script>
   </body>
 </html>

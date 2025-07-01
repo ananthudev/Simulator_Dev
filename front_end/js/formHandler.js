@@ -1760,285 +1760,243 @@ function registerMotorFlags(
   cutOffFlag,
   separationFlag
 ) {
-  // Find if this motor's flags already exist
-  const motorIndex = flagRegistry.motors.findIndex(
-    (motor) =>
-      motor.stageNumber === parseInt(stageNumber) &&
-      motor.motorNumber === parseInt(motorNumber)
-  );
-
-  const motorFlags = {
-    stageNumber: parseInt(stageNumber),
-    motorNumber: parseInt(motorNumber),
-    flags: {
-      ignition: ignitionFlag,
-      burnout: burnoutFlag,
-      cutOff: cutOffFlag,
-      separation: separationFlag,
-    },
-  };
-
-  // Update or add motor flags
-  if (motorIndex >= 0) {
-    flagRegistry.motors[motorIndex] = motorFlags;
-  } else {
-    flagRegistry.motors.push(motorFlags);
+  // Check if flagRegistry exists
+  if (!window.flagRegistry) {
+    window.flagRegistry = {
+      burnTimeIdentifiers: [],
+      separationFlags: [],
+      motorIgnitionFlags: [],
+      motorBurnoutFlags: [],
+      cutOffFlags: [], // Keep this to avoid breaking existing code
+    };
   }
 
-  // Sort motors by stage number and then motor number
-  flagRegistry.motors.sort((a, b) => {
-    if (a.stageNumber === b.stageNumber) {
-      return a.motorNumber - b.motorNumber;
-    }
-    return a.stageNumber - b.stageNumber;
-  });
+  // Make sure the arrays exist
+  if (!flagRegistry.motorIgnitionFlags) flagRegistry.motorIgnitionFlags = [];
+  if (!flagRegistry.motorBurnoutFlags) flagRegistry.motorBurnoutFlags = [];
+  if (!flagRegistry.cutOffFlags) flagRegistry.cutOffFlags = []; // Keep this to avoid breaking existing code
 
-  // Log updated registry for debugging
-  console.log(
-    "Updated Motor Flag Registry:",
-    JSON.stringify(flagRegistry.motors, null, 2)
-  );
+  // Register motor ignition flag
+  if (
+    ignitionFlag &&
+    !flagRegistry.motorIgnitionFlags.some((item) => item.flag === ignitionFlag)
+  ) {
+    flagRegistry.motorIgnitionFlags.push({
+      stageNumber,
+      motorNumber,
+      flag: ignitionFlag,
+    });
+  }
+
+  // Register motor burnout flag
+  if (
+    burnoutFlag &&
+    !flagRegistry.motorBurnoutFlags.some((item) => item.flag === burnoutFlag)
+  ) {
+    flagRegistry.motorBurnoutFlags.push({
+      stageNumber,
+      motorNumber,
+      flag: burnoutFlag,
+    });
+  }
+
+  // Register cut off flag
+  // Commented out as Cut Off Flag is no longer needed
+  /* 
+  if (
+    cutOffFlag &&
+    !flagRegistry.cutOffFlags.some((item) => item.flag === cutOffFlag)
+  ) {
+    flagRegistry.cutOffFlags.push({
+      stageNumber,
+      motorNumber,
+      flag: cutOffFlag,
+    });
+  }
+  */
+
+  // Update the flag dropdown in the sequence form if it's active
+  if (
+    document.getElementById("sequence-form") &&
+    document.getElementById("sequence-form").classList.contains("active-form")
+  ) {
+    populateEventFlagDropdown(
+      document.getElementById("event-type")
+        ? document.getElementById("event-type").value
+        : "stage-start"
+    );
+  }
 }
 
 function saveMotorData(form, stageNumber, motorNumber) {
-  try {
-    // Get form elements
-    const structuralMass = form.querySelector(
-      'input[placeholder="Enter Structural Mass"]'
-    );
-    const propulsionType = form.querySelector("select.input-field");
-    const propulsionMass = form.querySelector(
-      'input[placeholder="Enter Propulsion Mass"]'
-    );
-    const nozzleDiameter = form.querySelector(
-      'input[placeholder="Enter Nozzle Diameter"]'
-    );
-    const thrustFilenameInput = form.querySelector(
-      'input[type="text"].filename'
-    ); // Get the input element
-    const burnTime = form.querySelector(".stage-burn-time"); // Get burn time from hidden input
+  // Skip form validation if null (used for automated creation)
+  let validationPassed = true;
+  if (form) {
+    const validationResult = FormValidator.validateMotorForm(form);
+    validationPassed = validationResult.isValid;
 
-    // Generate flags with consistent format
+    if (!validationPassed) {
+      if (typeof showError === "function") {
+        showError(validationResult.errors.join("<br>"), "Validation Error");
+      } else {
+        console.error("Validation errors:", validationResult.errors);
+      }
+      return false;
+    }
+  }
+
+  try {
+    // Find the stage in savedStages or create it
+    let stageIndex = savedStages.findIndex(
+      (stage) => stage.stage_number === parseInt(stageNumber)
+    );
+
+    if (stageIndex === -1) {
+      console.warn(
+        `Stage ${stageNumber} not found in savedStages, creating placeholder.`
+      );
+      savedStages.push({
+        stage_number: parseInt(stageNumber),
+        motors: [],
+      });
+      stageIndex = savedStages.length - 1;
+    }
+
+    // Make sure the stage has a motors array
+    if (!savedStages[stageIndex].motors) {
+      savedStages[stageIndex].motors = [];
+    }
+
+    // Find the motor or create a slot for it
+    if (savedStages[stageIndex].motors.length < motorNumber) {
+      // Add null entries to fill up to the correct index
+      while (savedStages[stageIndex].motors.length < motorNumber - 1) {
+        savedStages[stageIndex].motors.push(null);
+      }
+      savedStages[stageIndex].motors.push({}); // Add an empty object for our motor
+    } else if (!savedStages[stageIndex].motors[motorNumber - 1]) {
+      savedStages[stageIndex].motors[motorNumber - 1] = {}; // Create if it was null
+    }
+
+    const motorData = savedStages[stageIndex].motors[motorNumber - 1];
+
+    // If form is provided, get input values from the form
+    if (form) {
+      const inputs = form.querySelectorAll("input, select");
+      inputs.forEach((input) => {
+        const placeholder = input.getAttribute("placeholder");
+        const value = input.value;
+
+        if (placeholder === "Enter Structural Mass") {
+          motorData.structural_mass = parseFloat(value) || 0;
+        } else if (placeholder === "Enter Propulsion Mass") {
+          motorData.propulsion_mass = parseFloat(value) || 0;
+        } else if (input.classList.contains("stage-burn-time")) {
+          motorData.burn_time = parseFloat(value) || 0;
+        } else if (placeholder === "Enter Nozzle Diameter") {
+          motorData.nozzle_diameter = parseFloat(value) || 0;
+        } else if (input.tagName === "SELECT") {
+          // Propulsion type select
+          motorData.propulsion_type = value;
+        }
+      });
+
+      // Get the selected thrust data file if any
+      if (form._selectedThrustFile) {
+        // Store the file temporarily for processing
+        motorData._thrustDataFile = form._selectedThrustFile;
+      }
+    }
+
+    // Set motor number
+    motorData.motor_number = motorNumber;
+
+    // Create motor flags
     const ignitionFlag = `S${stageNumber}_M${motorNumber}_IGN`;
+    const burnoutFlag = `S${stageNumber}_M${motorNumber}_Burnout`;
     const cutOffFlag = `S${stageNumber}_M${motorNumber}_CUTOFF`;
-    const burnoutFlag = `S${stageNumber}_M${motorNumber}_Burnout`; // Corrected flag name
     const separationFlag = `ST_${stageNumber}_SEP`;
 
-    // Validate required fields
-    if (
-      !structuralMass ||
-      !propulsionType ||
-      !propulsionMass ||
-      !nozzleDiameter ||
-      !thrustFilenameInput || // Check the input element itself
-      !burnTime
-    ) {
-      throw new Error(
-        `One or more required motor form fields are missing for S${stageNumber} M${motorNumber}`
-      );
-    }
-
-    // Create motor data object with initial/default values
-    const thrustFile = form._selectedThrustFile; // Retrieve stored File object from the form
-    const parsedCsvData = [
-      ["Time", "Thrust", "PropMass"],
-      ["s", "kN", "Kg"],
-    ]; // Default headers
-
-    // Define motor name according to S{stageNumber}_MOTOR{motorNumber} format
-    const motorName = `S${stageNumber}_MOTOR${motorNumber}`;
-    // Define nozzle name dynamically
-    const nozzleName = `S${stageNumber}_MOTOR${motorNumber}_NOZ1`; // Assuming 1 nozzle for now
-
-    // Create motor data object initially (will be updated by async reader if file exists)
-    const motorData = {
-      str_mass: parseFloat(structuralMass.value) || 0,
-      type_of_prop: propulsionType.value,
-      prop_mass: parseFloat(propulsionMass.value) || 0,
-      nozzledia: parseFloat(nozzleDiameter.value) || 0,
-      burntime: parseFloat(burnTime.value) || 0,
-      ign_flag: ignitionFlag,
-      burn_out_flag: burnoutFlag,
-      cut_off_flags: [cutOffFlag],
-      sep_flag: separationFlag,
-      no_of_nozzles: 1,
-      nozzle: nozzleName, // Use the dynamically generated nozzle name
-      thr_time: parsedCsvData, // Start with default/placeholder
+    // Store flags
+    motorData.flags = {
+      ignition: ignitionFlag,
+      burnout: burnoutFlag,
+      // cutOff: cutOffFlag, // Commented out as Cut Off Flag is no longer needed
+      separation: separationFlag,
     };
 
-    // Register all motor flags (ensure this uses the correct flags generated above)
+    // Register flags in the global flagRegistry
     registerMotorFlags(
-      stageNumber,
+      parseInt(stageNumber),
       motorNumber,
       ignitionFlag,
-      burnoutFlag, // Pass burnout flag
-      cutOffFlag,
-      separationFlag // Pass stage separation flag
+      burnoutFlag,
+      cutOffFlag, // Keep passing this to avoid breaking existing code
+      separationFlag
     );
 
-    // Find the stage in savedStages
-    const stageIndex = savedStages.findIndex(
-      (stage) => stage && stage.stage_number === stageNumber // Safe access
-    );
-
-    if (stageIndex !== -1) {
-      // Initialize motors array if it doesn't exist
-      if (!savedStages[stageIndex].motors) {
-        savedStages[stageIndex].motors = [];
-      }
-
-      // Add or update motor data IN savedStages
-      const motorIndexInSaved = savedStages[stageIndex].motors.findIndex(
-        (m) => m && m.motor_number === motorNumber // Check internal number
-      );
-
-      const internalMotorData = { ...motorData, motor_number: motorNumber }; // Add internal tracking number
-
-      if (motorIndexInSaved !== -1) {
-        savedStages[stageIndex].motors[motorIndexInSaved] = internalMotorData;
-      } else {
-        // Add new motor at the correct index (motorNumber-1)
-        while (savedStages[stageIndex].motors.length < motorNumber) {
-          savedStages[stageIndex].motors.push(null); // Pad with null if needed
-        }
-        savedStages[stageIndex].motors[motorNumber - 1] = internalMotorData;
-      }
-
-      // Update finalMissionData
-      const vehicleName = document.getElementById("vehicle-name").value.trim();
-      const vehicleKey = vehicleName ? `${vehicleName}` : null; // Use vehicle name as key
-
-      if (vehicleKey && window.finalMissionData[vehicleKey]) {
-        const stageName = `Stage_${stageNumber}`;
-
-        // Ensure stage object exists in finalMissionData
-        if (!finalMissionData[stageName]) {
-          console.warn(
-            `Stage object ${stageName} not found in finalMissionData when saving motor ${motorName}. Creating minimal stage entry.`
-          );
-          // Create a minimal stage entry if it doesn't exist
-          finalMissionData[stageName] = {
-            motor: [],
-            burntime: savedStages[stageIndex].burn_time || 0, // Get burntime from saved stage
-            // Add other essential stage defaults if necessary
-          };
-        }
-
-        // Ensure the motor array exists in the stage object
-        if (!Array.isArray(finalMissionData[stageName].motor)) {
-          finalMissionData[stageName].motor = [];
-        }
-
-        // Update or add the motor object using the motorName key (e.g., S1_MOTOR1)
-        finalMissionData[motorName] = motorData; // Assign the motor data object
-
-        // Add motor name (e.g., S1_MOTOR1) to the stage's motor array if not already present
-        if (!finalMissionData[stageName].motor.includes(motorName)) {
-          finalMissionData[stageName].motor.push(motorName);
-          // Optional: Sort motor array if needed
-          finalMissionData[stageName].motor.sort((a, b) => {
-            const numA = parseInt(a.match(/MOTOR(\d+)$/)[1]);
-            const numB = parseInt(b.match(/MOTOR(\d+)$/)[1]);
-            return numA - numB;
-          });
-        }
-
-        // Ensure the stage is in the vehicle's stage array (redundant check, but safe)
-        if (
-          window.finalMissionData[vehicleKey].stage &&
-          !window.finalMissionData[vehicleKey].stage.includes(stageName)
-        ) {
-          window.finalMissionData[vehicleKey].stage.push(stageName);
-          // Sort stage array numerically by stage number after adding
-          window.finalMissionData[vehicleKey].stage.sort((a, b) => {
-            const numA = parseInt(a.split("_")[1]);
-            const numB = parseInt(b.split("_")[1]);
-            return numA - numB;
-          });
-          // Update stage count
-          window.finalMissionData[vehicleKey].no_Stg =
-            window.finalMissionData[vehicleKey].stage.length;
-        }
-      } else {
-        console.error(
-          `Vehicle key '${vehicleKey}' not found in finalMissionData when saving motor ${motorName}. Motor data cannot be linked.`
-        );
-      }
-    } else {
-      console.error(
-        `Stage index not found for stage number ${stageNumber} in savedStages when saving motor.`
-      );
+    // For displaying the file name in the form
+    const thrustFilename = form
+      ? form.querySelector('[id^="thrust-filename-"]')
+      : null;
+    if (thrustFilename && thrustFilename.value) {
+      motorData.thrust_file = thrustFilename.value;
     }
 
-    // Process thrust file asynchronously and update the thr_time later if needed
-    if (thrustFile) {
-      readFileAsText(thrustFile)
-        .then((csvContent) => {
-          try {
-            const parsedThrustData = parseAtmosCSV(csvContent);
-            // Update in finalMissionData
-            if (finalMissionData[motorName]) {
-              finalMissionData[motorName].thr_time = parsedThrustData;
-              console.log(`Updated thrust data for ${motorName}`);
-            }
-            // Also update in savedStages for consistency
-            const stageIndex = savedStages.findIndex(
-              (s) => s && s.stage_number === stageNumber
-            );
-            if (stageIndex !== -1) {
-              const motorIndex = savedStages[stageIndex].motors.findIndex(
-                (m) => m && m.motor_number === motorNumber
-              );
-              if (motorIndex !== -1) {
-                savedStages[stageIndex].motors[motorIndex].thr_time =
-                  parsedThrustData;
-              }
-            }
-          } catch (error) {
-            console.error(`Error parsing thrust CSV for ${motorName}:`, error);
+    // Process any attached thrust data file
+    if (motorData._thrustDataFile && typeof readFileAsText === "function") {
+      readFileAsText(motorData._thrustDataFile)
+        .then((csvData) => {
+          // Process the CSV data into the appropriate format
+          const processedData = processMotorThrustData(csvData);
+          if (processedData) {
+            motorData.thrust_time = processedData;
+            // Remove the temporary file reference
+            delete motorData._thrustDataFile;
           }
         })
         .catch((error) => {
-          console.error(
-            `Error reading thrust CSV file for ${motorName}:`,
-            error
-          );
+          console.error("Error reading thrust data file:", error);
+          if (typeof showError === "function") {
+            showError(
+              "Failed to process thrust data file. Please try again.",
+              "File Error"
+            );
+          }
         });
     }
 
-    // Log the motor data
-    console.log(
-      `Motor ${motorName} for Stage ${stageNumber} saved (finalMissionData structure):`,
-      motorData
-    );
-    console.log("Updated savedStages:", savedStages);
-
-    return motorData; // Return the processed motor data
-  } catch (error) {
-    console.error(
-      `Error saving motor data for S${stageNumber} M${motorNumber}:`,
-      error
-    );
-    // Optionally show error to user
-    Swal.fire({
-      icon: "error",
-      title: "Motor Save Error",
-      text: `Failed to save motor ${stageNumber}-${motorNumber}. ${error.message}`,
-      toast: false,
-      confirmButtonText: "OK",
+    // Update motor flags in UI
+    // These are managed in the JSON data structure and created dynamically in UI
+    addMotorKeyToStage(stageNumber, motorNumber, {
+      ignition_flag: ignitionFlag,
+      burnout_flag: burnoutFlag,
+      // cut_off_flags: [cutOffFlag], // Commented out as Cut Off Flag is no longer needed
+      separation_flag: separationFlag,
     });
-    // Do not return anything or return null to indicate failure
-    return null;
-  }
-}
 
-function updateMotorCutOffFlag(stageNumber, motorNumber) {
-  const cutOffFlagField = document.querySelector(
-    'input[placeholder="Enter COF Value"]'
-  );
-  if (cutOffFlagField) {
-    cutOffFlagField.value = `S${stageNumber}_M${motorNumber}_CUTOFF`;
-    cutOffFlagField.readOnly = true;
+    // Also add to sequence form's flag dropdown
+    if (typeof updateReferenceFlagDropdown === "function") {
+      updateReferenceFlagDropdown();
+    }
+
+    return {
+      stageNumber,
+      motorNumber,
+      ignitionFlag,
+      burnoutFlag,
+      // cutOffFlag, // Commented out as Cut Off Flag is no longer needed
+      separationFlag,
+    };
+  } catch (error) {
+    console.error("Error saving motor data:", error);
+    if (typeof showError === "function") {
+      showError(
+        "Failed to save motor data. Check the console for details.",
+        "Error"
+      );
+    }
+    return false;
   }
 }
 
@@ -2146,15 +2104,15 @@ function addEventToSequence(eventData) {
     </div>
     <div class="event-content">
       <span class="event-flag" title="Event Flag">${eventData.flag}</span>
-      <span class="trigger-type" title="Trigger Type">${
+      <span class="trigger-type" title="Trigger Type">${mapTriggerTypeToDisplay(
         eventData.triggerType
-      }</span>
+      )}</span>
       <span class="trigger-value" title="Trigger Value">${
         eventData.triggerValue
       }</span>
-      <span class="reference-flag" title="Reference Flag">${
+      <span class="reference-flag" title="Reference Flag">${mapReferenceFlagToDisplay(
         eventData.referenceFlag
-      }</span>
+      )}</span>
       ${
         eventData.comment
           ? `<span class="event-comment" title="Comment">${eventData.comment}</span>`
@@ -2266,7 +2224,7 @@ function removeEventFromSequence(flag) {
         if (eventElement) {
           const referenceSpan = eventElement.querySelector(".reference-flag");
           if (referenceSpan) {
-            referenceSpan.textContent = "none";
+            referenceSpan.textContent = mapReferenceFlagToDisplay("none");
           }
         }
       });
@@ -2278,6 +2236,24 @@ function removeEventFromSequence(flag) {
     // Dispatch sequenceUpdated event
     document.dispatchEvent(new CustomEvent("sequenceUpdated"));
   }
+}
+
+// Function to map trigger type values to display text
+function mapTriggerTypeToDisplay(triggerType) {
+  const triggerTypeMap = {
+    "mission-time": "Mission Time",
+    "phase-time": "Phase Time",
+    altitude: "Altitude",
+  };
+  return triggerTypeMap[triggerType] || triggerType;
+}
+
+// Function to map reference flag values to display text
+function mapReferenceFlagToDisplay(referenceFlag) {
+  if (referenceFlag === "none") {
+    return "None";
+  }
+  return referenceFlag;
 }
 
 // Function to validate trigger value based on trigger type
@@ -3527,237 +3503,178 @@ function removeStageFlagsFromRegistry(stageNumber) {
 }
 
 function updateStageNumberInData(oldNumber, newNumber) {
-  // TODO: Implement logic to update stage number references in savedStages, finalMissionData, and flagRegistry.
-  console.warn(
-    `Attempting to update stage number data from ${oldNumber} to ${newNumber}. This is complex and may require careful checking.`
+  // Update savedStages array
+  const stageIndex = savedStages.findIndex(
+    (s) => s.stage_number === parseInt(oldNumber)
   );
-  // This will be complex, involving renaming keys and updating flag strings.
+  if (stageIndex !== -1) {
+    savedStages[stageIndex].stage_number = parseInt(newNumber);
 
-  // 1. Update savedStages
-  if (window.savedStages) {
-    const stageIndex = window.savedStages.findIndex(
-      (s) => s.stage_number === oldNumber
-    );
-    if (stageIndex !== -1) {
-      window.savedStages[stageIndex].stage_number = newNumber;
-      // Update flags within savedStages if they exist and follow pattern
-      if (
-        window.savedStages[stageIndex].burn_time_identifier ===
-        `ST_${oldNumber}_INI`
-      ) {
-        window.savedStages[
-          stageIndex
-        ].burn_time_identifier = `ST_${newNumber}_INI`;
-      }
-      if (
-        window.savedStages[stageIndex].separation_flag === `ST_${oldNumber}_SEP`
-      ) {
-        window.savedStages[stageIndex].separation_flag = `ST_${newNumber}_SEP`;
-      }
-      // TODO: Update motor flags within savedStages if stored there?
-      console.log(
-        `Updated stage number in savedStages[${stageIndex}] from ${oldNumber} to ${newNumber}.`
-      );
-    } else {
-      console.warn(`Stage ${oldNumber} not found in savedStages for update.`);
-    }
-  }
+    // Update burn time identifier and separation flag
+    savedStages[stageIndex].burn_time_identifier = `ST_${newNumber}_INI`;
+    savedStages[stageIndex].separation_flag = `ST_${newNumber}_SEP`;
 
-  // 2. Update finalMissionData
-  const vehicleName = window.finalMissionData?.SSPO?.vehicle?.[0]; // Assuming single vehicle
-  const oldStageKey = `Stage_${oldNumber}`;
-  const newStageKey = `Stage_${newNumber}`;
-
-  if (
-    vehicleName &&
-    window.finalMissionData &&
-    window.finalMissionData[vehicleName] &&
-    window.finalMissionData[oldStageKey]
-  ) {
-    // Rename stage key in vehicle's stage array
-    if (window.finalMissionData[vehicleName].stage) {
-      const stageIndexInVehicle =
-        window.finalMissionData[vehicleName].stage.indexOf(oldStageKey);
-      if (stageIndexInVehicle !== -1) {
-        window.finalMissionData[vehicleName].stage[stageIndexInVehicle] =
-          newStageKey;
-      }
-    }
-
-    // Rename the stage object key itself
-    window.finalMissionData[newStageKey] = window.finalMissionData[oldStageKey];
-    delete window.finalMissionData[oldStageKey];
-
-    // Update flags within the stage object
-    if (
-      window.finalMissionData[newStageKey].burn_time_identifier ===
-      `ST_${oldNumber}_INI`
-    ) {
-      window.finalMissionData[
-        newStageKey
-      ].burn_time_identifier = `ST_${newNumber}_INI`;
-    }
-    if (
-      window.finalMissionData[newStageKey].separation_flag ===
-      `ST_${oldNumber}_SEP`
-    ) {
-      window.finalMissionData[
-        newStageKey
-      ].separation_flag = `ST_${newNumber}_SEP`;
-    }
-
-    // TODO: Update Motor Keys and their internal flags?
-    // This requires iterating through motors, renaming keys (e.g., S{old}_MOTOR{x} to S{new}_MOTOR{x}),
-    // and updating flags within each motor object (IGN, CUTOFF, Burnout, SEP).
-    // console.warn(`Need to implement motor key and flag updates within finalMissionData for stage ${newNumber}.`);
-
-    // Iterate through all keys in finalMissionData to find motors belonging to the old stage number
-    const motorKeysToUpdate = Object.keys(window.finalMissionData).filter(
-      (key) => key.startsWith(`S${oldNumber}_MOTOR`)
-    );
-
-    motorKeysToUpdate.forEach((oldMotorKey) => {
-      const motorData = window.finalMissionData[oldMotorKey];
-      if (!motorData) return; // Skip if data somehow missing
-
-      // Extract motor number
-      const motorNumberMatch = oldMotorKey.match(/_MOTOR(\d+)/);
-      if (!motorNumberMatch || !motorNumberMatch[1]) return; // Skip if key format is unexpected
-      const motorNumber = motorNumberMatch[1];
-
-      // Create new key
-      const newMotorKey = `S${newNumber}_MOTOR${motorNumber}`;
-
-      // Update internal flags
-      if (motorData.ignition_flag?.startsWith(`S${oldNumber}_`)) {
-        motorData.ignition_flag = motorData.ignition_flag.replace(
-          `S${oldNumber}_`,
-          `S${newNumber}_`
-        );
-      }
-      if (motorData.burnout_flag?.startsWith(`S${oldNumber}_`)) {
-        motorData.burnout_flag = motorData.burnout_flag.replace(
-          `S${oldNumber}_`,
-          `S${newNumber}_`
-        );
-      }
-      if (motorData.cutoff_flag?.startsWith(`S${oldNumber}_`)) {
-        motorData.cutoff_flag = motorData.cutoff_flag.replace(
-          `S${oldNumber}_`,
-          `S${newNumber}_`
-        );
-      }
-      if (motorData.separation_flag === `ST_${oldNumber}_SEP`) {
-        motorData.separation_flag = `ST_${newNumber}_SEP`;
-      }
-
-      // TODO: Update Nozzle keys and flags within the motor object if they exist?
-      if (motorData.nozzles) {
-        // console.warn(`Need to implement nozzle key/flag updates within motor ${newMotorKey}.`);
-        // Similar logic: iterate motorData.nozzles, rename keys (S{old}_M{x}_NOZ{y} -> S{new}_...), update internal flags if any.
-        const nozzleKeysToUpdate = Object.keys(motorData.nozzles).filter(
-          (key) => key.startsWith(`S${oldNumber}_MOTOR${motorNumber}_NOZ`)
-        );
-
-        nozzleKeysToUpdate.forEach((oldNozzleKey) => {
-          const nozzleData = motorData.nozzles[oldNozzleKey];
-          if (!nozzleData) return; // Skip if nozzle data missing
-
-          // Extract nozzle number
-          const nozzleNumberMatch = oldNozzleKey.match(/_NOZ(\d+)/);
-          if (!nozzleNumberMatch || !nozzleNumberMatch[1]) return; // Skip if key format unexpected
-          const nozzleNumber = nozzleNumberMatch[1];
-
-          // Create new nozzle key
-          const newNozzleKey = `S${newNumber}_MOTOR${motorNumber}_NOZ${nozzleNumber}`;
-
-          // Update any internal flags within nozzleData if needed (assuming none for now)
-          // e.g., if (nozzleData.some_flag?.startsWith(...)) { ... }
-
-          // Rename the nozzle object key within the motor
-          motorData.nozzles[newNozzleKey] = nozzleData;
-          delete motorData.nozzles[oldNozzleKey];
-          console.log(
-            `Updated nozzle key within motor ${newMotorKey} from ${oldNozzleKey} to ${newNozzleKey}.`
-          );
-        });
-      }
-
-      // Rename the motor object key
-      window.finalMissionData[newMotorKey] = motorData;
-      delete window.finalMissionData[oldMotorKey];
-      console.log(
-        `Updated motor key in finalMissionData from ${oldMotorKey} to ${newMotorKey} and updated internal flags.`
-      );
-    });
-    // End of motor key/flag update
-
-    console.log(
-      `Updated stage key in finalMissionData from ${oldStageKey} to ${newStageKey}.`
-    );
-  } else {
-    console.warn(
-      `Vehicle ${vehicleName} or stage ${oldStageKey} not found in finalMissionData for update.`
-    );
-  }
-
-  // 3. Update flagRegistry
-  if (window.flagRegistry) {
-    // Update stage flags
-    if (window.flagRegistry.stages?.initializationFlags) {
-      window.flagRegistry.stages.initializationFlags.forEach((flag) => {
-        if (flag.stageNumber === oldNumber) flag.stageNumber = newNumber;
-        if (flag.flag === `ST_${oldNumber}_INI`)
-          flag.flag = `ST_${newNumber}_INI`;
-      });
-    }
-    if (window.flagRegistry.stages?.separationFlags) {
-      window.flagRegistry.stages.separationFlags.forEach((flag) => {
-        if (flag.stageNumber === oldNumber) flag.stageNumber = newNumber;
-        if (flag.flag === `ST_${oldNumber}_SEP`)
-          flag.flag = `ST_${newNumber}_SEP`;
-      });
-    }
     // Update motor flags
-    if (window.flagRegistry.motors) {
-      window.flagRegistry.motors.forEach((motor) => {
-        if (motor.stageNumber === oldNumber) {
-          motor.stageNumber = newNumber;
-          // Update specific flag strings
-          if (motor.flags?.ignition?.startsWith(`S${oldNumber}_`)) {
-            motor.flags.ignition = motor.flags.ignition.replace(
-              `S${oldNumber}_`,
-              `S${newNumber}_`
-            );
+    if (savedStages[stageIndex].motors) {
+      savedStages[stageIndex].motors.forEach((motor, motorIdx) => {
+        if (motor) {
+          const motorNumber = motorIdx + 1;
+
+          // Update flags
+          if (motor.flags) {
+            if (motor.flags.ignition?.startsWith(`S${oldNumber}_`)) {
+              motor.flags.ignition = motor.flags.ignition.replace(
+                `S${oldNumber}_`,
+                `S${newNumber}_`
+              );
+            }
+            if (motor.flags.burnout?.startsWith(`S${oldNumber}_`)) {
+              motor.flags.burnout = motor.flags.burnout.replace(
+                `S${oldNumber}_`,
+                `S${newNumber}_`
+              );
+            }
+            // Comment out Cut Off Flag code as it's no longer needed
+            /*
+            if (motor.flags.cutOff?.startsWith(`S${oldNumber}_`)) {
+              motor.flags.cutOff = motor.flags.cutOff.replace(
+                `S${oldNumber}_`,
+                `S${newNumber}_`
+              );
+            }
+            */
+            if (motor.flags.separation === `ST_${oldNumber}_SEP`) {
+              motor.flags.separation = `ST_${newNumber}_SEP`;
+            }
           }
-          if (motor.flags?.burnout?.startsWith(`S${oldNumber}_`)) {
-            motor.flags.burnout = motor.flags.burnout.replace(
-              `S${oldNumber}_`,
-              `S${newNumber}_`
-            );
-          }
-          if (motor.flags?.cutOff?.startsWith(`S${oldNumber}_`)) {
-            motor.flags.cutOff = motor.flags.cutOff.replace(
-              `S${oldNumber}_`,
-              `S${newNumber}_`
-            );
-          }
-          if (motor.flags?.separation === `ST_${oldNumber}_SEP`) {
-            motor.flags.separation = `ST_${newNumber}_SEP`;
-          }
-          // Update motor key if stored? (Assuming not based on structure)
         }
       });
     }
-    console.log(
-      `Updated stage numbers and flag strings in flagRegistry from ${oldNumber} to ${newNumber}.`
-    );
-  } else {
-    console.warn(`flagRegistry not found, cannot update flags.`);
   }
 
-  // Finally, sort the stages array after updates
-  sortSavedStages();
+  // Update flagRegistry
+  if (window.flagRegistry) {
+    // Update burn time identifiers
+    if (flagRegistry.burnTimeIdentifiers) {
+      flagRegistry.burnTimeIdentifiers.forEach((item) => {
+        if (
+          item.stageNumber === parseInt(oldNumber) &&
+          item.flag === `ST_${oldNumber}_INI`
+        ) {
+          item.stageNumber = parseInt(newNumber);
+          item.flag = `ST_${newNumber}_INI`;
+        }
+      });
+    }
+
+    // Update separation flags
+    if (flagRegistry.separationFlags) {
+      flagRegistry.separationFlags.forEach((item) => {
+        if (
+          item.stageNumber === parseInt(oldNumber) &&
+          item.flag === `ST_${oldNumber}_SEP`
+        ) {
+          item.stageNumber = parseInt(newNumber);
+          item.flag = `ST_${newNumber}_SEP`;
+        }
+      });
+    }
+
+    // Update motor ignition flags
+    if (flagRegistry.motorIgnitionFlags) {
+      flagRegistry.motorIgnitionFlags.forEach((item) => {
+        if (item.stageNumber === parseInt(oldNumber)) {
+          item.stageNumber = parseInt(newNumber);
+          item.flag = item.flag.replace(`S${oldNumber}_`, `S${newNumber}_`);
+        }
+      });
+    }
+
+    // Update motor burnout flags
+    if (flagRegistry.motorBurnoutFlags) {
+      flagRegistry.motorBurnoutFlags.forEach((item) => {
+        if (item.stageNumber === parseInt(oldNumber)) {
+          item.stageNumber = parseInt(newNumber);
+          item.flag = item.flag.replace(`S${oldNumber}_`, `S${newNumber}_`);
+        }
+      });
+    }
+
+    // Update cut off flags (comment out as Cut Off Flag is no longer needed)
+    /*
+    if (flagRegistry.cutOffFlags) {
+      flagRegistry.cutOffFlags.forEach((item) => {
+        if (item.stageNumber === parseInt(oldNumber)) {
+          item.stageNumber = parseInt(newNumber);
+          item.flag = item.flag.replace(
+            `S${oldNumber}_`,
+            `S${newNumber}_`
+          );
+        }
+      });
+    }
+    */
+  }
+
+  // Update finalMissionData if it exists and has stages
+  if (
+    window.finalMissionData &&
+    finalMissionData.Garuda_1 &&
+    finalMissionData.Garuda_1.stage
+  ) {
+    // Find stage in finalMissionData
+    const finalDataStage = finalMissionData.Garuda_1.stage.find(
+      (s) => s.stage_number === parseInt(oldNumber)
+    );
+
+    if (finalDataStage) {
+      finalDataStage.stage_number = parseInt(newNumber);
+      finalDataStage.burn_time_identifier = `ST_${newNumber}_INI`;
+      finalDataStage.separation_flag = `ST_${newNumber}_SEP`;
+
+      // Update motor flags
+      if (finalDataStage.motors) {
+        // Iterate through all motors and update their flags
+        Object.values(finalDataStage.motors).forEach((motor) => {
+          // ... and updating flags within each motor object (IGN, CUTOFF, Burnout, SEP).
+          if (motor.ignition_flag?.startsWith(`S${oldNumber}_`)) {
+            motor.ignition_flag = motor.ignition_flag.replace(
+              `S${oldNumber}_`,
+              `S${newNumber}_`
+            );
+          }
+
+          if (motor.burnout_flag?.startsWith(`S${oldNumber}_`)) {
+            motor.burnout_flag = motor.burnout_flag.replace(
+              `S${oldNumber}_`,
+              `S${newNumber}_`
+            );
+          }
+
+          // Comment out Cut Off Flag code as it's no longer needed
+          /*
+          if (motor.cutoff_flag?.startsWith(`S${oldNumber}_`)) {
+            motor.cutoff_flag = motor.cutoff_flag.replace(
+              `S${oldNumber}_`,
+              `S${newNumber}_`
+            );
+          }
+          */
+
+          if (motor.separation_flag === `ST_${oldNumber}_SEP`) {
+            motor.separation_flag = `ST_${newNumber}_SEP`;
+          }
+        });
+      }
+    }
+  }
+
+  console.log(
+    `[formHandler] Updated stage number in data: ${oldNumber} → ${newNumber}`
+  );
+
+  // Return true to indicate success
+  return true;
 }
 
 function sortSavedStages() {
@@ -4296,15 +4213,15 @@ function updateEventInUI(eventData) {
   const eventContent = eventItem.querySelector(".event-content");
   eventContent.innerHTML = `
     <span class="event-flag" title="Event Flag">${eventData.flag}</span>
-    <span class="trigger-type" title="Trigger Type">${
+    <span class="trigger-type" title="Trigger Type">${mapTriggerTypeToDisplay(
       eventData.triggerType
-    }</span>
+    )}</span>
     <span class="trigger-value" title="Trigger Value">${
       eventData.triggerValue
     }</span>
-    <span class="reference-flag" title="Reference Flag">${
+    <span class="reference-flag" title="Reference Flag">${mapReferenceFlagToDisplay(
       eventData.referenceFlag
-    }</span>
+    )}</span>
     ${
       eventData.comment
         ? `<span class="event-comment" title="Comment">${eventData.comment}</span>`

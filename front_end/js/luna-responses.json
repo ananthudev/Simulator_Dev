@@ -1,0 +1,148 @@
+{
+  "keyword_responses": {
+    "sharu": {
+      "patterns": ["who is sharu", "sharu", "about sharu"],
+      "response": "Sharu is a Control Engineer at Spacelabs Trivandrum. She specializes in guidance, navigation, and control systems for aerospace applications."
+    },
+    "spacelabs": {
+      "patterns": ["spacelabs", "what is spacelabs", "about spacelabs"],
+      "response": "Spacelabs is an aerospace company based in Trivandrum that develops advanced mission design and simulation software like ASTRA for spacecraft and launch vehicle applications."
+    },
+    "astra": {
+      "patterns": ["what is astra", "about astra", "astra software"],
+      "response": "ASTRA (Aerospace Simulation and Trajectory Analysis) is a comprehensive mission design software developed by Spacelabs. It provides tools for vehicle configuration, environment modeling, trajectory optimization, and mission analysis."
+    },
+    "team": {
+      "patterns": ["who made this", "team", "developers", "who created"],
+      "response": "ASTRA was developed by the talented team at Spacelabs Trivandrum, including control engineers, software developers, and aerospace specialists working together to create advanced mission design tools."
+    },
+    "contact": {
+      "patterns": ["contact", "support", "help desk", "email"],
+      "response": "For technical support or questions about ASTRA, you can contact the Spacelabs team at Trivandrum. I'm here to help with immediate questions about using the software!"
+    }
+  },
+  "responses": {
+    "greetings": {
+      "patterns": [
+        "hello",
+        "hi",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening"
+      ],
+      "responses": [
+        "Hello! I'm Luna, your ASTRA mission design assistant. How can I help you today?",
+        "Hi there! I'm here to help you with your ASTRA mission design. What would you like to know?",
+        "Hey! Ready to work on some mission planning? I'm here to assist you."
+      ]
+    },
+    "help": {
+      "patterns": [
+        "help",
+        "what can you do",
+        "commands",
+        "assistance",
+        "guide",
+        "topics",
+        "what",
+        "?"
+      ],
+      "responses": [
+        "I can help you with:\n\n**Mission Design:**\n- Vehicle configuration and stages\n- Trajectory optimization\n- Environmental settings\n\n**Validation:**\n- Error troubleshooting\n- Field requirements\n- Data format guidance\n\n**Best Practices:**\n- Mission planning tips\n- Parameter recommendations\n- Common pitfalls to avoid\n\n**Quick Commands:**\n- Try: *help with vehicle*, *fix errors*, *file formats*, *optimization*\n\nJust ask me about any specific topic!"
+      ]
+    },
+    "mission_basics": {
+      "patterns": [
+        "mission",
+        "what is mission",
+        "mission design",
+        "how to create mission"
+      ],
+      "responses": [
+        "**Mission Design in ASTRA** involves several key components:\n\n**1. Vehicle Configuration:**\n- Define your spacecraft stages\n- Set propulsion parameters\n- Configure mass properties\n\n**2. Environment Setup:**\n- Atmospheric models\n- Gravitational fields\n- Launch conditions\n\n**3. Trajectory Planning:**\n- Flight path definition\n- Optimization objectives\n- Constraints setup\n\nStart with the Vehicle section and work through each tab systematically!"
+      ]
+    },
+    "vehicle": {
+      "patterns": ["vehicle", "spacecraft", "rocket", "stage", "propulsion"],
+      "responses": [
+        "**Vehicle Configuration Tips:**\n\n**Stages:**\n- Define each stage separately\n- Include accurate mass ratios\n- Set realistic thrust levels\n\n**Propulsion:**\n- Specific impulse (Isp) values\n- Thrust profiles\n- Engine characteristics\n\n**Mass Properties:**\n- Dry mass, propellant mass\n- Center of gravity\n- Moments of inertia\n\nNeed help with any specific vehicle parameter?"
+      ]
+    },
+    "optimization": {
+      "patterns": [
+        "optimization",
+        "optimize",
+        "algorithm",
+        "objective",
+        "constraints"
+      ],
+      "responses": [
+        "**Optimization in ASTRA:**\n\n**Objective Functions:**\n- Minimize fuel consumption\n- Maximize payload\n- Minimize flight time\n\n**Common Constraints:**\n- Maximum acceleration\n- Altitude limits\n- Range safety requirements\n\n**Algorithms:**\n- Genetic Algorithm (GA)\n- Particle Swarm Optimization (PSO)\n- Sequential Quadratic Programming (SQP)\n\nWhat aspect of optimization would you like to explore?"
+      ]
+    },
+    "environment": {
+      "patterns": ["environment", "atmosphere", "gravity", "wind", "weather"],
+      "responses": [
+        "**Environment Settings:**\n\n**Atmospheric Models:**\n- Standard atmosphere (1976)\n- Custom profiles\n- Wind data integration\n\n**Gravitational Models:**\n- Point mass\n- Spherical harmonics\n- Third-body effects\n\n**Launch Conditions:**\n- Site coordinates\n- Launch azimuth\n- Time constraints\n\nNeed specific guidance on any environmental parameter?"
+      ]
+    },
+    "validation_errors": {
+      "patterns": [
+        "error",
+        "validation",
+        "problem",
+        "fix",
+        "issue",
+        "troubleshoot"
+      ],
+      "responses": [
+        "**Common Validation Issues:**\n\n**Missing Required Fields:**\n- Check for empty mandatory parameters\n- Verify all stages have complete data\n\n**Invalid Values:**\n- Ensure positive mass values\n- Check thrust/Isp ranges\n- Verify time sequences\n\n**Format Problems:**\n- Use correct units\n- Check decimal separators\n- Validate file formats\n\nCan you tell me which specific error you're seeing?"
+      ]
+    },
+    "file_formats": {
+      "patterns": ["csv", "file format", "data format", "upload", "import"],
+      "responses": [
+        "**ASTRA File Formats:**\n\n**CSV Files:**\n- Time, Value columns\n- No headers in data rows\n- Comma-separated values\n\n**JSON Configuration:**\n- Structured mission data\n- Nested parameter groups\n- UTF-8 encoding\n\n**Common Issues:**\n- Wrong delimiter (use commas)\n- Missing time column\n- Invalid number formats\n\nWhat type of file are you working with?"
+      ]
+    },
+    "simulation": {
+      "patterns": ["simulation", "simulate", "run", "execute", "test"],
+      "responses": [
+        "**Running Simulations:**\n\n**Pre-flight Checks:**\n- Validate all parameters\n- Check file dependencies\n- Verify output settings\n\n**Execution:**\n- Monitor progress indicators\n- Check for error messages\n- Wait for completion\n\n**Results Analysis:**\n- Review trajectory plots\n- Check optimization metrics\n- Validate against requirements\n\nReady to run your simulation?"
+      ]
+    },
+    "troubleshooting": {
+      "patterns": ["not working", "broken", "crash", "freeze", "stuck"],
+      "responses": [
+        "**Troubleshooting Steps:**\n\n**1. Check Console:**\n- Look for error messages\n- Note any warnings\n\n**2. Validate Inputs:**\n- Ensure all required fields filled\n- Check data formats\n- Verify file uploads\n\n**3. Common Fixes:**\n- Refresh the page\n- Clear browser cache\n- Check file permissions\n\n**4. Get Help:**\n- Save your current work\n- Note the specific error\n- Contact support if needed\n\nWhat specific issue are you experiencing?"
+      ]
+    },
+    "default": {
+      "patterns": [],
+      "responses": [
+        "I understand you're asking about ASTRA mission design. While I don't have a specific answer for that, I can help with:\n\n- **Mission design fundamentals**\n- **Vehicle configuration**\n- **Environment setup**\n- **Optimization strategies**\n- **Validation and troubleshooting**\n\nCould you rephrase your question or ask about one of these topics?",
+        "That's an interesting question about ASTRA! I'd love to help, but I might need more context. Try asking about:\n\n- Specific parameters or fields\n- Error messages you're seeing\n- Steps in the mission design process\n- File format requirements\n\nWhat aspect of ASTRA would you like to focus on?"
+      ]
+    }
+  },
+  "contextual_responses": {
+    "vehicle_section": {
+      "patterns": ["help", "what", "how"],
+      "response": "You're currently in the **Vehicle Configuration** section. Here you can:\n\n- Define spacecraft stages\n- Set propulsion parameters\n- Configure mass properties\n- Upload thrust profiles\n\nWhat specific vehicle parameter do you need help with?"
+    },
+    "environment_section": {
+      "patterns": ["help", "what", "how"],
+      "response": "You're in the **Environment** section. This is where you:\n\n- Select atmospheric models\n- Configure gravitational fields\n- Set launch site parameters\n- Upload environmental data\n\nWhich environmental setting needs attention?"
+    },
+    "optimization_section": {
+      "patterns": ["help", "what", "how"],
+      "response": "You're working on **Optimization** settings. Here you can:\n\n- Define objective functions\n- Set constraints\n- Choose optimization algorithms\n- Configure termination criteria\n\nWhat optimization aspect would you like to configure?"
+    }
+  },
+  "error_responses": {
+    "validation_error": "I see you have validation errors. Common fixes:\n\n- **Check required fields** - Make sure nothing is empty\n- **Verify data formats** - Numbers should be valid\n- **Review constraints** - Ensure realistic values\n- **Check file uploads** - Verify CSV format\n\nWhat specific error message are you seeing?",
+    "file_error": "File upload issues can usually be fixed by:\n\n- **Check file format** - Must be CSV with Time,Value columns\n- **Verify encoding** - Use UTF-8\n- **Check file size** - Keep under size limits\n- **Remove special characters** - Use standard ASCII\n\nTry re-uploading your file with these guidelines.",
+    "general_error": "Something went wrong, but don't worry! Try these steps:\n\n1. **Refresh the page** and try again\n2. **Check your inputs** for any obvious issues\n3. **Save your work** before making changes\n4. **Clear browser cache** if problems persist\n\nNeed help with a specific error message?"
+  }
+}

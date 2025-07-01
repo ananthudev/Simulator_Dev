@@ -1,0 +1,87 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Definitions -->
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="background" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    
+    <!-- Face Gradient -->
+    <radialGradient id="faceGrad" cx="50%" cy="40%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#f0f0f0"/>
+    </radialGradient>
+    
+    <!-- Eye Gradient -->
+    <radialGradient id="eyeGrad" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#4a5fd8"/>
+    </radialGradient>
+    
+    <!-- Hair Gradient -->
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="100" fill="url(#background)"/>
+  
+  <!-- Face -->
+  <circle cx="100" cy="110" r="45" fill="url(#faceGrad)" stroke="#e0e0e0" stroke-width="1"/>
+  
+  <!-- Hair/Head covering (representing tech/AI nature) -->
+  <path d="M 60 75 Q 100 45 140 75 Q 135 65 100 60 Q 65 65 60 75 Z" fill="url(#hairGrad)"/>
+  
+  <!-- Tech elements (circuit-like patterns) -->
+  <circle cx="75" cy="70" r="3" fill="#ffffff" opacity="0.7"/>
+  <circle cx="125" cy="70" r="3" fill="#ffffff" opacity="0.7"/>
+  <line x1="75" y1="70" x2="85" y2="70" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+  <line x1="115" y1="70" x2="125" y2="70" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+  
+  <!-- Eyes -->
+  <circle cx="88" cy="105" r="8" fill="url(#eyeGrad)"/>
+  <circle cx="112" cy="105" r="8" fill="url(#eyeGrad)"/>
+  
+  <!-- Eye highlights -->
+  <circle cx="90" cy="102" r="3" fill="#ffffff"/>
+  <circle cx="114" cy="102" r="3" fill="#ffffff"/>
+  
+  <!-- Small sparkles in eyes -->
+  <circle cx="89" cy="107" r="1" fill="#ffffff"/>
+  <circle cx="113" cy="107" r="1" fill="#ffffff"/>
+  
+  <!-- Nose (subtle) -->
+  <circle cx="100" cy="115" r="1.5" fill="#e0e0e0"/>
+  
+  <!-- Mouth (friendly smile) -->
+  <path d="M 92 125 Q 100 132 108 125" stroke="#667eea" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Tech badge/emblem on forehead -->
+  <circle cx="100" cy="85" r="8" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <circle cx="100" cy="85" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="100" cy="85" r="2" fill="#667eea"/>
+  
+  <!-- Floating data points/particles around the avatar -->
+  <circle cx="45" cy="95" r="2" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="155" cy="85" r="1.5" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="60" cy="140" r="1" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="140" cy="135" r="1.5" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Neural network connections (subtle lines) -->
+  <line x1="100" y1="85" x2="88" y2="105" stroke="#ffffff" stroke-width="0.5" opacity="0.3"/>
+  <line x1="100" y1="85" x2="112" y2="105" stroke="#ffffff" stroke-width="0.5" opacity="0.3"/>
+  
+  <!-- Name indicator -->
+  <text x="100" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff">LUNA</text>
+</svg> 

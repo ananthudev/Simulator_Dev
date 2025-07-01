@@ -252,27 +252,6 @@ textarea:focus-visible {
   color: #ffffff;
 }
 
-/* Style for the Add Stage button */
-.nav-add-stage {
-  color: #2ecc71 !important; /* Brighter green */
-  font-weight: 500;
-}
-
-.nav-add-stage:hover {
-  background: rgba(46, 204, 113, 0.15) !important;
-  color: #58d68d !important;
-}
-
-.nav-add-stage svg {
-  stroke: #2ecc71;
-  transition: stroke 0.2s;
-  width: 13px; /* Smaller icon */
-  height: 13px;
-}
-.nav-add-stage:hover svg {
-  stroke: #58d68d;
-}
-
 .submenu {
   list-style: none;
   padding-left: 20px; /* Adjusted indent */
@@ -488,12 +467,9 @@ select.input-field option {
 /* Grid Layout for Multi-Input Groups (e.g., State Data) */
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(110px, 1fr)
-  ); /* Adjust minmax */
-  gap: 12px; /* Adjusted gap */
-  margin: 4px 0;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px 16px;
+  align-items: end;
 }
 
 /* Toggle Switch */
@@ -858,8 +834,8 @@ h3.section-title {
 
 .event-list {
   flex-grow: 1;
-  max-height: 450px; /* Adjusted max-height */
-  min-height: 250px; /* Adjusted minimum height */
+  max-height: 80vh; /* Increased to 80% of viewport height for better data visibility */
+  min-height: 300px; /* Increased minimum height */
   overflow-y: auto;
   background: #282828; /* List background */
   border-radius: 5px;
@@ -901,11 +877,11 @@ h3.section-title {
 
 .event-content {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1.5fr; /* Adjusted columns slightly */
+  grid-template-columns: 1.5fr 1.3fr 1.2fr 1.8fr; /* Increased column widths for better content visibility */
   gap: 8px 12px; /* Adjusted Row and column gap */
   flex-grow: 1;
   margin-right: 10px;
-  align-items: center; /* Vertically align items */
+  align-items: start; /* Changed from center to start to accommodate wrapping text */
 }
 .event-content span {
   font-size: 12.5px; /* Smaller text */
@@ -913,10 +889,11 @@ h3.section-title {
   padding: 4px 8px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.04);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible; /* Changed from hidden to allow content to show */
+  text-overflow: initial; /* Changed from ellipsis to show full text */
+  white-space: normal; /* Changed from nowrap to allow text wrapping */
   line-height: 1.4;
+  word-wrap: break-word; /* Added to handle long text */
 }
 .event-content .event-flag {
   color: #6bbdff;
@@ -1482,7 +1459,7 @@ h3.section-title {
     gap: 18px;
   }
   .event-list {
-    max-height: 350px;
+    max-height: 70vh; /* Increased for mobile - 70% of viewport height */
   }
 
   .steering-component-panel {
@@ -1490,7 +1467,7 @@ h3.section-title {
     margin-bottom: 18px;
   }
   .steering-config-area {
-    min-height: 300px;
+    min-height: 400px; /* Increased minimum height for better content visibility */
   }
 }
 
@@ -1601,6 +1578,50 @@ h3.section-title {
   display: none !important;
 }
 
+/* Utility classes for better content visibility */
+.show-full-content {
+  overflow: visible !important;
+  text-overflow: initial !important;
+  white-space: normal !important;
+  max-height: none !important;
+}
+
+.expandable-container {
+  max-height: 70vh;
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+}
+
+.expandable-container.expanded {
+  max-height: 90vh;
+}
+
+/* Improved table visibility */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px 12px;
+  border: 1px solid #383838;
+  text-align: left;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.data-table th {
+  background: #2a2a2a;
+  color: #4a90e2;
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
 /* Stopping Criteria Header Style */
 .stop-header {
   color: #8fa7c6;
@@ -1609,6 +1630,124 @@ h3.section-title {
   cursor: default;
   font-weight: 500;
   margin-top: 5px;
+}
+
+/* Vehicle Configuration Info Message */
+.config-info-message {
+  background: rgba(74, 144, 226, 0.1);
+  border: 1px solid rgba(74, 144, 226, 0.3);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin: 20px 0;
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.info-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-content p {
+  margin: 0 0 10px 0;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.info-content ul {
+  margin: 0;
+  padding-left: 18px;
+  list-style-type: disc;
+}
+
+.info-content li {
+  margin-bottom: 8px;
+  color: #b0b0b0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.info-content li strong {
+  color: #4a90e2;
+  font-weight: 600;
+}
+
+/* Motor Configuration Info Message - Similar to config-info-message */
+.motor-config-info-message {
+  background: rgba(74, 144, 226, 0.1);
+  border: 1px solid rgba(74, 144, 226, 0.3);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin: 20px 0;
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.motor-config-info-message .info-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.motor-config-info-message .info-content {
+  flex: 1;
+}
+
+.motor-config-info-message .info-content p {
+  margin: 0 0 10px 0;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.motor-config-info-message .info-content ul {
+  margin: 0;
+  padding-left: 18px;
+  list-style-type: disc;
+}
+
+.motor-config-info-message .info-content li {
+  margin-bottom: 8px;
+  color: #b0b0b0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.motor-config-info-message .info-content li strong {
+  color: #4a90e2;
+  font-weight: 600;
+}
+
+/* Add Motors Button Styling */
+.add-motors-btn {
+  background: linear-gradient(145deg, #4a90e2, #2e7cd6);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.add-motors-btn:hover {
+  background: linear-gradient(145deg, #5a9ef2, #3e8ce6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+}
+
+.add-motors-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
 }
 
 /* Map Component Styles - Added for Leaflet integration */
@@ -2722,4 +2861,26 @@ h3.section-title {
       height: 20px;
     }
   }
+}
+
+/* Add for vertical label+input alignment in grid fields */
+.input-label-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+.input-label-group .input-label {
+  font-size: 12px;
+  color: #b0b0b0;
+  margin-bottom: 4px;
+  font-weight: 500;
+  text-align: left;
+  padding-left: 2px;
+  line-height: 1.2;
+}
+.input-label-group .input-field {
+  margin-bottom: 0;
+  width: 100%;
+  min-width: 0;
 }

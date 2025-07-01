@@ -176,11 +176,25 @@ Cypress.Commands.add("addStage", (stageNum, data) => {
 
   const stageData = { ...defaults, ...data };
 
-  // Click add stage button if this is a new stage
+  // Create stage using the new Vehicle Configuration approach if this is a new stage
   if (!Cypress.$(`#stage${stageNum}-form`).length) {
-    cy.get("#add-stage-btn").click();
+    // Navigate to Vehicle Configuration
+    cy.get("#vehicle-stage-config-btn").click();
+
+    // Enter the stage number (this will create stages up to that number)
+    cy.get("#number-of-stages").clear().type(stageNum.toString());
+
+    // Click Add Stages button
+    cy.get("#add-stages-btn").click();
+
+    // Handle the confirmation dialog if it appears
+    cy.get("button").contains("OK").click();
+
     // Wait for form to appear
     cy.get(`#stage${stageNum}-form`).should("exist");
+
+    // Navigate to the stage form we just created
+    cy.get(`#stage${stageNum}-btn`).click();
   }
 
   // Fill stage form
