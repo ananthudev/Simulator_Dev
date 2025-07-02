@@ -1,11 +1,21 @@
 // Handles the 'Open Mission' functionality
 
-document.addEventListener("DOMContentLoaded", () => {
-  const openMissionButton = document.getElementById("open-mission-btn");
-  if (openMissionButton) {
-    openMissionButton.addEventListener("click", handleOpenMission);
-  }
-});
+// NEW_EDIT_1: Robust initialization for Open Mission button
+(function initOpenMissionButton() {
+  const attachListener = () => {
+    const openMissionButton = document.getElementById("open-mission-btn");
+    if (openMissionButton && !openMissionButton.dataset.listenerAdded) {
+      openMissionButton.addEventListener("click", handleOpenMission);
+      openMissionButton.dataset.listenerAdded = "true"; // Prevent duplicate listeners
+    }
+  };
+
+  // Attempt to attach immediately (covers scripts loaded after DOM is ready)
+  attachListener();
+
+  // Also attach once DOMContentLoaded fires (covers early script load)
+  document.addEventListener("DOMContentLoaded", attachListener);
+})();
 
 function handleOpenMission() {
   // Create a temporary file input element
@@ -1631,6 +1641,15 @@ function populateDynamicMotorForm(
   console.log(
     `[OpenMission] Populated motor ${motorUINumber} for stage ${stageUINumber} form.`
   );
+
+  // NEW_EDIT_2: Populate structural mass for motor forms in populateDynamicMotorForm
+  // Populate structural mass
+  const structuralMassInput = form.querySelector(
+    'input[placeholder="Enter Structural Mass"]'
+  );
+  if (structuralMassInput && motorData.str_mass !== undefined) {
+    structuralMassInput.value = motorData.str_mass;
+  }
 }
 
 function populateDynamicNozzleForm(
@@ -2615,6 +2634,15 @@ function populateMotorFields(
   console.log(
     `[OpenMission] Populated motor ${motorUINumber} for stage ${stageUINumber}`
   );
+
+  // NEW_EDIT_3: Populate structural mass in populateMotorFields (legacy fallback)
+  // Populate structural mass
+  const structuralMassInputLegacy = form.querySelector(
+    'input[placeholder="Enter Structural Mass"]'
+  );
+  if (structuralMassInputLegacy && motorData.str_mass !== undefined) {
+    structuralMassInputLegacy.value = motorData.str_mass;
+  }
 }
 
 // Function to populate nozzle data

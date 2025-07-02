@@ -282,11 +282,21 @@ class LunaChatbot {
     const context = this.contextManager.getCurrentContext();
 
     // Show typing indicator
+    const typingStart = Date.now();
     this.showTypingIndicator();
 
     try {
-      // Get AI response
+      // Get AI response (synchronous/local lookup)
       const response = await this.getAIResponse(message, context);
+
+      // Ensure typing indicator is visible for at least 800-1200 ms
+      const minTypingDuration = 800 + Math.random() * 400; // randomize a bit
+      const elapsed = Date.now() - typingStart;
+      if (elapsed < minTypingDuration) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, minTypingDuration - elapsed)
+        );
+      }
 
       // Remove typing indicator
       this.hideTypingIndicator();
@@ -318,45 +328,7 @@ class LunaChatbot {
   }
 
   async getAIResponse(message, context) {
-    // Try AI service first if configured
-    if (
-      this.aiService &&
-      typeof this.aiService.isConfigured === "function" &&
-      this.aiService.isConfigured()
-    ) {
-      try {
-        return await this.aiService.getResponse(
-          message,
-          context,
-          this.conversationHistory
-        );
-      } catch (error) {
-        this.log(
-          "AI service failed, falling back to predefined responses:",
-          error
-        );
-      }
-    }
-
-    // Try knowledge base if available
-    if (
-      this.knowledgeBase &&
-      typeof this.knowledgeBase.getResponse === "function"
-    ) {
-      try {
-        const knowledgeResponse = this.knowledgeBase.getResponse(
-          message,
-          context
-        );
-        if (knowledgeResponse && knowledgeResponse.trim()) {
-          return knowledgeResponse;
-        }
-      } catch (error) {
-        this.log("Knowledge base failed, using predefined responses:", error);
-      }
-    }
-
-    // Fallback to predefined responses
+    // Directly use predefined responses only (no external AI or knowledge base)
     return this.getPredefinedResponse(message, context);
   }
 
@@ -484,19 +456,48 @@ class LunaChatbot {
         </div>
       `;
     } else {
+      // Assistant message with typing animation
       messageDiv.innerHTML = `
         <div class="luna-message-avatar">
           <img src="assets/icons/luna-avatar.svg" alt="Luna" />
         </div>
-        <div class="luna-message-content">
-          ${this.formatMessage(content)}
-          <span class="luna-message-time">${timestamp}</span>
-        </div>
+        <div class="luna-message-content"><span class="luna-typing-text"></span></div>
       `;
     }
 
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Trigger typing animation for assistant responses after element is in DOM
+    if (role === "assistant" && !isError) {
+      const textSpan = messageDiv.querySelector(".luna-typing-text");
+      this.animateTyping(
+        textSpan,
+        this.formatMessage(content),
+        timestamp,
+        () => {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      );
+    }
+  }
+
+  // Typewriter-style reveal effect for assistant messages
+  animateTyping(targetElement, formattedHtml, timestamp, onComplete) {
+    const plainText = formattedHtml.replace(/<[^>]+>/g, "");
+    let idx = 0;
+    const speed = 15; // ms per character
+    const typeInterval = setInterval(() => {
+      targetElement.textContent = plainText.slice(0, idx);
+      idx++;
+      if (idx > plainText.length) {
+        clearInterval(typeInterval);
+        // Replace with fully formatted HTML including timestamp
+        const parent = targetElement.parentElement;
+        parent.innerHTML = `${formattedHtml}<span class="luna-message-time">${timestamp}</span>`;
+        if (typeof onComplete === "function") onComplete();
+      }
+    }, speed);
   }
 
   formatMessage(content) {

@@ -252,6 +252,12 @@ textarea:focus-visible {
   color: #ffffff;
 }
 
+.menu-tree a.active,
+.submenu a.active {
+  background: rgba(74, 144, 226, 0.15);
+  color: #ffffff;
+}
+
 .submenu {
   list-style: none;
   padding-left: 20px; /* Adjusted indent */

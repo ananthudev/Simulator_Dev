@@ -4,6 +4,34 @@
       "patterns": ["who is sharu", "sharu", "about sharu"],
       "response": "Sharu is a Control Engineer at Spacelabs Trivandrum. She specializes in guidance, navigation, and control systems for aerospace applications."
     },
+
+    "suhaib": {
+      "patterns": [
+        "who is suhaib",
+        "suhaib",
+        "about suhaib",
+        "suhaib engineer"
+      ],
+      "response": "Suhaib is a Project Engineer at Spacelabs Trivandrum, working on advanced aerospace simulation tools and mission planning solutions."
+    },
+    "sooraj": {
+      "patterns": [
+        "who is sooraj",
+        "sooraj",
+        "about sooraj",
+        "sooraj engineer"
+      ],
+      "response": "Sooraj is a Project Engineer at Spacelabs Trivandrum, contributing to ASTRA's development and specializing in trajectory optimization modules."
+    },
+    "vineetha": {
+      "patterns": [
+        "who is vineetha",
+        "vineetha",
+        "about vineetha",
+        "vineetha engineer"
+      ],
+      "response": "Vineetha is a Project Engineer at Spacelabs Trivandrum, contributing to ASTRA and supporting various aerospace projects."
+    },
     "spacelabs": {
       "patterns": ["spacelabs", "what is spacelabs", "about spacelabs"],
       "response": "Spacelabs is an aerospace company based in Trivandrum that develops advanced mission design and simulation software like ASTRA for spacecraft and launch vehicle applications."

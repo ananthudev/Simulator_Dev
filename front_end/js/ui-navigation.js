@@ -43,6 +43,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // Listen for changes to the mission mode selection
   const modeSelect = document.getElementById("modes");
   if (modeSelect) {
+    // Force default mode to "optimization" on initial page load so that
+    // optimization navigation items are shown by default.
+    modeSelect.value = "optimization";
+
     modeSelect.addEventListener("change", updateOptimizationMenu);
     // Call on initial page load to set up the menu correctly
     updateOptimizationMenu();
@@ -467,6 +471,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         </div>
     `;
+
+    // Automatically disable "Coasting" toggle for the very first stage (Stage 1)
+    if (nextStageNumber === 1) {
+      const coastingToggleEl = stageForm.querySelector(
+        `#coasting-toggle-${stageId}`
+      );
+      if (coastingToggleEl) {
+        coastingToggleEl.disabled = true;
+        coastingToggleEl.checked = false; // Ensure it stays off
+      }
+    }
 
     document.querySelector(".mission-content").appendChild(stageForm);
 
@@ -2109,6 +2124,12 @@ document.addEventListener("DOMContentLoaded", function () {
             timer: 3000,
             timerProgressBar: true,
           });
+
+          // Automatically renumber stages to keep indexes contiguous
+          if (typeof rearrangeBtn !== "undefined" && rearrangeBtn) {
+            // Programmatically trigger the rearrange logic
+            rearrangeBtn.click();
+          }
         }
       });
     }
@@ -2262,6 +2283,55 @@ document.addEventListener("DOMContentLoaded", function () {
             separationFlag.value = `ST_${newNumber}_SEP`;
             separationFlag.id = `separation-flag-stage${newNumber}`;
           }
+
+          // ---- NEW: update motors-related IDs and coasting toggle ----
+          // Update "Number of Motors" input ID and its associated label
+          const oldMotorsInputId = `number-of-motors-${stage.stageId}`;
+          const motorsInputEl = stageForm.querySelector(`#${oldMotorsInputId}`);
+          if (motorsInputEl) {
+            const newMotorsInputId = `number-of-motors-stage${newNumber}`;
+            motorsInputEl.id = newMotorsInputId;
+            // Update label 'for'
+            const motorsLabels = stageForm.querySelectorAll(
+              `label[for='${oldMotorsInputId}']`
+            );
+            motorsLabels.forEach((lbl) =>
+              lbl.setAttribute("for", newMotorsInputId)
+            );
+          }
+
+          // Update Add Motors button ID and data attribute
+          const oldAddBtnId = `add-motors-btn-${stage.stageId}`;
+          const addMotorsBtnEl = stageForm.querySelector(`#${oldAddBtnId}`);
+          if (addMotorsBtnEl) {
+            const newAddBtnId = `add-motors-btn-stage${newNumber}`;
+            addMotorsBtnEl.id = newAddBtnId;
+            addMotorsBtnEl.dataset.stage = `stage${newNumber}`;
+          }
+
+          // Update coasting toggle ID and enforce disabled state for Stage 1 only
+          const oldCoastingToggleId = `coasting-toggle-${stage.stageId}`;
+          const coastingToggleEl = stageForm.querySelector(
+            `#${oldCoastingToggleId}`
+          );
+          if (coastingToggleEl) {
+            const newCoastingToggleId = `coasting-toggle-stage${newNumber}`;
+            coastingToggleEl.id = newCoastingToggleId;
+            // Update label 'for'
+            const coastLabels = stageForm.querySelectorAll(
+              `label[for='${oldCoastingToggleId}']`
+            );
+            coastLabels.forEach((lbl) =>
+              lbl.setAttribute("for", newCoastingToggleId)
+            );
+            if (newNumber === 1) {
+              coastingToggleEl.disabled = true;
+              coastingToggleEl.checked = false;
+            } else {
+              coastingToggleEl.disabled = false;
+            }
+          }
+          // ---- END NEW ----
 
           // Update click handler for the stage button
           stageBtn.onclick = function (event) {
@@ -2514,6 +2584,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
   */
+
+  // ===============================
+  // Sidebar Navigation Highlighting
+  // ===============================
+  const sidebarElement = document.querySelector(".sidebar");
+  if (sidebarElement) {
+    sidebarElement.addEventListener("click", function (e) {
+      const clickedLink = e.target.closest("a");
+      if (!clickedLink || !sidebarElement.contains(clickedLink)) return; // Not a sidebar link
+
+      // Remove active class from any previously active links
+      sidebarElement
+        .querySelectorAll("a.active")
+        .forEach((link) => link.classList.remove("active"));
+
+      // Add active class to the clicked link
+      clickedLink.classList.add("active");
+    });
+  }
 });
 
 // Vehicle Dynamic Field Display
