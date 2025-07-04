@@ -62,23 +62,21 @@ function addSteeringComponent(type, baseDisplayName) {
   const componentId = generateComponentId(type);
   let finalDisplayName;
 
-  // Create the desired display name format: Capitalized_Type_Name_Increment
+  // Use display names that match the HTML exactly, with spaces and numbering
+  const typeDisplayNames = {
+    verticalAscend: "Vertical Ascend",
+    pitchHold: "Zero Rate Hold",
+    constantPitch: "Constant Steering Rate",
+    gravityTurn: "Gravity Turn",
+    profile: "Profile",
+    coasting: "Coasting",
+  };
   const idParts = componentId.split("_");
-  const typeNamePart = idParts[0]; // e.g., "verticalAscend", "profile"
-  const numericPart = idParts.slice(1).join("_"); // e.g., "1" or could be empty if id has no underscore
-
-  // Convert typeNamePart from camelCase or single word to Capitalized_Words_With_Underscores
-  // e.g., "verticalAscend" -> "Vertical_Ascend"
-  // e.g., "profile" -> "Profile"
-  let formattedTypeName = typeNamePart
-    .replace(/([A-Z])/g, "_$1") // Insert underscore before caps: "vertical_Ascend" or "profile"
-    .toLowerCase() // "vertical_ascend" or "profile"
-    .split("_") // ["vertical", "ascend"] or ["profile"]
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // ["Vertical", "Ascend"] or ["Profile"]
-    .join("_"); // "Vertical_Ascend" or "Profile"
-
+  const typeNamePart = idParts[0];
+  const numericPart = idParts.slice(1).join("_");
+  let formattedTypeName = typeDisplayNames[typeNamePart] || typeNamePart;
   finalDisplayName = numericPart
-    ? `${formattedTypeName}_${numericPart}`
+    ? `${formattedTypeName} ${numericPart}`
     : formattedTypeName;
 
   // Create list item for the component
@@ -98,14 +96,25 @@ function addSteeringComponent(type, baseDisplayName) {
   });
   li.querySelector(".remove-component-btn").addEventListener("click", (e) => {
     e.stopPropagation();
-    removeSteeringComponent(componentId);
+    // SweetAlert2 confirmation before removal
+    Swal.fire({
+      title: "Remove Component?",
+      text: "Are you sure you want to remove this component? This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ff5252",
+      cancelButtonColor: "#23272a",
+      confirmButtonText: "Yes, remove it",
+      cancelButtonText: "Cancel",
+      background: "#23272a",
+      color: "#fff",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        removeSteeringComponent(componentId);
+      }
+    });
   });
   activeComponentsList.appendChild(li);
-
-  // Update component counter display in the UI
-  if (basicComponentTypes.includes(type)) {
-    updateComponentCounter(type);
-  }
 
   window.steeringState.activeComponents[componentId] = {
     id: componentId,
@@ -113,6 +122,11 @@ function addSteeringComponent(type, baseDisplayName) {
     displayName: finalDisplayName,
     config: createDefaultConfig(componentId, type),
   };
+
+  // Update component counter display in the UI
+  if (basicComponentTypes.includes(type)) {
+    updateComponentCounter(type);
+  }
 
   // Ensure dropdown update function exists before calling
   if (typeof updateSteeringReferenceDropdowns === "function") {
@@ -237,7 +251,7 @@ function createDefaultConfig(componentId, type) {
   const startFlag = `${flagPrefix}_START_${instanceNum}`;
   const stopFlag = `${flagPrefix}_STOP_${instanceNum}`;
 
-  return {
+  let defaultConfig = {
     start_identity: startFlag,
     start_trigger_type: "",
     start_trigger_value: "",
@@ -254,6 +268,21 @@ function createDefaultConfig(componentId, type) {
     isDirty: false, // Initialize dirty/saved state
     isSaved: false,
   };
+
+  // Ensure Vertical Ascend and Zero Rate Hold components default to Zero Rate steering (read-only in UI)
+  if (type === "verticalAscend" || type === "pitchHold") {
+    defaultConfig.steering_type = "zeroRate"; // Fixed, non-editable
+  } else if (type === "constantPitch") {
+    defaultConfig.steering_type = "constantBodyRate"; // Fixed for Constant Steering Rate
+  } else if (type === "gravityTurn") {
+    defaultConfig.steering_type = "clg"; // Fixed for Gravity Turn (Algorithm)
+  } else if (type === "profile") {
+    defaultConfig.steering_type = "profile"; // Fixed for Profile
+  } else if (type === "coasting") {
+    defaultConfig.steering_type = "constantBodyRate"; // Fixed for Coasting
+  }
+
+  return defaultConfig;
 }
 
 function selectSteeringComponent(componentId) {
@@ -1365,6 +1394,76 @@ class SteeringConfigHandler {
       '[data-field="steering_comment"]',
       config.steering_comment
     );
+
+    // --------- UI adjustment for Vertical Ascend & Zero Rate Hold ---------
+    (function enforceFixedZeroRateUI() {
+      const steeringTypeSelect = document.querySelector(
+        '[data-field="steering_type"]'
+      );
+      if (!steeringTypeSelect) return;
+
+      let fixedType = null;
+      let displayLabel = "";
+
+      if (
+        component.type === "verticalAscend" ||
+        component.type === "pitchHold"
+      ) {
+        fixedType = "zeroRate";
+        displayLabel = "Zero Rate";
+      } else if (component.type === "constantPitch") {
+        fixedType = "constantBodyRate";
+        displayLabel = "Constant Body Rate";
+      } else if (component.type === "gravityTurn") {
+        fixedType = "clg";
+        displayLabel = "Algorithm";
+      } else if (component.type === "profile") {
+        fixedType = "profile";
+        displayLabel = "Profile";
+      } else if (component.type === "coasting") {
+        fixedType = "constantBodyRate";
+        displayLabel = "Constant Body Rate";
+      }
+
+      if (fixedType) {
+        // Force value to fixedType to satisfy validation / saving
+        const prevVal = steeringTypeSelect.value;
+        steeringTypeSelect.value = fixedType;
+        steeringTypeSelect.style.display = "none";
+
+        // Create or update read-only display element
+        let readOnlyDisplay = document.getElementById("steering-type-readonly");
+        if (!readOnlyDisplay) {
+          readOnlyDisplay = document.createElement("input");
+          readOnlyDisplay.type = "text";
+          readOnlyDisplay.id = "steering-type-readonly";
+          readOnlyDisplay.className = "input-field";
+          readOnlyDisplay.readOnly = true;
+          // Insert just after the hidden select for layout consistency
+          steeringTypeSelect.parentNode.insertBefore(
+            readOnlyDisplay,
+            steeringTypeSelect.nextSibling
+          );
+        }
+        readOnlyDisplay.value = displayLabel;
+        readOnlyDisplay.style.display = "block";
+
+        // Trigger change event if the value was altered to ensure dynamic fields update (needed for constantBodyRate)
+        if (prevVal !== fixedType) {
+          steeringTypeSelect.dispatchEvent(
+            new Event("change", { bubbles: true })
+          );
+        }
+      } else {
+        // For all other component types restore default dropdown behaviour
+        const readOnlyDisplay = document.getElementById(
+          "steering-type-readonly"
+        );
+        if (readOnlyDisplay) readOnlyDisplay.style.display = "none";
+        steeringTypeSelect.style.display = "";
+      }
+    })();
+    // --------- End UI adjustment ---------
 
     // --- ADDED: Update CSV upload UI state based on component data ---
     const profileCsvFilename = document.getElementById("profile-csv-filename");

@@ -547,7 +547,7 @@ class FormValidator {
 
     // Payload and PLF validation
     const payloadMass = document.getElementById("payload-mass");
-    if (!payloadMass.value || payloadMass.value <= 0) {
+    if (payloadMass.value === "" || parseFloat(payloadMass.value) < 0) {
       this.showError(payloadMass, "Please enter a valid payload mass");
       isValid = false;
       errors.push("Valid payload mass is required");
@@ -556,7 +556,7 @@ class FormValidator {
     }
 
     const plfMass = document.getElementById("plf-mass");
-    if (!plfMass.value || plfMass.value <= 0) {
+    if (plfMass.value === "" || parseFloat(plfMass.value) < 0) {
       this.showError(plfMass, "Please enter a valid PLF mass");
       isValid = false;
       errors.push("Valid PLF mass is required");
@@ -628,7 +628,7 @@ class FormValidator {
     // Payload Mass validation
     const payloadMass = document.getElementById("payload-mass");
     this.validateOnInput(payloadMass, (field) => {
-      if (!field.value || field.value <= 0) {
+      if (field.value === "" || parseFloat(field.value) < 0) {
         this.showError(field, "Please enter a valid payload mass");
       } else {
         this.removeError(field);
@@ -638,7 +638,7 @@ class FormValidator {
     // PLF Mass validation
     const plfMass = document.getElementById("plf-mass");
     this.validateOnInput(plfMass, (field) => {
-      if (!field.value || field.value <= 0) {
+      if (field.value === "" || parseFloat(field.value) < 0) {
         this.showError(field, "Please enter a valid PLF mass");
       } else {
         this.removeError(field);

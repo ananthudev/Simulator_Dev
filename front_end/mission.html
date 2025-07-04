@@ -1157,6 +1157,7 @@
                     step="any"
                     id="payload-mass"
                     class="input-field"
+                    value="0"
                     placeholder="Enter payload mass"
                   />
                 </div>
@@ -1188,6 +1189,7 @@
                     step="any"
                     id="plf-mass"
                     class="input-field"
+                    value="0"
                     placeholder="Enter PLF mass"
                   />
                 </div>
@@ -1407,7 +1409,7 @@
                 <!-- Common Fields for All Event Types -->
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="label">Event Flag:</label>
+                    <label class="label">Event Flag</label>
                     <select class="input-field" id="event-flag">
                       <option value="" disabled selected>
                         Select Event Flag
@@ -1418,14 +1420,14 @@
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="label">Trigger Type:</label>
+                    <label class="label">Trigger Type</label>
                     <select class="input-field" id="trigger-type">
                       <option value="" disabled selected>
                         Select Trigger Type
                       </option>
-                      <option value="mission-time">Mission Time</option>
-                      <option value="phase-time">Phase Time</option>
-                      <option value="altitude">Altitude</option>
+                      <option value="mission-time">Mission Time (s)</option>
+                      <option value="phase-time">Phase Time (s)</option>
+                      <option value="altitude">Altitude (m)</option>
                     </select>
                   </div>
                   <div class="form-group">
@@ -1441,7 +1443,7 @@
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="label">Reference Flag:</label>
+                    <label class="label">Reference Flag</label>
                     <select class="input-field" id="dependent-event">
                       <option value="" disabled selected>
                         Select Reference Flag
@@ -1450,7 +1452,7 @@
                     </select>
                   </div>
                   <div class="form-group">
-                    <label class="label">Comment:</label>
+                    <label class="label">Comment</label>
                     <input
                       type="text"
                       class="input-field"
@@ -1480,7 +1482,7 @@
                       margin-bottom: 10px;
                     "
                   >
-                    <label class="label">Event Sequence:</label>
+                    <label class="label">Event Sequence</label>
                     <div
                       class="sequence-help-icon"
                       style="margin-left: 8px"
@@ -1567,7 +1569,7 @@
                     </button>
                   </li>
                   <li data-type="pitchHold">
-                    <span>Pitch Hold</span>
+                    <span>Zero Rate Hold</span>
                     <button
                       type="button"
                       class="add-component-btn"
@@ -1578,7 +1580,7 @@
                     </button>
                   </li>
                   <li data-type="constantPitch">
-                    <span>Constant Pitch Rate</span>
+                    <span>Constant Steering Rate</span>
                     <button
                       type="button"
                       class="add-component-btn"
@@ -1630,6 +1632,18 @@
                   <!-- Active components will be added here dynamically by JS -->
                   <!-- Example: <li class="active-component-item selected" data-component-id="profile_1"><span>Profile 1</span> <button class="remove-component-btn" title="Remove">×</button></li> -->
                 </ul>
+                <div
+                  class="active-components-help"
+                  style="
+                    font-size: 0.95em;
+                    color: #aaa;
+                    margin-top: 6px;
+                    margin-bottom: 10px;
+                  "
+                >
+                  Only components listed here are included in your mission.
+                  Click a component to configure it, or '×' to remove it.
+                </div>
               </aside>
 
               <!-- Right Panel: Configuration Area -->
@@ -1675,7 +1689,7 @@
                       <h4 class="tab-pane-title">Start Conditions</h4>
                       <div class="form-row">
                         <div class="form-group">
-                          <label class="label">Event Flag:</label>
+                          <label class="label">Event Flag</label>
                           <input
                             type="text"
                             class="input-field"
@@ -1684,23 +1698,27 @@
                           />
                         </div>
                         <div class="form-group">
-                          <label class="label">Trigger Type:</label>
+                          <label class="label">Trigger Type</label>
                           <select
                             class="input-field"
                             data-field="start_trigger_type"
                             required
                           >
                             <option value="">Select Type</option>
-                            <option value="PHASE_TIME">Phase Time</option>
-                            <option value="MISSION_TIME">Mission Time</option>
-                            <option value="PROFILE_TIME">Profile Time</option>
-                            <option value="altitude">Altitude</option>
+                            <option value="PHASE_TIME">Phase Time (s)</option>
+                            <option value="MISSION_TIME">
+                              Mission Time (s)
+                            </option>
+                            <option value="PROFILE_TIME">
+                              Profile Time (s)
+                            </option>
+                            <option value="altitude">Altitude (m)</option>
                           </select>
                         </div>
                       </div>
                       <div class="form-row">
                         <div class="form-group">
-                          <label class="label">Trigger Value:</label>
+                          <label class="label">Trigger Value</label>
                           <input
                             type="number"
                             step="any"
@@ -1710,7 +1728,7 @@
                           />
                         </div>
                         <div class="form-group">
-                          <label class="label">Reference Flag:</label>
+                          <label class="label">Reference Flag</label>
                           <select
                             class="input-field"
                             data-field="start_reference"
@@ -1721,7 +1739,7 @@
                       </div>
                       <div class="form-row">
                         <div class="form-group full-width">
-                          <label class="label">Comment:</label>
+                          <label class="label">Comment</label>
                           <input
                             type="text"
                             class="input-field"
@@ -1749,7 +1767,7 @@
                       <h4 class="tab-pane-title">Stop Conditions</h4>
                       <div class="form-row">
                         <div class="form-group">
-                          <label class="label">Event Flag:</label>
+                          <label class="label">Event Flag</label>
                           <input
                             type="text"
                             class="input-field"
@@ -1758,23 +1776,27 @@
                           />
                         </div>
                         <div class="form-group">
-                          <label class="label">Trigger Type:</label>
+                          <label class="label">Trigger Type</label>
                           <select
                             class="input-field"
                             data-field="stop_trigger_type"
                             required
                           >
                             <option value="">Select Type</option>
-                            <option value="PHASE_TIME">Phase Time</option>
-                            <option value="MISSION_TIME">Mission Time</option>
-                            <option value="PROFILE_TIME">Profile Time</option>
-                            <option value="altitude">Altitude</option>
+                            <option value="PHASE_TIME">Phase Time (s)</option>
+                            <option value="MISSION_TIME">
+                              Mission Time (s)
+                            </option>
+                            <option value="PROFILE_TIME">
+                              Profile Time (s)
+                            </option>
+                            <option value="altitude">Altitude (m)</option>
                           </select>
                         </div>
                       </div>
                       <div class="form-row">
                         <div class="form-group">
-                          <label class="label">Trigger Value:</label>
+                          <label class="label">Trigger Value </label>
                           <input
                             type="number"
                             step="any"
@@ -1784,7 +1806,7 @@
                           />
                         </div>
                         <div class="form-group">
-                          <label class="label">Reference Flag:</label>
+                          <label class="label">Reference Flag </label>
                           <select
                             class="input-field"
                             data-field="stop_reference"
@@ -1795,7 +1817,7 @@
                       </div>
                       <div class="form-row">
                         <div class="form-group full-width">
-                          <label class="label">Comment:</label>
+                          <label class="label">Comment </label>
                           <input
                             type="text"
                             class="input-field"
@@ -1823,7 +1845,7 @@
                       <h4 class="tab-pane-title">Steering Parameters</h4>
                       <div class="form-row">
                         <div class="form-group">
-                          <label class="label">Steering Type:</label>
+                          <label class="label">Steering Type </label>
                           <select
                             class="input-field"
                             data-field="steering_type"
@@ -1834,7 +1856,7 @@
                             <option value="constantBodyRate">
                               Constant Body Rate
                             </option>
-                            <option value="clg">CLG</option>
+                            <option value="clg">Algorithm</option>
                             <option value="profile">Profile</option>
                           </select>
                         </div>
@@ -1850,7 +1872,7 @@
                         >
                           <div class="form-row">
                             <div class="form-group">
-                              <label class="label">Axis:</label>
+                              <label class="label">Axis </label>
                               <select
                                 name="axis"
                                 class="input-field"
@@ -1863,7 +1885,7 @@
                               </select>
                             </div>
                             <div class="form-group">
-                              <label class="label">Value (deg/s):</label>
+                              <label class="label">Value (deg/s) </label>
                               <input
                                 type="number"
                                 step="any"
@@ -1884,7 +1906,7 @@
                         >
                           <div class="form-row">
                             <div class="form-group">
-                              <label class="label">Algorithm:</label>
+                              <label class="label">Algorithm</label>
                               <select
                                 name="algorithm"
                                 class="input-field clg-algorithm"
@@ -1909,7 +1931,7 @@
                             >
                               <div class="form-row">
                                 <div class="form-group">
-                                  <label class="label">Max QAOA:</label>
+                                  <label class="label">Max QAOA</label>
                                   <input
                                     type="number"
                                     step="any"
@@ -1920,7 +1942,7 @@
                                   />
                                 </div>
                                 <div class="form-group">
-                                  <label class="label">Alpha Time:</label>
+                                  <label class="label">Alpha Time</label>
                                   <input
                                     type="number"
                                     step="any"
@@ -1940,7 +1962,7 @@
                             >
                               <div class="form-row">
                                 <div class="form-group">
-                                  <label class="label">Pitch Gain:</label>
+                                  <label class="label">Pitch Gain</label>
                                   <input
                                     type="number"
                                     step="any"
@@ -1951,7 +1973,7 @@
                                   />
                                 </div>
                                 <div class="form-group">
-                                  <label class="label">Yaw Gain:</label>
+                                  <label class="label">Yaw Gain</label>
                                   <input
                                     type="number"
                                     step="any"
@@ -1974,7 +1996,7 @@
                         >
                           <div class="form-row">
                             <div class="form-group">
-                              <label class="label">Mode:</label>
+                              <label class="label">Mode</label>
                               <select
                                 name="mode"
                                 class="input-field"
@@ -1986,36 +2008,46 @@
                               </select>
                             </div>
                             <div class="form-group">
-                              <label class="label">Quantity:</label>
+                              <label class="label">Design Variable</label>
                               <select
                                 name="quantity"
                                 class="input-field"
                                 data-param="quantity"
                               >
-                                <option value="">Select Quantity</option>
-                                <option value="EULER_RATE">Euler Rate</option>
-                                <option value="BODY_RATE">Body Rate</option>
+                                <option value="">Select Design Variable</option>
+                                <option value="EULER_RATE">
+                                  Euler Rate(deg/s)
+                                </option>
+                                <option value="BODY_RATE">
+                                  Body Rate(deg/s)
+                                </option>
                                 <option value="QUATERNION">Quaternion</option>
-                                <option value="EULER_ANGLE">Euler Angle</option>
-                                <option value="BODY_ANGLE">Body Angle</option>
+                                <option value="EULER_ANGLE">
+                                  Euler Angle(deg)
+                                </option>
+                                <option value="BODY_ANGLE">
+                                  Body Angle(deg)
+                                </option>
                               </select>
                             </div>
                           </div>
                           <div class="form-row">
                             <div class="form-group">
-                              <label class="label">Independent Variable:</label>
+                              <label class="label">Independent Variable</label>
                               <select
                                 name="independentVar"
                                 class="input-field"
                                 data-param="independentVar"
                               >
                                 <option value="">Select Variable</option>
-                                <option value="PHASE_TIME">Phase Time</option>
+                                <option value="PHASE_TIME">
+                                  Phase Time (s)
+                                </option>
                                 <option value="PROFILE_TIME">
-                                  Profile Time
+                                  Profile Time (s)
                                 </option>
                                 <option value="MISSION_TIME">
-                                  Mission Time
+                                  Mission Time(s)
                                 </option>
                               </select>
                             </div>
@@ -2025,7 +2057,7 @@
                               <label
                                 for="profile-csv-upload"
                                 class="upload-label"
-                                >Upload Profile CSV:</label
+                                >Upload Profile CSV</label
                               >
                               <input
                                 type="file"
@@ -2076,7 +2108,7 @@
                       </div>
                       <div class="form-row">
                         <div class="form-group full-width">
-                          <label class="label">Comment:</label>
+                          <label class="label">Comment</label>
                           <input
                             type="text"
                             class="input-field"
@@ -2130,7 +2162,7 @@
             <div class="form-fields" style="min-height: 150px">
               <div class="form-row">
                 <div class="form-group">
-                  <label class="label">Stopping Criteria:</label>
+                  <label class="label">Stopping Criteria</label>
                   <div class="radio-group">
                     <input
                       type="radio"
@@ -2169,7 +2201,7 @@
                 "
               >
                 <div class="form-group" style="flex: 1; margin-right: 10px">
-                  <label for="flag-name" class="label">Flag Name:</label>
+                  <label for="flag-name" class="label">Flag Name</label>
                   <select
                     id="flag-name"
                     class="input-field"
@@ -2185,13 +2217,13 @@
                 <div class="form-group" style="flex: 1">
                   <label for="flag-condition" class="label">Condition:</label>
                   <select id="flag-condition" class="input-field">
-                    <option value="eq">EQ</option>
-                    <option value="lt">LT</option>
-                    <option value="gt">GT</option>
+                    <option value="eq">Equal To</option>
+                    <option value="lt">Less Than</option>
+                    <option value="gt">Greater Than</option>
                   </select>
                 </div>
                 <div class="form-group" style="flex: 1; margin-right: 10px">
-                  <label for="flag-value" class="label">Value:</label>
+                  <label for="flag-value" class="label">Value</label>
                   <input
                     type="number"
                     id="flag-value"
@@ -2212,7 +2244,7 @@
                 "
               >
                 <div class="form-group" style="flex: 1; margin-right: 10px">
-                  <label for="time-value" class="label">Value:</label>
+                  <label for="time-value" class="label">Value</label>
                   <input
                     type="number"
                     id="time-value"
@@ -2223,9 +2255,9 @@
                 <div class="form-group" style="flex: 1">
                   <label for="time-condition" class="label">Condition:</label>
                   <select id="time-condition" class="input-field">
-                    <option value="eq">EQ</option>
-                    <option value="lt">LT</option>
-                    <option value="gt">GT</option>
+                    <option value="eq">Equal To</option>
+                    <option value="lt">Less Than</option>
+                    <option value="gt">Greater Than</option>
                   </select>
                 </div>
                 <div class="form-group" style="flex: 1; visibility: hidden">
@@ -2244,7 +2276,7 @@
                 "
               >
                 <div class="form-group" style="flex: 1; margin-right: 10px">
-                  <label for="altitude-value" class="label">Value:</label>
+                  <label for="altitude-value" class="label">Value</label>
                   <input
                     type="number"
                     id="altitude-value"
@@ -2254,10 +2286,10 @@
                 </div>
                 <div class="form-group" style="flex: 1">
                   <label for="altitude-condition" class="label"
-                    >Condition:</label
+                    >Condition</label
                   >
                   <select id="altitude-condition" class="input-field">
-                    <option value="eq">EQ</option>
+                    <option value="eq">Equal To</option>
                     <option value="lt">LT</option>
                     <option value="gt">GT</option>
                   </select>
@@ -2358,7 +2390,7 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="label constraint-value-label">Value:</label>
+                  <label class="label constraint-value-label">Value</label>
                   <input
                     type="number"
                     step="any"
@@ -2369,27 +2401,27 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="label constraint-type-label">Type:</label>
+                  <label class="label constraint-type-label">Type</label>
                   <select class="input-field constraint-type">
                     <option value="" disabled selected>Select Type</option>
-                    <option value="EQUALITY">EQUALITY</option>
-                    <option value="INEQUALITY">INEQUALITY</option>
+                    <option value="EQUALITY">Equality</option>
+                    <option value="INEQUALITY">Inequality</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label class="label constraint-condition-label"
-                    >Condition:</label
+                    >Condition</label
                   >
                   <select class="input-field constraint-condition">
                     <option value="" disabled selected>Select Condition</option>
-                    <option value="GREATER_THAN">GREATER_THAN</option>
-                    <option value="LESS_THAN">LESS_THAN</option>
+                    <option value="GREATER_THAN">Greater Than</option>
+                    <option value="LESS_THAN">Less Than</option>
                   </select>
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group" style="flex: 0.7">
-                  <label class="label constraint-flag-label">Flag:</label>
+                  <label class="label constraint-flag-label">Flag</label>
                   <select
                     class="input-field constraint-flag reference-dropdown"
                   >
@@ -2399,7 +2431,7 @@
                   </select>
                 </div>
                 <div class="form-group" style="flex: 0.3">
-                  <label class="label">Enable:</label>
+                  <label class="label">Enable</label>
                   <div
                     class="toggle-container"
                     style="display: flex; align-items: center; height: 38px"
@@ -2436,7 +2468,7 @@
                   <label
                     class="label constraint-tolerance-label"
                     for="constraint-tolerance"
-                    >Tolerance:</label
+                    >Tolerance</label
                   >
                   <input
                     type="number"
@@ -2486,7 +2518,7 @@
             <h2 class="section-title">Optimization Mode Configuration</h2>
             <div class="form-row">
               <div class="form-group">
-                <label class="label">Choose Mode:</label>
+                <label class="label">Choose Mode</label>
                 <div class="radio-group">
                   <input
                     type="radio"
@@ -2513,7 +2545,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="normal-algorithm" class="label"
-                    >Optimizer Algorithm:</label
+                    >Optimizer Algorithm</label
                   >
                   <div style="display: flex; align-items: center">
                     <select id="normal-algorithm" class="input-field">
@@ -2549,7 +2581,7 @@
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="label">Map:</label>
+                  <label class="label">Map</label>
                   <div class="input-group">
                     <input
                       type="number"
@@ -2580,7 +2612,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="normal-population" class="label"
-                    >Population:</label
+                    >Population</label
                   >
                   <input
                     type="number"
@@ -2591,7 +2623,7 @@
                 </div>
                 <div class="form-group">
                   <label for="normal-set-population" class="label"
-                    >Set Population:</label
+                    >Set Population</label
                   >
                   <div class="toggle-container">
                     <input
@@ -2610,7 +2642,7 @@
               <div class="form-row" id="normal-upload-row">
                 <div class="form-group upload-data">
                   <label for="normal-csv-upload" class="upload-label"
-                    >Upload Initial Control Variable CSV:</label
+                    >Upload Initial Control Variable CSV</label
                   >
                   <input
                     type="file"
@@ -2647,7 +2679,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="normal-problem-strategy" class="label"
-                    >Problem Strategy:</label
+                    >Problem Strategy</label
                   >
                   <select id="normal-problem-strategy" class="input-field">
                     <option value="" disabled selected>
@@ -2673,7 +2705,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="archipelago-algorithm" class="label"
-                    >Algorithms:<span
+                    >Algorithms<span
                       class="sequence-help-icon"
                       style="
                         display: inline-block;
@@ -2745,7 +2777,7 @@
                 </div>
                 <div class="form-group">
                   <label for="archipelago-topology" class="label"
-                    >Topology:</label
+                    >Topology</label
                   >
                   <select id="archipelago-topology" class="input-field">
                     <option value="Fully Connected">Fully Connected</option>
@@ -2757,7 +2789,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="archipelago-migration-type" class="label"
-                    >Migration Type:</label
+                    >Migration Type</label
                   >
                   <select id="archipelago-migration-type" class="input-field">
                     <option value="Broadcast">Broadcast</option>
@@ -2766,7 +2798,7 @@
                 </div>
                 <div class="form-group">
                   <label for="archipelago-migration-handling" class="label"
-                    >Migration Handling:</label
+                    >Migration Handling</label
                   >
                   <select
                     id="archipelago-migration-handling"
@@ -2779,7 +2811,7 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="label">Map:</label>
+                  <label class="label">Map</label>
                   <div class="input-group">
                     <input
                       type="number"
@@ -2801,7 +2833,7 @@
                 </div>
                 <div class="form-group">
                   <label for="archipelago-population" class="label"
-                    >Population:</label
+                    >Population</label
                   >
                   <input
                     type="number"
@@ -2814,7 +2846,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="archipelago-set-population" class="label"
-                    >Set Population:</label
+                    >Set Population</label
                   >
                   <div class="toggle-container">
                     <input
@@ -2834,7 +2866,7 @@
                   id="archipelago-upload-group"
                 >
                   <label for="archipelago-csv-upload" class="upload-label"
-                    >Upload Initial Control Variable CSV:</label
+                    >Upload Initial Control Variable CSV</label
                   >
                   <input
                     type="file"
@@ -2911,7 +2943,7 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label class="label dv-category-label">Category:</label>
+                  <label class="label dv-category-label">Category</label>
                   <select class="input-field dv-category">
                     <option value="" disabled selected>Select Category</option>
                     <option value="CUT_OFF">Cut Off</option>
@@ -2923,7 +2955,7 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="label dv-name-label">Name:</label>
+                  <label class="label dv-name-label">Name</label>
                   <input type="text" class="input-field dv-name" />
                 </div>
               </div>
@@ -3039,7 +3071,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label class="label dv-category-label">Category:</label>
+            <label class="label dv-category-label">Category</label>
             <select class="input-field dv-category">
               <option value="" disabled selected>Select Category</option>
               <option value="CUT_OFF">Cut Off</option>
@@ -3051,7 +3083,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="label dv-name-label">Name:</label>
+            <label class="label dv-name-label">Name</label>
             <input type="text" class="input-field dv-name" />
           </div>
         </div>
@@ -3091,7 +3123,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label">Lower Bound:</label>
+                <label class="label dv-lower-bound-label">Lower Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3100,7 +3132,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label">Upper Bound:</label>
+                <label class="label dv-upper-bound-label">Upper Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3116,7 +3148,7 @@
             <div class="form-row">
               <div class="form-group full-width">
                 <label class="label dv-control-variable-label"
-                  >Control Variable:</label
+                  >Control Variable</label
                 >
                 <select class="input-field dv-control-variable">
                   <option value="" disabled selected>
@@ -3128,7 +3160,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label">Lower Bound:</label>
+                <label class="label dv-lower-bound-label">Lower Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3137,7 +3169,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label">Upper Bound:</label>
+                <label class="label dv-upper-bound-label">Upper Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3153,7 +3185,7 @@
             <div class="form-row">
               <div class="form-group full-width">
                 <label class="label dv-control-variable-label"
-                  >Control Variable:</label
+                  >Control Variable</label
                 >
                 <select class="input-field dv-control-variable">
                   <option value="" disabled selected>
@@ -3165,7 +3197,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label">Lower Bound:</label>
+                <label class="label dv-lower-bound-label">Lower Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3174,7 +3206,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label">Upper Bound:</label>
+                <label class="label dv-upper-bound-label">Upper Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3189,7 +3221,7 @@
           <div class="dv-category-fields hidden" data-category="SEQUENCE">
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-flag-label">Flag:</label>
+                <label class="label dv-flag-label">Flag</label>
                 <select class="input-field dv-flag reference-dropdown">
                   <option value="" disabled selected>Select Flag</option>
                   <!-- Options populated by JS -->
@@ -3197,7 +3229,7 @@
               </div>
               <div class="form-group">
                 <label class="label dv-control-variable-label"
-                  >Control Variable:</label
+                  >Control Variable</label
                 >
                 <select class="input-field dv-control-variable">
                   <option value="" disabled selected>
@@ -3209,7 +3241,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label">Lower Bound:</label>
+                <label class="label dv-lower-bound-label">Lower Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3218,7 +3250,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label">Upper Bound:</label>
+                <label class="label dv-upper-bound-label">Upper Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3233,7 +3265,7 @@
           <div class="dv-category-fields hidden" data-category="PROPULSION">
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-segment-label">Segment:</label>
+                <label class="label dv-segment-label">Segment</label>
                 <select class="input-field dv-segment reference-dropdown">
                   <option value="" disabled selected>Select Segment</option>
                   <!-- Options populated by JS -->
@@ -3241,7 +3273,7 @@
               </div>
               <div class="form-group">
                 <label class="label dv-control-variable-label"
-                  >Control Variable:</label
+                  >Control Variable</label
                 >
                 <select class="input-field dv-control-variable">
                   <option value="" disabled selected>
@@ -3253,7 +3285,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-lower-bound-label">Lower Bound:</label>
+                <label class="label dv-lower-bound-label">Lower Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3262,7 +3294,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="label dv-upper-bound-label">Upper Bound:</label>
+                <label class="label dv-upper-bound-label">Upper Bound</label>
                 <input
                   type="number"
                   step="any"
@@ -3277,7 +3309,7 @@
           <div class="dv-category-fields hidden" data-category="STEERING">
             <div class="form-row">
               <div class="form-group">
-                <label class="label dv-segment-label">Segment:</label>
+                <label class="label dv-segment-label">Segment</label>
                 <select class="input-field dv-segment reference-dropdown">
                   <option value="" disabled selected>
                     Select Steering Segment
@@ -3286,7 +3318,7 @@
                 </select>
               </div>
               <div class="form-group">
-                <label class="label dv-segment-type-label">Segment Type:</label>
+                <label class="label dv-segment-type-label">Segment Type</label>
                 <select class="input-field dv-segment-type">
                   <option value="" disabled selected>Select Type</option>
                   <option value="CLG">CLG</option>
@@ -3307,7 +3339,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="label dv-control-variable-label"
-                      >Control Variable:</label
+                      >Control Variable</label
                     >
                     <select class="input-field dv-control-variable">
                       <option value="" disabled selected>
@@ -3319,7 +3351,7 @@
                 </div>
                 <!-- New Axis Selection Checkboxes for CLG -->
                 <div class="form-group dv-axis-checkbox-group">
-                  <label class="label">Axes (Select at least one):</label>
+                  <label class="label">Axes (Select at least one)</label>
                   <div class="axis-checkboxes">
                     <label
                       ><input
@@ -3367,7 +3399,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="label dv-control-variable-label"
-                      >Control Variable:</label
+                      >Control Variable</label
                     >
                     <select class="input-field dv-control-variable">
                       <option value="" disabled selected>
@@ -3381,7 +3413,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="label dv-lower-bound-label"
-                      >Lower Bound:</label
+                      >Lower Bound</label
                     >
                     <input
                       type="number"
@@ -3394,7 +3426,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="label dv-upper-bound-label"
-                      >Upper Bound:</label
+                      >Upper Bound</label
                     >
                     <input
                       type="number"
@@ -3414,7 +3446,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="label dv-control-variable-label"
-                      >Control Variable(s):</label
+                      >Control Variable(s)</label
                     >
                     <div class="control-variable-checkboxes">
                       <label
@@ -3462,7 +3494,7 @@
                 </div>
                 <!-- New Axis Selection Checkboxes -->
                 <div class="form-group dv-axis-checkbox-group">
-                  <label class="label">Axes (Select at least one):</label>
+                  <label class="label">Axes (Select at least one)</label>
                   <div class="axis-checkboxes">
                     <label
                       ><input
@@ -3510,7 +3542,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="label dv-control-variable-label"
-                      >Control Variable:</label
+                      >Control Variable</label
                     >
                     <select class="input-field dv-control-variable">
                       <option value="" disabled selected>
@@ -3522,7 +3554,7 @@
                 </div>
                 <!-- New Axis Selection Checkboxes -->
                 <div class="form-group dv-axis-checkbox-group">
-                  <label class="label">Axes (Select at least one):</label>
+                  <label class="label">Axes (Select at least one)</label>
                   <div class="axis-checkboxes">
                     <label
                       ><input
@@ -3563,7 +3595,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="label dv-ind-variable-label"
-                      >Independent Variable:</label
+                      >Independent Variable</label
                     >
                     <select class="input-field dv-ind-variable">
                       <option value="" disabled selected>Select Var</option>
@@ -3574,7 +3606,7 @@
                   </div>
                   <div class="form-group">
                     <label class="label dv-ind-vector-label"
-                      >Independent Vector Node(s):</label
+                      >Independent Vector Node(s)</label
                     >
                     <input
                       type="text"
@@ -3619,7 +3651,7 @@
         <div id="edit-event-form">
           <div class="form-row">
             <div class="form-group">
-              <label class="label">Event Flag:</label>
+              <label class="label">Event Flag</label>
               <input
                 type="text"
                 class="input-field"
@@ -3631,7 +3663,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="label">Trigger Type:</label>
+              <label class="label">Trigger Type</label>
               <select class="input-field" id="edit-trigger-type">
                 <option value="" disabled>Select Trigger Type</option>
                 <option value="mission-time">Mission Time</option>
@@ -3640,7 +3672,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="label">Trigger Value:</label>
+              <label class="label">Trigger Value</label>
               <input
                 type="number"
                 class="input-field"
@@ -3652,13 +3684,13 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="label">Reference Flag:</label>
+              <label class="label">Reference Flag</label>
               <select class="input-field" id="edit-dependent-event">
                 <option value="none">None</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="label">Comment:</label>
+              <label class="label">Comment</label>
               <input
                 type="text"
                 class="input-field"
@@ -3703,7 +3735,7 @@
           <!-- File Selection -->
           <div class="form-row">
             <div class="form-group">
-              <label class="label">Select Binary File:</label>
+              <label class="label">Select Binary File</label>
               <input
                 type="file"
                 id="bin-file-input"
@@ -3727,7 +3759,7 @@
             class="plot-categories"
             style="display: none"
           >
-            <h4>Select Plots to Generate:</h4>
+            <h4>Select Plots to Generate</h4>
             <div class="plot-tree">
               <!-- This will be populated by JavaScript -->
             </div>

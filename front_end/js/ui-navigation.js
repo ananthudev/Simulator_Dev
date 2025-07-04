@@ -2611,6 +2611,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const dataOptions = document.getElementById("data-options");
   const orbitalOptions = document.getElementById("orbital-options");
 
+  // Payload sections (to be toggled based on vehicle type)
+  const payloadSection = document.getElementById("payload-section");
+  const payloadFairingSection = document.getElementById(
+    "payload-fairing-section"
+  );
+
   // Fields for ASCEND and PROJECTILE
   const stateFields = document.getElementById("state-fields");
   const launchFieldsAscend = document.getElementById("launch-fields-ascend");
@@ -2663,10 +2669,22 @@ document.addEventListener("DOMContentLoaded", function () {
   vehicleType.addEventListener("change", function () {
     resetFields(); // Reset fields when dropdown changes
 
+    // Toggle ASCEND / PROJECTILE specific groups
     if (vehicleType.value === "ascend" || vehicleType.value === "projectile") {
       dataOptions.classList.remove("hidden");
     } else if (vehicleType.value === "orbital") {
       orbitalOptions.classList.remove("hidden");
+    }
+
+    // Toggle Payload sections visibility
+    if (vehicleType.value === "ascend") {
+      // Show payload details for ASCEND
+      payloadSection?.classList.remove("hidden");
+      payloadFairingSection?.classList.remove("hidden");
+    } else {
+      // Hide for ORBITAL and PROJECTILE
+      payloadSection?.classList.add("hidden");
+      payloadFairingSection?.classList.add("hidden");
     }
   });
 
@@ -2708,4 +2726,10 @@ document.addEventListener("DOMContentLoaded", function () {
     resetOrbitalFields();
     if (elementsOrbital.checked) elementsFields.classList.remove("hidden");
   });
+
+  // Initialize visibility based on default/initial vehicle type value
+  if (vehicleType) {
+    // Manually trigger change handler once to apply correct visibility
+    vehicleType.dispatchEvent(new Event("change"));
+  }
 });
